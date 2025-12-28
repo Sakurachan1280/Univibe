@@ -33,25 +33,25 @@
 
 💡 LỢI ÍCH
 
--- Nghe nhạc thông minh: AI luôn hiểu bạn muốn gì.
+- Nghe nhạc thông minh: AI luôn hiểu bạn muốn gì.
 
--- Kết nối bạn bè: Chia sẻ âm nhạc và trò chuyện mọi lúc.
+- Kết nối bạn bè: Chia sẻ âm nhạc và trò chuyện mọi lúc.
 
--- Khám phá nhạc mới: Đề xuất chính xác dựa trên thói quen và gu của bạn.
+- Khám phá nhạc mới: Đề xuất chính xác dựa trên thói quen và gu của bạn.
 
 🛠️ CÔNG NGHỆ SỬ DỤNG
 
--- Frontend: React Native, Expo
+- Frontend: React Native, Expo
 
--- Backend: Node.js, Express
+- Backend: Node.js, Express
 
--- Database: MongoDB
+- Database: MongoDB
 
--- AI & Machine Learning: Python (thu thập hành vi người dùng, dự đoán gu âm nhạc)
+- AI & Machine Learning: Python (thu thập hành vi người dùng, dự đoán gu âm nhạc)
 
--- Realtime Chat: Socket.io
+- Realtime Chat: Socket.io
 
--- Music API Integration: Spotify API / YouTube API
+- Music API Integration: Spotify API / YouTube API
 
 ## Thành Viên
 - **Phạm Nguyễn Bá Minh** - 2274801030088
