@@ -5,31 +5,31 @@
 ✨ TÍNH NĂNG NỔI BẬT
  ### 1. AI DỰ ĐOÁN GU ÂM NHẠC
 
-Ứng dụng của chúng tôi được tích hợp trí tuệ nhân tạo (AI), giúp hiểu hành vi nghe nhạc của người dùng:
+- Ứng dụng của chúng tôi được tích hợp trí tuệ nhân tạo (AI), giúp hiểu hành vi nghe nhạc của người dùng:
 
-Theo dõi thói quen nghe nhạc: AI nhận biết khi người dùng dừng, nghe lại hoặc quay lại các bài hát đã nghe.
+- Theo dõi thói quen nghe nhạc: AI nhận biết khi người dùng dừng, nghe lại hoặc quay lại các bài hát đã nghe.
 
-Đề xuất bài hát thông minh: Từ dữ liệu đó, AI sẽ gợi ý các bài hát cùng ca sĩ hoặc cùng gu thể loại, giúp trải nghiệm nghe nhạc trở nên cá nhân hóa và thú vị hơn.
+- Đề xuất bài hát thông minh: Từ dữ liệu đó, AI sẽ gợi ý các bài hát cùng ca sĩ hoặc cùng gu thể loại, giúp trải nghiệm nghe nhạc trở nên cá nhân hóa và thú vị hơn.
 
-Học và thích nghi: Mỗi lần bạn sử dụng Spotichat, AI sẽ học thêm về sở thích âm nhạc của bạn để đề xuất ngày càng chính xác hơn.
+- Học và thích nghi: Mỗi lần bạn sử dụng Spotichat, AI sẽ học thêm về sở thích âm nhạc của bạn để đề xuất ngày càng chính xác hơn.
 
 ### 2. CHAT & GỬI LINK NHẠC
 
-Spotichat không chỉ là nghe nhạc mà còn là nơi kết nối mọi người:
+- Spotichat không chỉ là nghe nhạc mà còn là nơi kết nối mọi người:
 
-Trò chuyện trực tiếp: Chat với bạn bè ngay trong ứng dụng.
+- Trò chuyện trực tiếp: Chat với bạn bè ngay trong ứng dụng.
 
-Chia sẻ bài hát: Gửi link nhạc trực tiếp khi bạn thấy bài hát hay hoặc mới, giúp bạn bè dễ dàng thưởng thức cùng.
+- Chia sẻ bài hát: Gửi link nhạc trực tiếp khi bạn thấy bài hát hay hoặc mới, giúp bạn bè dễ dàng thưởng thức cùng.
 
-Tương tác xã hội: Nhận phản hồi từ bạn bè về các bài hát bạn gửi và cùng khám phá âm nhạc mới.
+- Tương tác xã hội: Nhận phản hồi từ bạn bè về các bài hát bạn gửi và cùng khám phá âm nhạc mới.
 
 ### 3. TRẢI NGHIỆM NGƯỜI DÙNG
 
-Giao diện thân thiện, hiện đại và dễ sử dụng.
+- Giao diện thân thiện, hiện đại và dễ sử dụng.
 
-Tích hợp danh sách phát cá nhân và cộng đồng, giúp bạn tổ chức và khám phá âm nhạc thuận tiện.
+- Tích hợp danh sách phát cá nhân và cộng đồng, giúp bạn tổ chức và khám phá âm nhạc thuận tiện.
 
-Tối ưu hóa trải nghiệm đa nền tảng: Ứng dụng chạy mượt trên Android và iOS.
+- Tối ưu hóa trải nghiệm đa nền tảng: Ứng dụng chạy mượt trên Android và iOS.
 
 💡 LỢI ÍCH
 
