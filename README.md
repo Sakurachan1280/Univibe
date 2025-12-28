@@ -1,4 +1,4 @@
-🎵 SPOTICHAT - KẾT NỐI ÂM NHẠC VÀ TRÒ CHUYỆN THÔNG MINH 🎵
+# 🎵 SPOTICHAT - KẾT NỐI ÂM NHẠC VÀ TRÒ CHUYỆN THÔNG MINH 🎵 #
 
 Spotichat là một ứng dụng âm nhạc độc đáo, kết hợp trải nghiệm nghe nhạc tuyệt vời với tính năng trò chuyện thông minh. Dự án được thiết kế để cá nhân hóa trải nghiệm âm nhạc của người dùng và mang đến niềm vui khi chia sẻ âm nhạc với bạn bè.
 
