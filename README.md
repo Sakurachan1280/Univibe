@@ -1,9 +1,9 @@
 # 🎵 SPOTICHAT - KẾT NỐI ÂM NHẠC VÀ TRÒ CHUYỆN THÔNG MINH 🎵 #
 
-Spotichat là một ứng dụng âm nhạc độc đáo, kết hợp trải nghiệm nghe nhạc tuyệt vời với tính năng trò chuyện thông minh. Dự án được thiết kế để cá nhân hóa trải nghiệm âm nhạc của người dùng và mang đến niềm vui khi chia sẻ âm nhạc với bạn bè.
+## Spotichat là một ứng dụng âm nhạc độc đáo, kết hợp trải nghiệm nghe nhạc tuyệt vời với tính năng trò chuyện thông minh. Dự án được thiết kế để cá nhân hóa trải nghiệm âm nhạc của người dùng và mang đến niềm vui khi chia sẻ âm nhạc với bạn bè.
 
 ✨ TÍNH NĂNG NỔI BẬT
- 1. AI DỰ ĐOÁN GU ÂM NHẠC
+ ### 1. AI DỰ ĐOÁN GU ÂM NHẠC
 
 Ứng dụng của chúng tôi được tích hợp trí tuệ nhân tạo (AI), giúp hiểu hành vi nghe nhạc của người dùng:
 
@@ -13,7 +13,7 @@ Theo dõi thói quen nghe nhạc: AI nhận biết khi người dùng dừng, ng
 
 Học và thích nghi: Mỗi lần bạn sử dụng Spotichat, AI sẽ học thêm về sở thích âm nhạc của bạn để đề xuất ngày càng chính xác hơn.
 
-2. CHAT & GỬI LINK NHẠC
+### 2. CHAT & GỬI LINK NHẠC
 
 Spotichat không chỉ là nghe nhạc mà còn là nơi kết nối mọi người:
 
@@ -23,7 +23,7 @@ Chia sẻ bài hát: Gửi link nhạc trực tiếp khi bạn thấy bài hát 
 
 Tương tác xã hội: Nhận phản hồi từ bạn bè về các bài hát bạn gửi và cùng khám phá âm nhạc mới.
 
-3. TRẢI NGHIỆM NGƯỜI DÙNG
+### 3. TRẢI NGHIỆM NGƯỜI DÙNG
 
 Giao diện thân thiện, hiện đại và dễ sử dụng.
 
