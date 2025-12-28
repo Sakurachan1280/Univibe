@@ -25,8 +25,10 @@
 
 ### 3. TRẢI NGHIỆM NGƯỜI DÙNG
 
-- Giao diện thân thiện, hiện đại và dễ sử dụng.
+- Giao diện thân thiện, hiện đại và dễ sử dụng.\
+ 
 - Tích hợp danh sách phát cá nhân và cộng đồng, giúp bạn tổ chức và khám phá âm nhạc thuận tiện.
+
 - Tối ưu hóa trải nghiệm đa nền tảng: Ứng dụng chạy mượt trên Android và iOS.
 
 💡 LỢI ÍCH
@@ -50,3 +52,7 @@ AI & Machine Learning: Python (thu thập hành vi người dùng, dự đoán g
 Realtime Chat: Socket.io
 
 Music API Integration: Spotify API / YouTube API
+
+## Thành Viên
+- **Phạm Nguyễn Bá Minh** - 2274801030088
+- **Lý Khoa Đăng** - 2274801030034
