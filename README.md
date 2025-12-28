@@ -25,7 +25,7 @@
 
 ### 3. TRẢI NGHIỆM NGƯỜI DÙNG
 
-- Giao diện thân thiện, hiện đại và dễ sử dụng.\
+- Giao diện thân thiện, hiện đại và dễ sử dụng.
  
 - Tích hợp danh sách phát cá nhân và cộng đồng, giúp bạn tổ chức và khám phá âm nhạc thuận tiện.
 
