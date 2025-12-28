@@ -15,7 +15,7 @@
 
 ### 2. CHAT & GỬI LINK NHẠC
 
-- Spotichat không chỉ là nghe nhạc mà còn là nơi kết nối mọi người:
+- Spotichat không chỉ là nghe nhạc mà còn là nơi kết nối mọi người
 
 - Trò chuyện trực tiếp: Chat với bạn bè ngay trong ứng dụng.
 
@@ -26,9 +26,7 @@
 ### 3. TRẢI NGHIỆM NGƯỜI DÙNG
 
 - Giao diện thân thiện, hiện đại và dễ sử dụng.
-
 - Tích hợp danh sách phát cá nhân và cộng đồng, giúp bạn tổ chức và khám phá âm nhạc thuận tiện.
-
 - Tối ưu hóa trải nghiệm đa nền tảng: Ứng dụng chạy mượt trên Android và iOS.
 
 💡 LỢI ÍCH
