@@ -5,19 +5,9 @@ import { useAppNavigation } from "../../navigation/useAppNavigation";
 import { Ionicons } from "@expo/vector-icons";
 
 
+
 export default function SignIn() {
   const navigation = useAppNavigation();
-  const goToSignUp = () => {
-    if (navigation.canGoBack()) {
-    // ĐÃ mở SignIn từ screen khác (Welcome / SignUp)
-      navigation.goBack();
-    } else {
-      // SignIn là screen đầu tiên → tạo mới SignUp
-      navigation.navigate("SignUp");
-    }
-};
-
-
   return (
     <SafeAreaView className="flex-1 bg-black px-6">
 
@@ -60,7 +50,7 @@ export default function SignIn() {
         <Text className="text-white text-xl text-center mt-3 font-bold">
           Bạn chưa có tài khoản?
         </Text>
-        <TouchableOpacity className="self-center" activeOpacity={0.5} onPress={{goToSignUp}}>
+        <TouchableOpacity className="self-center" activeOpacity={0.5} onPress={() => navigation.navigate("SignUp")}>
             <Text className="text-white">Đăng ký</Text>
         </TouchableOpacity>
       </View> 

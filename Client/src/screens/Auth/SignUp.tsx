@@ -3,10 +3,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
 import { Ionicons } from "@expo/vector-icons";
 
-
 export default function SignUp() {
   const navigation = useAppNavigation();
-
   return (
     <SafeAreaView className="flex-1 bg-black px-6">
       <View className="flex-1 items-center justify-center">
@@ -36,7 +34,7 @@ export default function SignUp() {
           </TouchableOpacity>
 
           <Text className="text-white text-xl text-center mt-5 font-bold">Bạn đã có tài khoản?</Text>
-            <TouchableOpacity className="self-center" activeOpacity={0.5} onPress={()=> navigation.goBack()}>
+            <TouchableOpacity className="self-center" activeOpacity={0.5} onPress={() => navigation.navigate("SignIn")}>
               <Text className="text-white mt-4">Đăng nhập</Text>
           </TouchableOpacity>
       </View>
