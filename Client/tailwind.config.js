@@ -3,6 +3,7 @@ module.exports = {
   // NOTE: Update this to include the paths to all files that contain Nativewind classes.
   content: ["./App.tsx", "./components/**/*.{js,jsx,ts,tsx} ", "./src/**/*.{js,ts,jsx,tsx}",],
   presets: [require("nativewind/preset")],
+  darkMode: "class",
   theme: {
     extend: {},
   },

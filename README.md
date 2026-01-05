@@ -23,6 +23,8 @@
 
 - Tương tác xã hội: Nhận phản hồi từ bạn bè về các bài hát bạn gửi và cùng khám phá âm nhạc mới.
 
+- Tạo phòng nghe nhạc chung: Nếu bạn bè đều muốn nghe một bài thì tạo một phòng nhỏ rồi phát nhạc chung.
+
 ### 3. TRẢI NGHIỆM NGƯỜI DÙNG
 
 - Giao diện thân thiện, hiện đại và dễ sử dụng.
@@ -37,7 +39,7 @@
 
 - Kết nối bạn bè: Chia sẻ âm nhạc và trò chuyện mọi lúc.
 
-- Khám phá nhạc mới: Đề xuất chính xác dựa trên thói quen và gu của bạn.
+- Khám phá nhạc mới: Đề xuất chính xác dựa trên thói quen và gu âm nhạc của bạn.
 
 🛠️ CÔNG NGHỆ SỬ DỤNG
 
