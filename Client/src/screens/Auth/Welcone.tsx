@@ -5,6 +5,7 @@ import { useAppNavigation } from "../../navigation/useAppNavigation";
 
 
 
+
 export default function Login() {
    const navigation = useAppNavigation();
 
@@ -41,6 +42,9 @@ export default function Login() {
           </View>
         </TouchableOpacity>
       </View>
+            <TouchableOpacity className="self-center" activeOpacity={0.5} onPress={() => navigation.navigate("MainTabs")}>
+              <Text className="text-white mt-4">Đăng nhập</Text>
+          </TouchableOpacity>
 
     </SafeAreaView>
   );
