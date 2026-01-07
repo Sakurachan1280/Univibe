@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
-
+import { CommonActions, useNavigation } from "@react-navigation/native";
 
 
 
@@ -42,10 +42,10 @@ export default function Login() {
           </View>
         </TouchableOpacity>
       </View>
-            <TouchableOpacity className="self-center" activeOpacity={0.5} onPress={() => navigation.navigate("MainTabs")}>
-              <Text className="text-white mt-4">Đăng nhập</Text>
-          </TouchableOpacity>
-
+            
+        <TouchableOpacity className="self-center" activeOpacity={0.5} onPress={() => navigation.dispatch( CommonActions.reset({index: 0,routes: [{ name: "MainTabs" }],}))}>
+          <Text className="text-white mt-4">Đăng nhập</Text>
+        </TouchableOpacity>
     </SafeAreaView>
   );
 }
