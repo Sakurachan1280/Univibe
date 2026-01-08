@@ -9,7 +9,7 @@ export default function LogInEmail() {
   return (
     <SafeAreaView className="flex-1 bg-black px-5">
 
-      <TouchableOpacity className="mt-2 w-10 h-10 justify-center" activeOpacity={0.5} onPress={() => navigation.navigate("SignIn")}>
+      <TouchableOpacity className="mt-2 w-10 h-10 justify-center" activeOpacity={0.5} onPress={() => navigation.goBack()}>
         <Ionicons name="chevron-back" size={28} color="white" />
       </TouchableOpacity>
 
