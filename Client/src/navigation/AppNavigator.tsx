@@ -5,8 +5,10 @@ import Login from "../screens/Auth/Welcone";
 import SignIn from "../screens/Auth/SignIn";
 import SignUp from "../screens/Auth/SignUp";
 import MainTabNavigator from "./MainTabs";
+import LogInSDT from "../screens/Auth/LogInSDT";
 
 import { RootStackParamList } from "./types";
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -17,6 +19,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="SignIn" component={SignIn} />
         <Stack.Screen name="SignUp" component={SignUp} />
+        <Stack.Screen name="LoginSDT" component={LogInSDT} />
         <Stack.Screen name="MainTabs" component={MainTabNavigator} />
       </Stack.Navigator>
     </NavigationContainer>

@@ -3,6 +3,7 @@ export type RootStackParamList = {
   SignIn: undefined;
   SignUp: undefined;
   MainTabs: undefined;
+  LoginSDT: undefined;
 };
 export type MainTabParamList = {
   Home: undefined;

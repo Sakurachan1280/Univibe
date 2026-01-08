@@ -31,7 +31,7 @@ export default function SignIn() {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity activeOpacity={0.5} onPress={() => navigation.navigate("")} >
+        <TouchableOpacity activeOpacity={0.5} onPress={() => navigation.navigate("LoginSDT")} >
           <View className="flex-row items-center border border-white rounded-full py-4 px-5">
             <Ionicons name="call-outline" size={24} color="white"/>
             <View className="flex-1 items-center"><Text className="text-white text-xl font-bold">Tiếp tục bằng Số điện thoại</Text></View>
