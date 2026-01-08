@@ -33,6 +33,8 @@
 
 - Tối ưu hóa trải nghiệm đa nền tảng: Ứng dụng chạy mượt trên Android và iOS.
 
+- Nghe nhạc cùng nhau qua phòng.
+
 💡 LỢI ÍCH
 
 - Nghe nhạc thông minh: AI luôn hiểu bạn muốn gì.
