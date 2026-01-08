@@ -4,6 +4,9 @@ export type RootStackParamList = {
   SignUp: undefined;
   LogInSDT: undefined;
   PhoneOTP: undefined;
+  LogInEmail: undefined;
+  LogInNoEmail: undefined;
+  ConfirmEmail: undefined;
   MainTabs: undefined;
 };
 export type MainTabParamList = {

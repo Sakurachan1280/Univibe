@@ -8,7 +8,7 @@ export default function PhoneOTP() {
     const navigation = useAppNavigation();
   return (
     <SafeAreaView className="flex-1 bg-black px-5">
-      <TouchableOpacity className="mt-2 w-10 h-10 justify-center">
+      <TouchableOpacity className="mt-2 w-10 h-10 justify-center" activeOpacity={0.5} onPress={() => navigation.navigate("SignIn")}>
         <Ionicons name="chevron-back" size={28} color="white" />
       </TouchableOpacity>
 
@@ -39,7 +39,7 @@ export default function PhoneOTP() {
           <Text className="ml-2 text-white text-base">Gửi lại mã</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity className="flex-row items-center">
+        <TouchableOpacity className="flex-row items-center" activeOpacity={0.5} onPress={() => navigation.navigate("LogInSDT")}>
           <Ionicons name="pencil-outline" size={20} color="white" />
           <Text className="ml-2 text-white text-base">Chỉnh sửa số điện thoại</Text>
         </TouchableOpacity>

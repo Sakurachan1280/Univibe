@@ -5,6 +5,9 @@ import SignIn from "../screens/Auth/SignIn";
 import SignUp from "../screens/Auth/SignUp";
 import LogInSDT from "../screens/Auth/LogInSDT";
 import PhoneOTP from '../screens/Auth/PhoneOTP';
+import LogInEmail from '../screens/Auth/LogInEmail';
+import LogInNoEmail from '../screens/Auth/LogInNoEmail';
+import ConfirmEmail from '../screens/Auth/ComfirmEmail';
 // import MainTabNavigator from './MainTabNavigator';
 import { RootStackParamList } from "./types";
 
@@ -19,6 +22,9 @@ export default function AppNavigator() {
           <Stack.Screen name="SignUp" component={SignUp} />
           <Stack.Screen name="LogInSDT" component={LogInSDT}/>
           <Stack.Screen name="PhoneOTP" component={PhoneOTP}/>
+          <Stack.Screen name="LogInEmail" component={LogInEmail}/>
+          <Stack.Screen name="LogInNoEmail" component={LogInNoEmail}/>
+          <Stack.Screen name="ConfirmEmail" component={ConfirmEmail}/>
         </Stack.Navigator>
       </NavigationContainer>
   );
