@@ -2,8 +2,9 @@ export type RootStackParamList = {
   Login: undefined;
   SignIn: undefined;
   SignUp: undefined;
+  LogInSDT: undefined;
+  PhoneOTP: undefined;
   MainTabs: undefined;
-  LoginSDT: undefined;
 };
 export type MainTabParamList = {
   Home: undefined;
