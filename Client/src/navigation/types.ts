@@ -13,6 +13,5 @@ export type MainTabParamList = {
   Home: undefined;
   Search: undefined;
   Library: undefined;
-  Create: undefined;
   Chat: undefined;
 };

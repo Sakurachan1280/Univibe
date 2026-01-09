@@ -24,7 +24,6 @@ export default function Login() {
         </View>
 
         <Text className="text-white text-3xl font-bold text-center">Hàng triệu bài hát.</Text>
-
         <Text className="text-white text-3xl font-bold text-center mt-2">Miễn phí trên music Xco.</Text>
 
       </View>

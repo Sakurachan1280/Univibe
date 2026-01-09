@@ -8,8 +8,8 @@ import PhoneOTP from '../screens/Auth/PhoneOTP';
 import LogInEmail from '../screens/Auth/LogInEmail';
 import LogInNoEmail from '../screens/Auth/LogInNoEmail';
 import ConfirmEmail from '../screens/Auth/ComfirmEmail';
-// import MainTabNavigator from './MainTabNavigator';
 import { RootStackParamList } from "./types";
+import MainTabNavigator from './MainTabs';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -25,6 +25,7 @@ export default function AppNavigator() {
           <Stack.Screen name="LogInEmail" component={LogInEmail}/>
           <Stack.Screen name="LogInNoEmail" component={LogInNoEmail}/>
           <Stack.Screen name="ConfirmEmail" component={ConfirmEmail}/>
+          <Stack.Screen name="MainTabs" component={MainTabNavigator} />
         </Stack.Navigator>
       </NavigationContainer>
   );

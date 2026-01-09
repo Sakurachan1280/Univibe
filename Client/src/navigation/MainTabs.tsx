@@ -1,13 +1,13 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
-import { View } from "react-native";
-
 import HomeScreen from "../screens/Main/HomeScreen";
 import SearchScreen from "../screens/Main/SearchScreen";
 import LibraryScreen from "../screens/Main/LibraryScreen";
-import CreateScreen from "../screens/Main/CreateScreen";
 import ChatScreen from "../screens/Main/ChatScreen";
+import { useState } from "react";
+import { useEffect } from "react";
+
 
 import { MainTabParamList } from "./types";
 
@@ -60,7 +60,6 @@ export default function MainTabNavigator() {
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: "Trang chủ" }} />
       <Tab.Screen name="Search" component={SearchScreen} options={{ title: "Tìm kiếm" }} />
       <Tab.Screen name="Library" component={LibraryScreen} options={{ title: "Thư viện" }} />
-      <Tab.Screen name="Create" component={CreateScreen} options={{ title: "Tạo" }} />
       <Tab.Screen name="Chat" component={ChatScreen} options={{ title: "Chat" }} />
     </Tab.Navigator>
   );
