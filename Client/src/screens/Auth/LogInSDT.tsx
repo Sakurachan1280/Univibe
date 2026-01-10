@@ -1,5 +1,5 @@
 
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -16,10 +16,10 @@ export default function LogInSDT(){
 
         <Text className="text-white text-2xl font-bold mt-5">Nhập số điện thoại</Text>
 
-        <TouchableOpacity className="flex-row items-center justify-between bg-neutral-900 rounded-xl px-4 py-4 mt-6 border border-neutral-700 ">
+        <Pressable className="flex-row items-center justify-between bg-neutral-900 rounded-xl px-4 py-4 mt-6 border border-neutral-700 ">
           <Text className="text-white text-base">Việt Nam</Text>
           <Ionicons name="chevron-forward" size={22} color="white" />
-        </TouchableOpacity>
+        </Pressable>
 
         <View className="flex-row items-center bg-neutral-900 rounded-xl px-4 py-4 mt-4 border border-neutral-700">
           <Text className="text-white text-base mr-3">+84</Text>
