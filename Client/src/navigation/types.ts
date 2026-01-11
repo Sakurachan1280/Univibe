@@ -8,10 +8,12 @@ export type RootStackParamList = {
   LogInNoEmail: undefined;
   ConfirmEmail: undefined;
   MainTabs: undefined;
+  Liked: undefined;
 };
 export type MainTabParamList = {
   Home: undefined;
   Search: undefined;
   Library: undefined;
   Chat: undefined;
+
 };

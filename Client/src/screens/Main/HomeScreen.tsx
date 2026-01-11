@@ -1,8 +1,11 @@
 import { View, Text, ScrollView, Image, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useAppNavigation } from "../../navigation/useAppNavigation";
+
 
 export default function HomeScreen() {
+  const navigation = useAppNavigation();
   return (
     <SafeAreaView  className="flex-1 bg-black" edges={["top"]}>
       {/* HEADER */}
@@ -14,10 +17,12 @@ export default function HomeScreen() {
         <View className="flex-row gap-4">
           <Ionicons name="notifications-outline" size={22} color="white" />
           <Ionicons name="time-outline" size={22} color="white" />
-          <Ionicons name="settings-outline" size={22} color="white" />
+          <TouchableOpacity>
+            <Ionicons name="settings-outline" size={22} color="white" />
+          </TouchableOpacity>
+          
         </View>
       </View>
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
@@ -26,9 +31,10 @@ export default function HomeScreen() {
         <View className="flex-row flex-wrap px-4 gap-3 justify-between">
           {["Liked Songs", "Spotichat AI", "Anh Phan", "Chill" , "Playlists", "Đang nghe", "", ""].map(
             (item, index) => (
-              <TouchableOpacity
+              <TouchableOpacity 
                 key={index}
                 className="w-[48%] bg-neutral-800 rounded-md flex-row items-center"
+                activeOpacity={0.5} onPress={() => navigation.navigate("Liked")}
               >
                 <View className="w-14 h-14 bg-green-500 rounded-l-md" />
                 <Text className="text-white ml-3 font-semibold">
