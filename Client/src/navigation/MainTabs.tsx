@@ -7,6 +7,7 @@ import LibraryScreen from "../screens/Main/LibraryScreen";
 import ChatScreen from "../screens/Main/ChatScreen";
 import { useState } from "react";
 import { useEffect } from "react";
+import CreateModal from "../components/CreateModal";
 
 
 import { MainTabParamList } from "./types";
@@ -14,53 +15,75 @@ import { MainTabParamList } from "./types";
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export default function MainTabNavigator() {
+  const [showCreate, setShowCreate] = useState(false);
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
+ <>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          headerShown: false,
 
-        tabBarStyle: {
-          backgroundColor: "#000",
-          borderTopColor: "#222",
-          height: 80,
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          marginTop: 5,
-        },
+          tabBarStyle: {
+            backgroundColor: "#000",
+            borderTopColor: "#222",
+            height: 80,
+          },
+          tabBarLabelStyle: {
+            fontSize: 11,
+            marginTop: 5,
+          },
 
-        tabBarActiveTintColor: "#1DB954",
-        tabBarInactiveTintColor: "#aaa",
+          tabBarActiveTintColor: "#1DB954",
+          tabBarInactiveTintColor: "#aaa",
 
-        tabBarIcon: ({ focused, color }) => {
-          let iconName: any;
+          tabBarIcon: ({ focused, color }) => {
+            let iconName: any;
 
-          switch (route.name) {
-            case "Home":
-              iconName = focused ? "home" : "home-outline";
-              break;
-            case "Search":
-              iconName = focused ? "search" : "search-outline";
-              break;
-            case "Library":
-              iconName = focused ? "library" : "library-outline";
-              break;
-            case "Create":
-              iconName = focused ? "add-circle" : "add-circle-outline";
-              break;
-            case "Chat":
-              iconName = focused ? "chatbubbles" : "chatbubbles-outline";
-              break;
-          }
+            switch (route.name) {
+              case "Home":
+                iconName = focused ? "home" : "home-outline";
+                break;
+              case "Search":
+                iconName = focused ? "search" : "search-outline";
+                break;
+              case "Library":
+                iconName = focused ? "library" : "library-outline";
+                break;
+              case "Chat":
+                iconName = focused ? "chatbubbles" : "chatbubbles-outline";
+                break;
 
-          return <Ionicons name={iconName} size={30} color={color} />;
-        },
-      })}
-    >
-      <Tab.Screen name="Home" component={HomeScreen} options={{ title: "Trang chủ" }} />
-      <Tab.Screen name="Search" component={SearchScreen} options={{ title: "Tìm kiếm" }} />
-      <Tab.Screen name="Library" component={LibraryScreen} options={{ title: "Thư viện" }} />
-      <Tab.Screen name="Chat" component={ChatScreen} options={{ title: "Chat" }} />
-    </Tab.Navigator>
+              case "Create":
+                // icon đổi thành X khi mở modal
+                iconName = showCreate
+                  ? "close-circle"
+                  : focused
+                  ? "add-circle"
+                  : "add-circle-outline";
+                break;
+            }
+
+            return <Ionicons name={iconName} size={32} color={color} />;
+          },
+        })}
+      >
+        <Tab.Screen name="Home" component={HomeScreen} listeners={{tabPress: () => setShowCreate(false),}}/>
+        <Tab.Screen name="Search" component={SearchScreen} listeners={{tabPress: () => setShowCreate(false),}}/>
+        <Tab.Screen name="Library" component={LibraryScreen} listeners={{tabPress: () => setShowCreate(false),}}/>
+        <Tab.Screen name="Chat" component={ChatScreen} listeners={{tabPress: () => setShowCreate(false),}}/>
+
+        <Tab.Screen
+          name="Create"
+          component={HomeScreen} // dummy
+          listeners={{
+            tabPress: (e) => {
+              e.preventDefault();
+              setShowCreate((prev) => !prev); // toggle mở/đóng
+            },
+          }}
+        />
+      </Tab.Navigator>
+
+      <CreateModal visible={showCreate} onClose={() => setShowCreate(false)} />
+    </>
   );
 }
