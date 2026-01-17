@@ -11,6 +11,7 @@ import ConfirmEmail from '../screens/Auth/ComfirmEmail';
 import { RootStackParamList } from "./types";
 import MainTabNavigator from './MainTabs';
 import LikeSongScreen from '../screens/Main/LikeSongScreen';
+import ChatDetailScreen from '../screens/Main/ChatDetailScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -28,6 +29,12 @@ export default function AppNavigator() {
           <Stack.Screen name="ConfirmEmail" component={ConfirmEmail}/>
           <Stack.Screen name="MainTabs" component={MainTabNavigator} />
           <Stack.Screen name="Liked" component={LikeSongScreen} />
+          <Stack.Screen name="ChatDetail" component={ChatDetailScreen} />
+          {/* <Stack.Screen name="AIRecommend" component={AIRecommendScreen} />
+          <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} />
+          <Stack.Screen name="PlaylistDetail" component={PlaylistDetailScreen} />
+          <Stack.Screen name="Playlists" component={PlaylistsScreen} />
+          <Stack.Screen name="NowPlaying" component={NowPlayingScreen} /> */}
         </Stack.Navigator>
       </NavigationContainer>
   );

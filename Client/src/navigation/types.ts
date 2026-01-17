@@ -9,6 +9,12 @@ export type RootStackParamList = {
   ConfirmEmail: undefined;
   MainTabs: undefined;
   Liked: undefined;
+  AIRecommend: undefined;
+  ArtistDetail: undefined;
+  PlaylistDetail: undefined;
+  Playlists: undefined;
+  NowPlaying: undefined;
+  ChatDetail: { userId: string };
 };
 export type MainTabParamList = {
   Home: undefined;

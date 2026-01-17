@@ -2,10 +2,14 @@ import { View, Text, ScrollView, Image, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
+import { QUICK_PLAY } from "../../constants/quickPlay";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../navigation/types";
 
 
 export default function HomeScreen() {
-  const navigation = useAppNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   return (
     <SafeAreaView  className="flex-1 bg-black" edges={["top"]}>
       {/* HEADER */}
@@ -28,21 +32,15 @@ export default function HomeScreen() {
         contentContainerStyle={{ paddingBottom: 100 }}
       >
         {/* QUICK PLAY */}
-        <View className="flex-row flex-wrap px-4 gap-3 justify-between">
-          {["Liked Songs", "Spotichat AI", "Anh Phan", "Chill" , "Playlists", "Đang nghe", "", ""].map(
-            (item, index) => (
-              <TouchableOpacity 
-                key={index}
-                className="w-[48%] bg-neutral-800 rounded-md flex-row items-center"
-                activeOpacity={0.5} onPress={() => navigation.navigate("Liked")}
-              >
-                <View className="w-14 h-14 bg-green-500 rounded-l-md" />
-                <Text className="text-white ml-3 font-semibold">
-                  {item}
-                </Text>
-              </TouchableOpacity>
-            )
-          )}
+        <View className="flex-row flex-wrap px-4 gap-3 justify-between"> {QUICK_PLAY.map((item, index) => (
+          <TouchableOpacity
+            key={index}
+            className="w-[48%] bg-neutral-800 rounded-md flex-row items-center"
+            activeOpacity={0.5}
+            onPress={() => navigation.navigate(item.screen)}>
+            <View className="w-14 h-14 bg-green-500 rounded-l-md" />
+            <Text className="text-white ml-3 font-semibold">{item.title}</Text>
+          </TouchableOpacity>))}
         </View>
 
         <View className="mt-6">
