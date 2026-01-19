@@ -12,6 +12,9 @@ import { RootStackParamList } from "./types";
 import MainTabNavigator from './MainTabs';
 import LikeSongScreen from '../screens/Main/LikeSongScreen';
 import ChatDetailScreen from '../screens/Main/ChatDetailScreen';
+import MusicPlayerScreen from '../screens/Main/MusicPlayerScreen';
+import CreateRoomScreen from '../screens/Main/CreateListenRoom';
+import ListeningRoomScreen from '../screens/Main/ListeningRoom';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -30,6 +33,9 @@ export default function AppNavigator() {
           <Stack.Screen name="MainTabs" component={MainTabNavigator} />
           <Stack.Screen name="Liked" component={LikeSongScreen} />
           <Stack.Screen name="ChatDetail" component={ChatDetailScreen} />
+          <Stack.Screen name="MusicPlayer" component={MusicPlayerScreen}/>
+          <Stack.Screen name="CreateRoom" component={CreateRoomScreen} />
+          <Stack.Screen name="ListeningRoom" component={ListeningRoomScreen} />
           {/* <Stack.Screen name="AIRecommend" component={AIRecommendScreen} />
           <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} />
           <Stack.Screen name="PlaylistDetail" component={PlaylistDetailScreen} />

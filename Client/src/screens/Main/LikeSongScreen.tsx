@@ -48,9 +48,10 @@ export default function LikeSongScreen() {
                     </View>
                 </Pressable>
 
+            
                 <View className="px-3 mt-4">
                     {[
-                        { id: 1,  title: "1000 Ánh Mắt", artist: "Shiki, Obito" },
+                        { id: 1,  title: "Người Đi Bao", artist: "Low G" },
                         { id: 2,  title: "chẳng phải tình đầu sao đau đến thế", artist: "MIN, Dangrangto, antransax" },
                         { id: 3,  title: "Từng Ngày Yêu Em", artist: "buitruonglinh" },
                         { id: 4,  title: "Không Thời Gian", artist: "Dương Domic" },
@@ -63,9 +64,10 @@ export default function LikeSongScreen() {
                         { id: 11, title: "Phép Màu - Đàn Cá Gỗ", artist: "MAYDAYs, Minh Tốc & Lam" },
                         { id: 12, title: "In Love", artist: "Low G, JustaTee"},
                     ].map((item) => (
-                        <View
+                        <TouchableOpacity
                         key={item.id}
                         className="flex-row items-center justify-between py-2"
+                        activeOpacity={0.5} onPress={() => navigation.navigate("MusicPlayer")}
                         >
                             <View className="flex-row items-center">
                                 <View className="w-12 h-12 rounded bg-neutral-700 mr-3" />
@@ -84,9 +86,10 @@ export default function LikeSongScreen() {
                                 <Ionicons name="heart" size={20} color="#1DB954" />
                                 <Ionicons name="ellipsis-vertical" size={20} color="white" />
                             </View>
-                        </View>
+                        </TouchableOpacity>
                     ))}
                 </View>
+
             </ScrollView>
         </SafeAreaView>
 
