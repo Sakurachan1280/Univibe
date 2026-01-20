@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, Image, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useAppNavigation } from "../../navigation/useAppNavigation";
+import { useAppNavigation } from "../../navigation/useAppNavigation"; 
 import { QUICK_PLAY } from "../../constants/quickPlay";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";

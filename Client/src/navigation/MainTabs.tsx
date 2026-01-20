@@ -4,9 +4,8 @@ import { Ionicons } from "@expo/vector-icons";
 import HomeScreen from "../screens/Main/HomeScreen";
 import SearchScreen from "../screens/Main/SearchScreen";
 import LibraryScreen from "../screens/Main/LibraryScreen";
-import ChatScreen from "../screens/Main/ChatScreen";
+import ChatScreen from "../screens/ChatRoom/ChatScreen";
 import { useState } from "react";
-import { useEffect } from "react";
 import CreateModal from "../components/CreateModal";
 
 

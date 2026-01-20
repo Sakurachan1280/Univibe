@@ -10,7 +10,7 @@ export default function MusicPlayerScreen() {
     <SafeAreaView className="flex-1 bg-black">
       {/* HEADER */}
       <View className="px-4 pt-10 pb-4 flex-row justify-between items-center">
-        <TouchableOpacity onPress={() => {navigation.goBack();}}>
+        <TouchableOpacity onPress={() => { navigation.goBack(); }}>
           <Ionicons name="chevron-down" size={28} color="white" />
         </TouchableOpacity>
 
@@ -20,7 +20,7 @@ export default function MusicPlayerScreen() {
       </View>
 
       {/* ALBUM ART */}
-      <View className="mt-9 bg-neutral-700 w-80 h-80 rounded-2xl mx-auto"></View>
+      <View className="mt-9 bg-neutral-700 w-80 h-80 rounded-2xl mx-auto"> </View>
 
       {/* TITLE */}
       <View className="px-6 mt-8">
@@ -50,7 +50,7 @@ export default function MusicPlayerScreen() {
         <Ionicons name="play-skip-back" size={32} color="white" />
 
         <TouchableOpacity>
-          <Ionicons name={"play-circle"} size={70} color="white"/>
+          <Ionicons name={"play-circle"} size={70} color="white" />
         </TouchableOpacity>
 
         <Ionicons name="play-skip-forward" size={32} color="white" />
