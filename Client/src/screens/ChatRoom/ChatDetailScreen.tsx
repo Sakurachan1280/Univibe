@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, SafeAreaView, KeyboardAvoidingView, Platform, Modal, TouchableWithoutFeedback, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, Modal, TouchableWithoutFeedback, Image } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { SafeAreaView } from "react-native-safe-area-context";
 import { RootStackParamList } from '../../navigation/types';
 import { Ionicons } from '@expo/vector-icons';
 import { MOCK_USERS, Message, CURRENT_USER_ID } from '../../data/mockData';
@@ -61,10 +62,10 @@ export default function ChatDetailScreen({ route, navigation }: Props) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
-        
+
         <View className="items-center">
-          <Image 
-            source={{ uri: user.avatar }} 
+          <Image
+            source={{ uri: user.avatar }}
             className="w-10 h-10 rounded-full mb-1"
           />
           <Text className="text-white text-sm font-bold">{user.name}</Text>
@@ -90,7 +91,7 @@ export default function ChatDetailScreen({ route, navigation }: Props) {
                 <Text className="text-white">Tạo nhóm chat</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleCreateMusicRoom} className="p-3 flex-row items-center">
-                 <Ionicons name="musical-notes-outline" size={20} color="white" className="mr-3" />
+                <Ionicons name="musical-notes-outline" size={20} color="white" className="mr-3" />
                 <Text className="text-white">Tạo phòng nghe nhạc</Text>
               </TouchableOpacity>
             </View>
@@ -107,15 +108,15 @@ export default function ChatDetailScreen({ route, navigation }: Props) {
           return (
             <View className={`my-1 mx-4 flex-row items-end ${isMe ? 'justify-end' : 'justify-start'}`}>
               {!isMe && (
-                <Image 
-                  source={{ uri: user.avatar }} 
+                <Image
+                  source={{ uri: user.avatar }}
                   className="w-8 h-8 rounded-full mr-2 mb-1"
                 />
               )}
-              <View className={`max-w-[70%] p-3 rounded-2xl ${isMe ? 'bg-[#0084ff]' : 'bg-[#1e1e1e]'}`}> 
+              <View className={`max-w-[70%] p-3 rounded-2xl ${isMe ? 'bg-[#0084ff]' : 'bg-[#1e1e1e]'}`}>
                 <Text className="text-white text-base">{item.text}</Text>
               </View>
-               <Text className="text-gray-500 text-[10px] ml-2 self-center">{item.timestamp}</Text>
+              <Text className="text-gray-500 text-[10px] ml-2 self-center">{item.timestamp}</Text>
             </View>
           );
         }}
@@ -125,21 +126,21 @@ export default function ChatDetailScreen({ route, navigation }: Props) {
       {/* Input */}
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View className="flex-row items-center p-3 mb-2 mx-2 bg-black">
-           <TouchableOpacity className="mr-3">
-             <Ionicons name="add" size={28} color="white" />
-           </TouchableOpacity>
-           <TouchableOpacity className="mr-3">
-             <Ionicons name="camera-outline" size={26} color="white" />
-           </TouchableOpacity>
+          <TouchableOpacity className="mr-3">
+            <Ionicons name="add" size={28} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity className="mr-3">
+            <Ionicons name="camera-outline" size={26} color="white" />
+          </TouchableOpacity>
           <View className="flex-1 flex-row items-center bg-transparent border border-gray-600 rounded-full px-4 py-2">
-             <TextInput
-                className="flex-1 text-white text-base pt-0 pb-0"
-                placeholder="Aa"
-                placeholderTextColor="#888"
-                value={inputText}
-                onChangeText={setInputText}
-                onSubmitEditing={handleSend}
-              />
+            <TextInput
+              className="flex-1 text-white text-base pt-0 pb-0"
+              placeholder="Aa"
+              placeholderTextColor="#888"
+              value={inputText}
+              onChangeText={setInputText}
+              onSubmitEditing={handleSend}
+            />
           </View>
           <TouchableOpacity onPress={handleSend} className="ml-3">
             <Ionicons name="send" size={24} color="white" />
