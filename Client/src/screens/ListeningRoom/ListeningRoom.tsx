@@ -9,6 +9,8 @@ export default function ListeningRoomScreen() {
   const navigation = useAppNavigation();
   const [message, setMessage] = useState("");
   const [isHidden, setIsHidden] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   return (
     <SafeAreaView className="flex-1 bg-black">
@@ -39,23 +41,30 @@ export default function ListeningRoomScreen() {
                 <Slider
                   minimumValue={0}
                   maximumValue={193}
-                  value={60}
+                  value={currentTime}
                   minimumTrackTintColor="#fff"
                   maximumTrackTintColor="#777"
+                  onValueChange={setCurrentTime}
                   thumbTintColor="#fff"
                   style={{ width: '100%', height: 20 }}
                 />
                 {/* Time Display */}
                 <View className="flex-row justify-between">
-                  <Text className="text-white text-xs">0:00</Text>
+                  <Text className="text-gray-400 text-xs">
+                    {Math.floor(currentTime / 60)}:{String(Math.floor(currentTime % 60)).padStart(2, '0')}
+                  </Text>
                   <Text className="text-white text-xs">3:13</Text>
                 </View>
               </View>
 
               {/* Play Button */}
               <View className="items-center mt-1">
-                <TouchableOpacity>
-                  <Ionicons name="play-circle" size={40} color="white" />
+                <TouchableOpacity onPress={() => setIsPlaying(!isPlaying)}>
+                  <Ionicons 
+                    name={isPlaying ? "pause-circle" : "play-circle"} 
+                    size={40} 
+                    color="white" 
+                  />
                 </TouchableOpacity>
               </View>
             </View>
