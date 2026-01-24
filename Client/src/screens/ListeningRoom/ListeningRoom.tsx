@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, TextInput, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -124,7 +124,7 @@ export default function ListeningRoomScreen() {
               <View className="w-10 h-10 bg-neutral-600 rounded-full"></View>
               <View className="ml-3 flex-1">
                 <Text className="text-white font-semibold text-sm">Bá Minh</Text>
-                <Text className="text-gray-300 text-sm">Đầu tư hợp lẽ ngon luôn</Text>
+                <Text className="text-gray-300 text-sm">Đầu tư HDPE là ngon luôn</Text>
               </View>
             </View>
           </View>
@@ -134,23 +134,26 @@ export default function ListeningRoomScreen() {
       </ScrollView>
 
       {/* MESSAGE INPUT */}
-      <View className="px-4 pb-4 flex-row items-center bg-black border-t border-neutral-800">
-        <TouchableOpacity className="mr-3">
-          <Ionicons name="happy-outline" size={28} color="white" />
-        </TouchableOpacity>
+      
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <View className="px-4 pb-4 flex-row items-center bg-black border-t border-neutral-800">
+          <TouchableOpacity className="mr-3">
+            <Ionicons name="happy-outline" size={28} color="white" />
+          </TouchableOpacity>
 
-        <TextInput
-          className="flex-1 bg-neutral-900 text-white rounded-full px-4 py-3 mr-3"
-          placeholder="Chat gì đó"
-          placeholderTextColor="#666"
-          value={message}
-          onChangeText={setMessage}
-        />
+          <TextInput
+            className="flex-1 bg-neutral-900 text-white rounded-full px-4 py-3 mr-3"
+            placeholder="Chat gì đó"
+            placeholderTextColor="#666"
+            value={message}
+            onChangeText={setMessage}
+          />
 
-        <TouchableOpacity>
-          <Ionicons name="send" size={24} color="white" />
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity>
+            <Ionicons name="send" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
