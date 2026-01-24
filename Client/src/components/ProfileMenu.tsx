@@ -8,7 +8,7 @@ interface CustomProfileMenuProps {
   onClose: () => void;
 }
 
-const MENU_WIDTH = 300;
+const MENU_WIDTH = 350;
 
 export default function CustomProfileMenu({
   isVisible,
