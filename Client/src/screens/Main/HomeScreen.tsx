@@ -4,7 +4,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-
 import { RootStackParamList } from "../../navigation/types";
 import { QUICK_PLAY } from "../../constants/quickPlay";
 import ProfileMenu from "../../components/ProfileMenu";
@@ -38,33 +37,15 @@ export default function HomeScreen() {
   ).current;
 
   return (
-    <SafeAreaView
-      className="flex-1 bg-black"
-      edges={["top"]}
-    >
-      <View
-        {...panResponder.panHandlers}
-        style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: 20,
-          zIndex: 50,
-        }}
-      />
+    <SafeAreaView className="flex-1 bg-black" edges={["top"]}>
+      <View {...panResponder.panHandlers} style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 20, zIndex: 50, }} />
       {/* HEADER */}
       <View className="flex-row items-center justify-between px-4 py-3">
         <View className="flex-row items-center">
           <TouchableOpacity onPress={() => setShowProfileMenu(true)}>
-            <Image
-              source={require("../../../assets/Icon/ava.jpg")}
-              className="w-10 h-10 rounded-full"
-            />
+            <Image source={require("../../../assets/Icon/ava.jpg")} className="w-10 h-10 rounded-full" />
           </TouchableOpacity>
-          <Text className="text-white text-2xl font-bold ml-4">
-            Welcome back
-          </Text>
+          <Text className="text-white text-2xl font-bold ml-4"> Welcome back</Text>
         </View>
 
         <View className="flex-row gap-4">
