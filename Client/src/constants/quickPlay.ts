@@ -7,9 +7,9 @@ export const QUICK_PLAY: {
   screen: ScreenName;
 }[] = [
   { title: "Liked Songs", screen: "Liked" },
-  { title: "Spotichat AI", screen: "AIRecommend" },
-  { title: "Anh Phan", screen: "ArtistDetail" },
-  { title: "Chill", screen: "PlaylistDetail" },
+  { title: "Spotichat AI", screen: "Playlists" },
+  { title: "Anh Phan", screen: "Playlists" },
+  { title: "Chill", screen: "Playlists" },
   { title: "Playlists", screen: "Playlists" },
-  { title: "Đang nghe", screen: "NowPlaying" },
+  { title: "Đang nghe", screen: "Playlists" },
 ];
