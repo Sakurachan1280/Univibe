@@ -69,7 +69,7 @@ export default function CreateModal({ visible, onClose, onJamPress }: Props) {
           transform: [{ translateY: slideAnim }],
           opacity: fadeAnim,
         }}
-        className="mx-auto w-[90%] bg-[#181818] rounded-3xl px-5 pt-5 pb-8 shadow-lg"
+        className="mx-auto w-[96%] bg-[#181818] rounded-3xl px-5 pt-5 pb-8 shadow-lg"
       >
         <TouchableOpacity className="flex-row items-center mb-7">
           <View className="w-14 h-14 rounded-full bg-neutral-700 items-center justify-center">

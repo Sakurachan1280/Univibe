@@ -6,7 +6,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../navigation/types";
 import { QUICK_PLAY } from "../../constants/quickPlay";
-import ProfileMenu from "../../components/ModelProfile/ProfileMenu";
+import ProfileMenu from "../../components/ModalProfile/ProfileMenu";
 import { useRef } from "react";
 import { PanResponder, PanResponderInstance } from "react-native";
 

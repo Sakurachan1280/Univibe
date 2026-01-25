@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState, useRef } from "react";
 import { PanResponderInstance } from "react-native";
 import { PanResponder } from "react-native";
-import ProfileMenu from "../../components/ModelProfile/ProfileMenu";
+import ProfileMenu from "../../components/ModalProfile/ProfileMenu";
 
 export default function SearchScreen() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, ScrollView, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, FlatList, Image, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { SafeAreaFrameContext } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -13,14 +14,14 @@ export default function ChatScreen() {
   const navigation = useNavigation<NavigationProp>();
 
   const renderActiveUser = (user: User) => (
-    <TouchableOpacity 
-      key={user.id} 
+    <TouchableOpacity
+      key={user.id}
       className="mr-4 items-center"
       onPress={() => navigation.navigate('ChatDetail', { userId: user.id })}
     >
       <View className="relative">
-        <Image 
-          source={{ uri: user.avatar }} 
+        <Image
+          source={{ uri: user.avatar }}
           className="w-16 h-16 rounded-full border-2 border-transparent" // Add border for selection state if needed
         />
         {user.isOnline && (
@@ -34,7 +35,7 @@ export default function ChatScreen() {
   );
 
   const renderChatItem = ({ item }: { item: ChatSession }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       className="flex-row items-center py-3"
       onPress={() => navigation.navigate('ChatDetail', { userId: item.user.id })}
     >
@@ -56,22 +57,22 @@ export default function ChatScreen() {
   return (
     <SafeAreaView className="flex-1 bg-black pt-8">
       <StatusBar barStyle="light-content" />
-      
+
       {/* Header */}
       <View className="flex-row justify-between items-center px-4 py-2">
         <View className="w-8 h-8 bg-blue-400 rounded-full items-center justify-center">
-             <Ionicons name="search" size={20} color="white" />
+          <Ionicons name="search" size={20} color="white" />
         </View>
         <Text className="text-white text-xl font-bold">Trò chuyện</Text>
-        <View className="w-8" /> 
+        <View className="w-8" />
         {/* Placeholder for right icon to center title. Or can use absolute positioning */}
       </View>
 
       <ScrollView className="flex-1 px-4">
         {/* Active Users Horizontal List */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
           className="mt-6 mb-6"
         >
           {MOCK_USERS.map(renderActiveUser)}
