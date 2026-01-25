@@ -5,9 +5,10 @@ import { Ionicons } from "@expo/vector-icons";
 interface Props {
   visible: boolean;
   onClose: () => void;
+  onJamPress?: () => void;
 }
 
-export default function CreateModal({ visible, onClose }: Props) {
+export default function CreateModal({ visible, onClose, onJamPress }: Props) {
   const slideAnim = useRef(new Animated.Value(200)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -100,7 +101,7 @@ export default function CreateModal({ visible, onClose }: Props) {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity className="flex-row items-center">
+        <TouchableOpacity className="flex-row items-center" onPress={onJamPress}>
           <View className="w-14 h-14 rounded-full bg-neutral-700 items-center justify-center">
             <Ionicons name="radio-outline" size={28} color="white" />
           </View>

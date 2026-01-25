@@ -2,21 +2,23 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import HomeScreen from "../screens/Main/HomeScreen";
+import HomeStack from "./HomeStack";
 import SearchScreen from "../screens/Main/SearchScreen";
 import LibraryScreen from "../screens/Main/LibraryScreen";
 import ChatScreen from "../screens/ChatRoom/ChatScreen";
 import { useState } from "react";
-import CreateModal from "../components/CreateModal";
-
-
+import CreateModal from "../components/CreatePopUp/CreateModal";
+import ListenModal from "../components/Listenmodal/ModalList";
 import { MainTabParamList } from "./types";
+
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export default function MainTabNavigator() {
   const [showCreate, setShowCreate] = useState(false);
+  const [showListenModal, setShowListenModal] = useState(false);
   return (
- <>
+    <>
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
@@ -27,7 +29,7 @@ export default function MainTabNavigator() {
             height: 80,
           },
           tabBarLabelStyle: {
-            fontSize: 11,
+            fontSize: 12,
             marginTop: 5,
           },
 
@@ -56,19 +58,21 @@ export default function MainTabNavigator() {
                 iconName = showCreate
                   ? "close-circle"
                   : focused
-                  ? "add-circle"
-                  : "add-circle-outline";
+                    ? "add-circle"
+                    : "add-circle-outline";
                 break;
             }
 
-            return <Ionicons name={iconName} size={32} color={color} />;
+            return <Ionicons name={iconName} size={30} color={color} />;
           },
         })}
       >
-        <Tab.Screen name="Home" component={HomeScreen} listeners={{tabPress: () => setShowCreate(false),}}/>
-        <Tab.Screen name="Search" component={SearchScreen} listeners={{tabPress: () => setShowCreate(false),}}/>
-        <Tab.Screen name="Library" component={LibraryScreen} listeners={{tabPress: () => setShowCreate(false),}}/>
-        <Tab.Screen name="Chat" component={ChatScreen} listeners={{tabPress: () => setShowCreate(false),}}/>
+        <Tab.Screen name="Home" component={HomeStack} listeners={{ tabPress: () => setShowCreate(false), }} />
+        <Tab.Screen name="Search" component={SearchScreen} listeners={{ tabPress: () => setShowCreate(false), }} />
+        <Tab.Screen name="Library" component={LibraryScreen} listeners={{ tabPress: () => setShowCreate(false), }} />
+        <Tab.Screen name="Chat" component={ChatScreen} listeners={{ tabPress: () => setShowCreate(false), }} />
+
+
 
         <Tab.Screen
           name="Create"
@@ -82,7 +86,19 @@ export default function MainTabNavigator() {
         />
       </Tab.Navigator>
 
-      <CreateModal visible={showCreate} onClose={() => setShowCreate(false)} />
+      <CreateModal
+        visible={showCreate}
+        onClose={() => setShowCreate(false)}
+        onJamPress={() => {
+          setShowCreate(false);
+          setShowListenModal(true);
+        }}
+      />
+
+      <ListenModal
+        isVisible={showListenModal}
+        onClose={() => setShowListenModal(false)}
+      />
     </>
   );
 }

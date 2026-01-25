@@ -6,22 +6,17 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../navigation/types";
 import { QUICK_PLAY } from "../../constants/quickPlay";
-import ProfileMenu from "../../components/ProfileMenu";
+import ProfileMenu from "../../components/ModelProfile/ProfileMenu";
 import { useRef } from "react";
 import { PanResponder, PanResponderInstance } from "react-native";
 
 export default function HomeScreen() {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const panResponder = useRef<PanResponderInstance>(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, gestureState) => {
-        // Only set responder if swipe is horizontal and significantly larger than vertical movement
-        // and swipe is from left to right (dx > 0)
-        // AND ONLY if swipe starts from the left edge (x0 < 40)
         return (
           Math.abs(gestureState.dx) > 30 &&
           Math.abs(gestureState.dx) > Math.abs(gestureState.dy) &&

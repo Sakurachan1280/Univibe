@@ -46,7 +46,7 @@ export default function ListSongScreen() {
                 {/* Action Buttons */}
                 <View className="px-4 pt-6 pb-4">
                     <View className="flex-row items-center justify-between mb-6">
-                        <View className="flex-row items-center space-x-5">
+                        <View className="flex-row items-center space-x-5 gap-3">
                             <TouchableOpacity>
                                 <Ionicons name="add-circle-outline" size={30} color="#b3b3b3" />
                             </TouchableOpacity>
@@ -58,7 +58,7 @@ export default function ListSongScreen() {
                             </TouchableOpacity>
                         </View>
 
-                        <View className="flex-row items-center space-x-5">
+                        <View className="flex-row items-center space-x-5 gap-5">
                             <TouchableOpacity onPress={() => setIsShuffled(!isShuffled)}>
                                 <Ionicons
                                     name="shuffle"

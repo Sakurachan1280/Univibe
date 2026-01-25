@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState, useRef } from "react";
 import { PanResponderInstance } from "react-native";
 import { PanResponder } from "react-native";
-import ProfileMenu from "../../components/ProfileMenu";
+import ProfileMenu from "../../components/ModelProfile/ProfileMenu";
 
 export default function SearchScreen() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -12,9 +12,6 @@ export default function SearchScreen() {
   const panResponder = useRef<PanResponderInstance>(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, gestureState) => {
-        // Only set responder if swipe is horizontal and significantly larger than vertical movement
-        // and swipe is from left to right (dx > 0)
-        // AND ONLY if swipe starts from the left edge (x0 < 40)
         return (
           Math.abs(gestureState.dx) > 30 &&
           Math.abs(gestureState.dx) > Math.abs(gestureState.dy) &&
