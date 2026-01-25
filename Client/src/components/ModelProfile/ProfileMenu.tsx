@@ -69,7 +69,7 @@ export default function CustomProfileMenu({
           <View className="px-5 pt-6 pb-5">
             <View className="flex-row items-center">
               <Image
-                source={require("../../assets/Icon/ava.jpg")}
+                source={require("../../../assets/Icon/ava.jpg")}
                 className="w-14 h-14 rounded-full"
               />
               <View className="ml-3 flex-1">

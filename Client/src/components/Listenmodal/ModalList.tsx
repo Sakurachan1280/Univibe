@@ -1,13 +1,5 @@
 import React from 'react';
-import {
-    View,
-    Text,
-    Modal,
-    TouchableOpacity,
-    Image,
-    ScrollView,
-    Pressable,
-} from 'react-native';
+import { View, Text, Modal,  TouchableOpacity, Image, ScrollView, Pressable,} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface ListenModalProps {
