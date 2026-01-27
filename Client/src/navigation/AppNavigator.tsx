@@ -17,6 +17,7 @@ import CreateRoomScreen from '../screens/ListeningRoom/CreateListenRoom';
 import ListeningRoomScreen from '../screens/ListeningRoom/ListeningRoom';
 
 
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
@@ -37,6 +38,7 @@ export default function AppNavigator() {
         <Stack.Screen name="MusicPlayer" component={MusicPlayerScreen} />
         <Stack.Screen name="CreateRoom" component={CreateRoomScreen} />
         <Stack.Screen name="ListeningRoom" component={ListeningRoomScreen} />
+
 
 
         {/* <Stack.Screen name="AIRecommend" component={AIRecommendScreen} />

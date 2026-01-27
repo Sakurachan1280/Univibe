@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { View, Text, Image, TouchableOpacity, Animated, PanResponder, Dimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAppNavigation } from "../../navigation/useAppNavigation";
 
 interface CustomProfileMenuProps {
   isVisible: boolean;
@@ -16,6 +17,7 @@ export default function CustomProfileMenu({
 }: CustomProfileMenuProps) {
   const slideX = useRef(new Animated.Value(-MENU_WIDTH)).current;
   const screenWidth = Dimensions.get("window").width;
+  const navigation = useAppNavigation();
 
   const panResponder = useRef(
     PanResponder.create({
@@ -66,7 +68,13 @@ export default function CustomProfileMenu({
       >
         <SafeAreaView edges={["top"]} className="flex-1">
           {/* Profile Section */}
-          <View className="px-5 pt-6 pb-5">
+          <TouchableOpacity 
+            className="px-5 pt-6 pb-5 active:bg-gray-800/30"
+            onPress={() => {
+              closeMenu();
+              navigation.navigate("ViewProfile");
+            }}
+          >
             <View className="flex-row items-center">
               <Image
                 source={require("../../../assets/Icon/ava.jpg")}
@@ -81,7 +89,7 @@ export default function CustomProfileMenu({
                 </Text>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
 
           {/* Divider */}
           <View className="h-[0.5px] bg-gray-800" />
@@ -113,14 +121,26 @@ export default function CustomProfileMenu({
 
             <MenuItem
               icon="flash-outline"
+              onPress={() => {
+                closeMenu();
+                navigation.navigate("NewsScreen");
+              }}
               text="Có gì mới"
             />
             <MenuItem
               icon="time-outline"
+              onPress={() => {
+                closeMenu();
+                navigation.navigate("RecentScreen");
+              }}
               text="Gần đây"
             />
             <MenuItem
               icon="settings-outline"
+              onPress={() => {
+                closeMenu();
+                navigation.navigate("Settings");
+              }}
               text="Cài đặt và quyền riêng tư"
             />
           </View>
@@ -140,12 +160,14 @@ export default function CustomProfileMenu({
 function MenuItem({
   icon,
   text,
+  onPress,
 }: {
   icon: any;
   text: string;
+  onPress?: () => void;
 }) {
   return (
-    <TouchableOpacity className="flex-row items-center py-4">
+    <TouchableOpacity className="flex-row items-center py-4" onPress={onPress}>
       <Ionicons name={icon} size={24} color="white" />
       <Text className="text-white ml-4 text-[15px]">
         {text}

@@ -19,6 +19,10 @@ export type RootStackParamList = {
   CreateRoom: undefined;
   ListeningRoom: undefined;
   HomeMain: undefined;
+  Settings: undefined;
+  NewsScreen: undefined;
+  RecentScreen: undefined;
+  ViewProfile: undefined;
 };
 export type MainTabParamList = {
   Home: undefined;
