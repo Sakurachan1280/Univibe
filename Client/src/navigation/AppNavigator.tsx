@@ -15,6 +15,7 @@ import ChatDetailScreen from '../screens/ChatRoom/ChatDetailScreen';
 import MusicPlayerScreen from '../screens/ListeningRoom/MusicPlayerScreen';
 import CreateRoomScreen from '../screens/ListeningRoom/CreateListenRoom';
 import ListeningRoomScreen from '../screens/ListeningRoom/ListeningRoom';
+import AccountScreen from '../screens/Setting/AccountScreen';
 
 
 
@@ -38,7 +39,6 @@ export default function AppNavigator() {
         <Stack.Screen name="MusicPlayer" component={MusicPlayerScreen} />
         <Stack.Screen name="CreateRoom" component={CreateRoomScreen} />
         <Stack.Screen name="ListeningRoom" component={ListeningRoomScreen} />
-
 
 
         {/* <Stack.Screen name="AIRecommend" component={AIRecommendScreen} />
