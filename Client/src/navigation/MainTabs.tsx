@@ -9,6 +9,7 @@ import ChatScreen from "../screens/ChatRoom/ChatScreen";
 import { useState } from "react";
 import CreateModal from "../components/CreatePopUp/CreateModal";
 import ListenModal from "../components/Listenmodal/ModalList";
+import JamInfoModal from "../components/Listenmodal/JamInfo";
 import { MainTabParamList } from "./types";
 
 
@@ -17,6 +18,8 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 export default function MainTabNavigator() {
   const [showCreate, setShowCreate] = useState(false);
   const [showListenModal, setShowListenModal] = useState(false);
+  const [showJamInfo, setShowJamInfo] = useState(false);
+
   return (
     <>
       <Tab.Navigator
@@ -98,6 +101,16 @@ export default function MainTabNavigator() {
       <ListenModal
         isVisible={showListenModal}
         onClose={() => setShowListenModal(false)}
+        onPressAdd={() => setShowJamInfo(true)}
+      />
+
+      <JamInfoModal
+        isVisible={showJamInfo}
+        onClose={() => setShowJamInfo(false)}
+        onEndJam={() => {
+          setShowJamInfo(false);
+          setShowListenModal(false);
+        }}
       />
     </>
   );

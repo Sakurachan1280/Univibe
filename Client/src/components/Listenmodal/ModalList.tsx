@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Modal,  TouchableOpacity, Image, ScrollView, Pressable,} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AddSongModal from './AddSongModel';
 
 interface ListenModalProps {
     isVisible: boolean;
     onClose: () => void;
+    onPressAdd?: () => void;
 }
 
-export default function ListenModal({ isVisible, onClose }: ListenModalProps) {
+export default function ListenModal({ isVisible, onClose, onPressAdd }: ListenModalProps) {
+    const [showAddSong, setShowAddSong] = useState(false);
 
     return (
         <Modal
@@ -39,7 +42,10 @@ export default function ListenModal({ isVisible, onClose }: ListenModalProps) {
                                     Jam của Sakura
                                 </Text>
                                 <View className="flex-row items-center mt-3 gap-2">
-                                    <TouchableOpacity className="w-10 h-10 rounded-full bg-neutral-800 items-center justify-center border border-neutral-700">
+                                    <TouchableOpacity 
+                                        className="w-10 h-10 rounded-full bg-neutral-800 items-center justify-center border border-neutral-700"
+                                        onPress={onPressAdd}
+                                    >
                                         <Ionicons name="add" size={24} color="white" />
                                     </TouchableOpacity>
                                     <Image
@@ -50,7 +56,7 @@ export default function ListenModal({ isVisible, onClose }: ListenModalProps) {
                             </View>
 
                             <View className="items-end gap-3">
-                                <TouchableOpacity className="flex-row items-center gap-1">
+                                <TouchableOpacity className="flex-row items-center gap-1" onPress={() => setShowAddSong(true)}>
                                     <Ionicons name="sparkles" size={16} color="white" />
                                     <Text className="text-white font-medium text-sm">
                                         Thêm bài hát
@@ -160,6 +166,9 @@ export default function ListenModal({ isVisible, onClose }: ListenModalProps) {
                     </View>
                 </Pressable>
             </Pressable>
+
+            {/* Add Song Modal */}
+            <AddSongModal visible={showAddSong} onClose={() => setShowAddSong(false)} />
         </Modal>
     );
 }
