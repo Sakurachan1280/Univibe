@@ -9,6 +9,23 @@ export type RootStackParamList = {
   ConfirmEmail: undefined;
   MainTabs: undefined;
   Liked: undefined;
+  AIRecommend: undefined;
+  ArtistDetail: undefined;
+  PlaylistDetail: undefined;
+  Playlists: undefined;
+  NowPlaying: undefined;
+  ChatDetail: { userId: string };
+  MusicPlayer: undefined;
+  CreateRoom: undefined;
+  ListeningRoom: undefined;
+  HomeMain: undefined;
+  Settings: undefined;
+  NewsScreen: undefined;
+  RecentScreen: undefined;
+  ViewProfile: undefined;
+  AccountScreen: undefined;
+  AppDeviceScreen: undefined;
+  AboutScreen: undefined;
 };
 export type MainTabParamList = {
   Home: undefined;
@@ -16,4 +33,5 @@ export type MainTabParamList = {
   Library: undefined;
   Chat: undefined;
   Create: undefined;
+
 };
