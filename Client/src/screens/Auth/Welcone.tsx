@@ -1,14 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
 import { CommonActions, useNavigation } from "@react-navigation/native";
 
-
-
 export default function Login() {
    const navigation = useAppNavigation();
-
 
   return (
     <SafeAreaView className="flex-1 bg-black px-6">
@@ -29,13 +26,13 @@ export default function Login() {
       </View>
 
       <View className="mb-16 gap-7">
-        <TouchableOpacity activeOpacity={0.5} onPress={() => navigation.navigate("SignIn")} >
+        <TouchableOpacity activeOpacity={0.5} onPress={() => navigation.navigate("SignUp")} >
           <View className="border border-white rounded-full py-4 items-center">
             <Text className="text-white text-xl font-bold">Đăng ký</Text>
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity activeOpacity={0.5} onPress={()=> navigation.navigate("SignUp")}>
+        <TouchableOpacity activeOpacity={0.5} onPress={()=> navigation.navigate("SignIn")}>
           <View className="border border-white rounded-full py-4 items-center">
             <Text className="text-white text-xl font-bold">Đăng nhập</Text>
           </View>
@@ -43,6 +40,9 @@ export default function Login() {
       </View>
             
         <TouchableOpacity className="self-center" activeOpacity={0.5} onPress={() => navigation.dispatch( CommonActions.reset({index: 0,routes: [{ name: "MainTabs" }],}))}>
+          <Text className="text-white mt-4">Đăng nhập</Text>
+        </TouchableOpacity>
+        <TouchableOpacity className="self-center" activeOpacity={0.5} onPress={() => navigation.dispatch( CommonActions.reset({index: 0,routes: [{ name: "AdminNavigator" }],}))}>
           <Text className="text-white mt-4">Đăng nhập</Text>
         </TouchableOpacity>
     </SafeAreaView>
