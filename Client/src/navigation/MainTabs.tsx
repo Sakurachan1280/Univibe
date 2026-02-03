@@ -11,9 +11,6 @@ import CreateModal from "../components/CreatePopUp/CreateModal";
 import ListenModal from "../components/Listenmodal/ModalList";
 import JamInfoModal from "../components/Listenmodal/JamInfo";
 import { MainTabParamList } from "./types";
-import { BackHandler } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
-import { useCallback } from "react";
 
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -22,16 +19,6 @@ export default function MainTabNavigator() {
   const [showCreate, setShowCreate] = useState(false);
   const [showListenModal, setShowListenModal] = useState(false);
   const [showJamInfo, setShowJamInfo] = useState(false);
-  useFocusEffect(
-  useCallback(() => {
-    const subscription = BackHandler.addEventListener(
-      "hardwareBackPress",
-      () => true // chặn back
-    );
-
-    return () => subscription.remove();
-    }, [])
-  );
 
   return (
     <>

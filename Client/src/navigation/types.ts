@@ -7,7 +7,6 @@ export type RootStackParamList = {
   LogInEmail: undefined;
   LogInNoEmail: undefined;
   ConfirmEmail: undefined;
-  Register: undefined;
   MainTabs: undefined;
   Liked: undefined;
   AIRecommend: undefined;
@@ -27,7 +26,6 @@ export type RootStackParamList = {
   AccountScreen: undefined;
   AppDeviceScreen: undefined;
   AboutScreen: undefined;
-  AdminNavigator: undefined;
 };
 export type MainTabParamList = {
   Home: undefined;
