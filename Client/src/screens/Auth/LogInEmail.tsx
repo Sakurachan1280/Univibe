@@ -20,6 +20,7 @@ export default function LogInEmail() {
 
     try {
       const result = await loginAPI({ email, password });
+      console.log("LOGIN SUCCESS:", result);
 
       // LƯU TOKEN
       await SecureStore.setItemAsync("accessToken", result.token);
