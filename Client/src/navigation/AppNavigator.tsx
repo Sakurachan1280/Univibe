@@ -16,6 +16,7 @@ import MusicPlayerScreen from '../screens/ListeningRoom/MusicPlayerScreen';
 import CreateRoomScreen from '../screens/ListeningRoom/CreateListenRoom';
 import ListeningRoomScreen from '../screens/ListeningRoom/ListeningRoom';
 import AccountScreen from '../screens/Setting/AccountScreen';
+import AdminNavigator from './AdminNavigator';
 
 
 
@@ -40,7 +41,7 @@ export default function AppNavigator() {
         <Stack.Screen name="CreateRoom" component={CreateRoomScreen} />
         <Stack.Screen name="ListeningRoom" component={ListeningRoomScreen} />
 
-
+        <Stack.Screen name="AdminNavigator" component={AdminNavigator} />
         {/* <Stack.Screen name="AIRecommend" component={AIRecommendScreen} />
           <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} />
           <Stack.Screen name="PlaylistDetail" component={PlaylistDetailScreen} />

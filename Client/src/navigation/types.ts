@@ -26,6 +26,7 @@ export type RootStackParamList = {
   AccountScreen: undefined;
   AppDeviceScreen: undefined;
   AboutScreen: undefined;
+  AdminNavigator: undefined;
 };
 export type MainTabParamList = {
   Home: undefined;

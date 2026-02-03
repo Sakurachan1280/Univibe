@@ -29,13 +29,13 @@ export default function Login() {
       </View>
 
       <View className="mb-16 gap-7">
-        <TouchableOpacity activeOpacity={0.5} onPress={() => navigation.navigate("SignIn")} >
+        <TouchableOpacity activeOpacity={0.5} onPress={() => navigation.navigate("SignUp")} >
           <View className="border border-white rounded-full py-4 items-center">
             <Text className="text-white text-xl font-bold">Đăng ký</Text>
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity activeOpacity={0.5} onPress={()=> navigation.navigate("SignUp")}>
+        <TouchableOpacity activeOpacity={0.5} onPress={()=> navigation.navigate("SignIn")}>
           <View className="border border-white rounded-full py-4 items-center">
             <Text className="text-white text-xl font-bold">Đăng nhập</Text>
           </View>
