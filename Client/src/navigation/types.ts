@@ -23,6 +23,8 @@ export type RootStackParamList = {
   NewsScreen: undefined;
   RecentScreen: undefined;
   ViewProfile: undefined;
+  artist: undefined;
+  Welcone: undefined;
 };
 export type MainTabParamList = {
   Home: undefined;
@@ -30,5 +32,4 @@ export type MainTabParamList = {
   Library: undefined;
   Chat: undefined;
   Create: undefined;
-
 };

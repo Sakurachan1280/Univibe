@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { CommonActions, useNavigation } from "@react-navigation/native";
 
 export default function SettingsScreen() {
   const menuItems: Array<{ id: number; title: string; icon: React.ComponentProps<typeof Ionicons>['name'] }> = [
@@ -73,7 +73,7 @@ export default function SettingsScreen() {
 
         {/* Logout Button */}
         <View className="mx-4 mb-8">
-          <TouchableOpacity className="bg-white rounded-full py-4 px-8 items-center active:bg-gray-200">
+          <TouchableOpacity className="bg-white rounded-full py-4 px-8 items-center active:bg-gray-200" onPress={() => navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: "Welcone" }], }))}>
             <Text className="text-black text-base font-semibold">Đăng xuất</Text>
           </TouchableOpacity>
         </View>

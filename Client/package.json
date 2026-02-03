@@ -18,6 +18,7 @@
     "babel-preset-expo": "^54.0.9",
     "expo": "~54.0.30",
     "expo-barcode-scanner": "^13.0.1",
+    "expo-image-picker": "^17.0.10",
     "expo-status-bar": "~3.0.9",
     "nativewind": "^4.2.1",
     "prettier-plugin-tailwindcss": "^0.5.14",

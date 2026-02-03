@@ -7,7 +7,7 @@ import { CommonActions, useNavigation } from "@react-navigation/native";
 
 
 export default function Login() {
-   const navigation = useAppNavigation();
+  const navigation = useAppNavigation();
 
 
   return (
@@ -35,16 +35,19 @@ export default function Login() {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity activeOpacity={0.5} onPress={()=> navigation.navigate("SignUp")}>
+        <TouchableOpacity activeOpacity={0.5} onPress={() => navigation.navigate("SignUp")}>
           <View className="border border-white rounded-full py-4 items-center">
             <Text className="text-white text-xl font-bold">Đăng nhập</Text>
           </View>
         </TouchableOpacity>
       </View>
-            
-        <TouchableOpacity className="self-center" activeOpacity={0.5} onPress={() => navigation.dispatch( CommonActions.reset({index: 0,routes: [{ name: "MainTabs" }],}))}>
-          <Text className="text-white mt-4">Đăng nhập</Text>
-        </TouchableOpacity>
+
+      <TouchableOpacity className="self-center" activeOpacity={0.5} onPress={() => navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: "MainTabs" }], }))}>
+        <Text className="text-white mt-4">Đăng nhập</Text>
+      </TouchableOpacity>
+      <TouchableOpacity className="self-center" activeOpacity={0.5} onPress={() => navigation.navigate("artist")}>
+        <Text className="text-white mt-4">Thêm nhạc sĩ</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }

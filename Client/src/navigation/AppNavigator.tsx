@@ -15,6 +15,8 @@ import ChatDetailScreen from '../screens/ChatRoom/ChatDetailScreen';
 import MusicPlayerScreen from '../screens/ListeningRoom/MusicPlayerScreen';
 import CreateRoomScreen from '../screens/ListeningRoom/CreateListenRoom';
 import ListeningRoomScreen from '../screens/ListeningRoom/ListeningRoom';
+import Welcone from '../screens/Auth/Welcone';
+import artist from '../screens/Admin/artist';
 
 
 
@@ -33,11 +35,12 @@ export default function AppNavigator() {
         <Stack.Screen name="LogInNoEmail" component={LogInNoEmail} />
         <Stack.Screen name="ConfirmEmail" component={ConfirmEmail} />
         <Stack.Screen name="MainTabs" component={MainTabNavigator} />
-
+        <Stack.Screen name="Welcone" component={Welcone} />
         <Stack.Screen name="ChatDetail" component={ChatDetailScreen} />
         <Stack.Screen name="MusicPlayer" component={MusicPlayerScreen} />
         <Stack.Screen name="CreateRoom" component={CreateRoomScreen} />
         <Stack.Screen name="ListeningRoom" component={ListeningRoomScreen} />
+        <Stack.Screen name="artist" component={artist} />
 
 
 
