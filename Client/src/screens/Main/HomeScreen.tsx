@@ -63,7 +63,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               key={index}
               activeOpacity={0.7}
-              onPress={() => navigation.navigate(item.screen)}
+              onPress={() => navigation.navigate(item.screen as any)}
               className="w-[48%] bg-neutral-800 rounded-md flex-row items-center"
             >
               <View className="w-14 h-14 bg-green-500 rounded-l-md" />

@@ -71,7 +71,7 @@ export default function SettingsScreen() {
           {/* Thông báo */}
           <TouchableOpacity
             className="flex-row items-center py-4 px-5 bg-neutral-900/30 border-b border-white/5 active:bg-neutral-800/50"
-            onPress={() => navigation.navigate("Chat")}
+            onPress={() => navigation.navigate("ChatScreen")}
           >
             <Ionicons name="notifications-outline" size={24} color="#9CA3AF" />
             <Text className="flex-1 text-white text-base ml-4">Thông báo</Text>
