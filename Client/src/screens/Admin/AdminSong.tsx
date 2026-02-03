@@ -1,201 +1,189 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StatusBar,
   ScrollView,
-  TextInput,
-  Image,
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as DocumentPicker from 'expo-document-picker';
-
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import axiosClient from '../../API/axiosClient';
 
 export default function AdminSong() {
-  const [isAddMode, setIsAddMode] = useState(false);
-  const [title, setTitle] = useState('');
-  const [artist, setArtist] = useState('');
-  const [audioFile, setAudioFile] = useState<any>(null);
-  const [coverFile, setCoverFile] = useState<any>(null);
-  const [imagePreview, setImagePreview] = useState('');
-  const [loading, setLoading] = useState(false);
+  const navigation = useNavigation();
+  const [songCount, setSongCount] = useState(0);
+  const [artistCount, setArtistCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const songs = Array(10).fill({
-    title: 'Tên bài hát',
-    artist: 'Tên ca sĩ',
-  });
+  useEffect(() => {
+    fetchStats();
+  }, []);
 
-  /* ========== PICK IMAGE ========== */
-    const pickCoverImage = async () => {
-        const result = await DocumentPicker.getDocumentAsync({
-            type: 'image/*',
-            copyToCacheDirectory: true,
-        });
+  const fetchStats = async () => {
+    try {
+      setIsLoading(true);
+      const [songsResponse, artistsResponse] = await Promise.all([
+        axiosClient.get('/music/queue?type=new'),
+        axiosClient.get('/music/artists'),
+      ]);
 
-        if (result.canceled) return;
+      setSongCount(songsResponse.data?.length || 0);
+      setArtistCount(artistsResponse.data?.length || 0);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-        const file = result.assets[0];
-        setCoverFile({
-            uri: file.uri,
-            name: file.name || 'cover.jpg',
-            type: file.mimeType || 'image/jpeg',
-        });
+  const adminFeatures = [
+    {
+      id: 'add-song',
+      title: 'Thêm Bài Hát',
+      description: 'Tải lên bài hát mới vào thư viện',
+      icon: 'musical-notes',
+      color: '#EC4899',
+      route: 'CreateSong',
+    },
+    {
+      id: 'manage-songs',
+      title: 'Quản Lý Bài Hát',
+      description: 'Xem, sửa và xóa bài hát',
+      icon: 'musical-note',
+      color: '#06B6D4',
+      route: 'SongManagement',
+    },
+    {
+      id: 'add-artist',
+      title: 'Thêm Nghệ Sĩ',
+      description: 'Thêm nghệ sĩ mới vào hệ thống',
+      icon: 'person-add',
+      color: '#EC4899',
+      route: 'CreateArtist',
+    },
+    {
+      id: 'manage-artists',
+      title: 'Quản Lý Nghệ Sĩ',
+      description: 'Xem, sửa và xóa nghệ sĩ',
+      icon: 'people',
+      color: '#06B6D4',
+      route: 'ArtistManagement',
+    },
+  ];
 
-        setImagePreview(file.uri);
-    };
+  const handleFeaturePress = (route: string) => {
+    navigation.navigate(route as never);
+  };
 
+  return (
+    <SafeAreaView className="flex-1 bg-black">
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
 
-
-  /* ========== PICK AUDIO ========== */
-  const pickAudioFile = async () => {
-    const result = await DocumentPicker.getDocumentAsync({
-            type: 'audio/*',
-            copyToCacheDirectory: true,
-    });
-
-        if (result.canceled) return;
-
-        const file = result.assets[0];
-
-        setAudioFile({
-            uri: file.uri,
-            name: file.name || 'song.mp3',
-            type: file.mimeType || 'audio/mpeg',
-        });
-    };
-
-
-  /* ========== SUBMIT ========== */
-  const handleSubmit = async () => {
-  if (!title || !artist || !audioFile || !coverFile) {
-    Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ thông tin');
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    await createSongAPI({
-      title,
-      artist,
-      audio: audioFile,
-      cover: coverFile,
-    });
-
-    Alert.alert('Thành công', 'Thêm bài hát thành công');
-    setIsAddMode(false);
-
-    setTitle('');
-    setArtist('');
-    setAudioFile(null);
-    setCoverFile(null);
-    setImagePreview('');
-  } catch (err: any) {
-    console.log('UPLOAD ERROR:', err?.response?.data || err.message);
-    Alert.alert('Lỗi', 'Upload thất bại');
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-
-  const renderSongItem = ({ item }: any) => (
-    <View className="flex-row items-center px-4 py-4 border-b border-gray-200 bg-white">
-      <View className="w-14 h-14 bg-gray-300 rounded-lg mr-3" />
-      <View className="flex-1">
-        <Text className="text-base font-semibold">{item.title}</Text>
-        <Text className="text-sm text-gray-600">{item.artist}</Text>
+      {/* Header */}
+      <View className="px-6 py-4 border-b border-white/10">
+        <Text className="text-white text-3xl font-bold">Spotichat</Text>
+        <Text className="text-gray-400 text-sm mt-1">Admin Panel</Text>
       </View>
-    </View>
-  );
-   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
-      >
-        <StatusBar barStyle="light-content" />
 
-        <View className="bg-[#4fc3dc] px-4 py-3">
-          <Text className="text-white text-xl font-medium">Spotichat</Text>
+      {/* Content */}
+      <ScrollView className="flex-1 px-6 py-6">
+        <Text className="text-white text-xl font-bold mb-4">Quản Lý Nội Dung</Text>
+
+        {/* Feature Cards */}
+        <View className="space-y-4">
+          {adminFeatures.map((feature, index) => (
+            <TouchableOpacity
+              key={feature.id}
+              onPress={() => handleFeaturePress(feature.route)}
+              className="mb-4"
+              activeOpacity={0.8}
+            >
+              <View className="bg-white/5 rounded-2xl p-5 border border-white/10">
+                <View className="flex-row items-center">
+                  {/* Icon Container */}
+                  <View
+                    className="w-16 h-16 rounded-full items-center justify-center mr-4"
+                    style={{ backgroundColor: `${feature.color}20` }}
+                  >
+                    <Ionicons name={feature.icon as any} size={28} color={feature.color} />
+                  </View>
+
+                  {/* Text Content */}
+                  <View className="flex-1">
+                    <Text className="text-white text-lg font-bold mb-1">
+                      {feature.title}
+                    </Text>
+                    <Text className="text-gray-400 text-sm">
+                      {feature.description}
+                    </Text>
+                  </View>
+
+                  {/* Arrow Icon */}
+                  <Ionicons name="chevron-forward" size={24} color="#666" />
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
         </View>
 
-        {isAddMode ? (
-          <ScrollView className="px-4 py-4 bg-gray-50">
-            <TextInput
-              className="bg-white border border-gray-300 rounded-lg px-4 py-3 mb-4"
-              placeholder="Tên bài hát"
-              value={title}
-              onChangeText={setTitle}
-            />
+        {/* Stats Section */}
+        <View className="mt-8 mb-6">
+          <Text className="text-white text-xl font-bold mb-4">Thống Kê</Text>
 
-            <TextInput
-              className="bg-white border border-gray-300 rounded-lg px-4 py-3 mb-4"
-              placeholder="Ca sĩ"
-              value={artist}
-              onChangeText={setArtist}
-            />
-
-            <TouchableOpacity
-              onPress={pickCoverImage}
-              className="bg-white border border-gray-300 rounded-lg px-4 py-3 mb-4"
-            >
-              <Text>{coverFile ? coverFile.name : 'Chọn ảnh bìa'}</Text>
-            </TouchableOpacity>
-
-            {imagePreview && (
-              <Image
-                source={{ uri: imagePreview }}
-                className="w-full h-48 rounded-lg mb-4"
-              />
-            )}
-            <TouchableOpacity
-              onPress={pickAudioFile}
-              className="bg-white border border-gray-300 rounded-lg px-4 py-3 mb-6"
-            >
-              <Text>{audioFile ? audioFile.name : 'Chọn file nhạc'}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={handleSubmit}
-              disabled={loading}
-              className="bg-[#4fc3dc] rounded-lg py-4 mb-3"
-            >
-              <Text className="text-white text-center font-bold">
-                {loading ? 'Đang upload...' : 'Thêm bài hát'}
+          <View className="flex-row justify-between">
+            <View className="bg-white/5 rounded-2xl p-5 flex-1 mr-2 border border-white/10">
+              <Ionicons name="musical-notes" size={24} color="#EC4899" />
+              <Text className="text-white text-2xl font-bold mt-3">
+                {isLoading ? '...' : songCount}
               </Text>
-            </TouchableOpacity>
+              <Text className="text-gray-400 text-sm mt-1">Bài hát</Text>
+            </View>
 
-            <TouchableOpacity
-              onPress={() => setIsAddMode(false)}
-              className="border border-gray-400 rounded-lg py-4"
-            >
-              <Text className="text-center">Hủy</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        ) : (
-          <View className="flex-1">
-            <TouchableOpacity
-              onPress={() => setIsAddMode(true)}
-              className="px-4 py-4 border-b border-gray-200"
-            >
-              <Text className="font-semibold">+ Thêm bài hát</Text>
-            </TouchableOpacity>
-
-            <FlatList
-              data={songs}
-              renderItem={renderSongItem}
-              keyExtractor={(_, i) => i.toString()}
-            />
+            <View className="bg-white/5 rounded-2xl p-5 flex-1 ml-2 border border-white/10">
+              <Ionicons name="people" size={24} color="#06B6D4" />
+              <Text className="text-white text-2xl font-bold mt-3">
+                {isLoading ? '...' : artistCount}
+              </Text>
+              <Text className="text-gray-400 text-sm mt-1">Nghệ sĩ</Text>
+            </View>
           </View>
-        )}
-      </KeyboardAvoidingView>
+        </View>
+
+        {/* Quick Actions */}
+        <View className="mt-4 mb-6">
+          <Text className="text-white text-xl font-bold mb-4">Thao Tác Nhanh</Text>
+
+          <TouchableOpacity
+            className="bg-gradient-to-r from-green-600 to-green-500 rounded-xl p-4 mb-3"
+            style={{ backgroundColor: '#EC4899' }}
+            activeOpacity={0.8}
+            onPress={fetchStats}
+          >
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center">
+                <Ionicons name="refresh" size={20} color="white" />
+                <Text className="text-white font-semibold ml-3">Làm mới dữ liệu</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="white" />
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="bg-white/5 rounded-xl p-4 border border-white/10"
+            activeOpacity={0.8}
+          >
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center">
+                <Ionicons name="settings-outline" size={20} color="#ffffff" />
+                <Text className="text-white font-semibold ml-3">Cài đặt hệ thống</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#666" />
+            </View>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

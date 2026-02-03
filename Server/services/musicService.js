@@ -6,8 +6,67 @@ const createArtist = async (data) => {
   return await Artist.create(data);
 };
 
+const getArtists = async () => {
+  return await Artist.find().select('name avatar bio').sort({ name: 1 });
+};
+
+const updateArtist = async (id, data) => {
+  console.log('Service: updateArtist called with ID:', id);
+  console.log('Service: update data:', data);
+
+  // Validate ObjectId
+  const mongoose = require('mongoose');
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    console.log('Service: Invalid ObjectId format');
+    return null;
+  }
+
+  const artist = await Artist.findByIdAndUpdate(id, data, { new: true });
+  console.log('Service: findByIdAndUpdate result:', artist);
+  return artist;
+};
+
+const deleteArtist = async (id) => {
+  console.log('Service: deleteArtist called with ID:', id);
+
+  // Validate ObjectId
+  const mongoose = require('mongoose');
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    console.log('Service: Invalid ObjectId format');
+    return null;
+  }
+
+  const artist = await Artist.findByIdAndDelete(id);
+  console.log('Service: findByIdAndDelete result:', artist);
+  return artist;
+};
+
 const createSong = async (data) => {
   return await Song.create(data);
+};
+
+const updateSong = async (id, data) => {
+  console.log('Service: updateSong called with ID:', id);
+  const mongoose = require('mongoose');
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    console.log('Service: Invalid ObjectId format');
+    return null;
+  }
+  const song = await Song.findByIdAndUpdate(id, data, { new: true });
+  console.log('Service: findByIdAndUpdate result:', song);
+  return song;
+};
+
+const deleteSong = async (id) => {
+  console.log('Service: deleteSong called with ID:', id);
+  const mongoose = require('mongoose');
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    console.log('Service: Invalid ObjectId format');
+    return null;
+  }
+  const song = await Song.findByIdAndDelete(id);
+  console.log('Service: findByIdAndDelete result:', song);
+  return song;
 };
 
 const getSongDetail = async (id) => {
@@ -16,12 +75,12 @@ const getSongDetail = async (id) => {
 
 const getSongList = async (limit = 20, type = 'new') => {
   if (type === 'shuffle') {
-  
+
     return await Song.aggregate([
-      { $sample: { size: Number(limit) } }, 
-      { 
+      { $sample: { size: Number(limit) } },
+      {
         $lookup: {
-          from: 'artists', 
+          from: 'artists',
           localField: 'artist_ids',
           foreignField: '_id',
           as: 'artist_info'
@@ -29,14 +88,14 @@ const getSongList = async (limit = 20, type = 'new') => {
       },
       {
         $project: {
-          title: 1, file_url: 1, cover_image: 1, duration: 1, 
-          artist_ids: '$artist_info', 
+          title: 1, file_url: 1, cover_image: 1, duration: 1,
+          artist_ids: '$artist_info',
           stats: 1
         }
       }
     ]);
-  } 
-  
+  }
+
   else {
     return await Song.find()
       .populate('artist_ids', 'name avatar')
@@ -56,8 +115,8 @@ const logListeningAction = async (userId, songId, actionType, duration, context)
   });
 
   if (actionType === 'listen' || actionType === 'complete') {
-    await Song.findByIdAndUpdate(songId, { 
-      $inc: { 'stats.play_count': 1 } 
+    await Song.findByIdAndUpdate(songId, {
+      $inc: { 'stats.play_count': 1 }
     });
   }
 
@@ -66,7 +125,12 @@ const logListeningAction = async (userId, songId, actionType, duration, context)
 
 module.exports = {
   createArtist,
+  getArtists,
+  updateArtist,
+  deleteArtist,
   createSong,
+  updateSong,
+  deleteSong,
   getSongDetail,
   getSongList,
   logListeningAction

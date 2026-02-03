@@ -7,6 +7,10 @@ import { Ionicons } from "@expo/vector-icons";
 import MusicListScreen from "../screens/Admin/AdminSong";
 import AlbumListScreen from "../screens/Admin/AdminAlbum";
 import AccountScreen from "../screens/Admin/AdminAccount";
+import CreateSongScreen from "../screens/Admin/song";
+import CreateArtistScreen from "../screens/Admin/artist";
+import ArtistManagementScreen from "../screens/Admin/ArtistManagement";
+import SongManagementScreen from "../screens/Admin/SongManagement";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -16,6 +20,26 @@ const SongStack = () => (
     <Stack.Screen
       name="SongList"
       component={MusicListScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="CreateSong"
+      component={CreateSongScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="CreateArtist"
+      component={CreateArtistScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="ArtistManagement"
+      component={ArtistManagementScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="SongManagement"
+      component={SongManagementScreen}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>
@@ -45,44 +69,54 @@ export default function AdminNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarIcon: ({ color, size }) => {
+        tabBarIcon: ({ focused, color, size }) => {
           let iconName;
-          if (route.name === 'Song') iconName = 'musical-notes';
-          else if (route.name === 'Album') iconName = 'list';
-          else if (route.name === 'Account') iconName = 'person';
+          if (route.name === 'Content') iconName = focused ? 'grid' : 'grid-outline';
+          else if (route.name === 'Library') iconName = focused ? 'library' : 'library-outline';
+          else if (route.name === 'Settings') iconName = focused ? 'settings' : 'settings-outline';
 
           return <Ionicons name={iconName as any} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#4fc3dc',
-        tabBarInactiveTintColor: '#999',
+        tabBarActiveTintColor: '#EC4899',
+        tabBarInactiveTintColor: '#B3B3B3',
         tabBarStyle: {
-          backgroundColor: '#fff',
-          borderTopColor: '#e0e0e0',
+          backgroundColor: '#000000',
+          borderTopColor: '#282828',
           borderTopWidth: 1,
-          paddingBottom: 5,
-          paddingTop: 5,
-          height: 60,
+          paddingBottom: 12,
+          paddingTop: 10,
+          height: 80,
+          elevation: 0,
+          shadowOpacity: 0,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '500',
+          fontSize: 11,
+          fontWeight: '600',
+          marginTop: 2,
         },
+        headerShown: false,
       })}
     >
       <Tab.Screen
-        name="Song"
+        name="Content"
         component={SongStack}
-        options={{ headerShown: false }}
+        options={{
+          tabBarLabel: 'Nội dung',
+        }}
       />
       <Tab.Screen
-        name="Album"
+        name="Library"
         component={PlaylistStack}
-        options={{ headerShown: false }}
+        options={{
+          tabBarLabel: 'Thư viện',
+        }}
       />
       <Tab.Screen
-        name="Account"
+        name="Settings"
         component={AccountStack}
-        options={{ headerShown: false }}
+        options={{
+          tabBarLabel: 'Cài đặt',
+        }}
       />
     </Tab.Navigator>
   );
