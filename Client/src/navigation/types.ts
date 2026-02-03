@@ -28,8 +28,9 @@ export type RootStackParamList = {
   AccountScreen: undefined;
   AppDeviceScreen: undefined;
   AboutScreen: undefined;
-   AdminNavigator: undefined;
-   ChatScreen: undefined;
+  AdminNavigator: undefined;
+  ChatScreen: undefined;
+  Register: undefined;
 };
 export type MainTabParamList = {
   Home: undefined;
