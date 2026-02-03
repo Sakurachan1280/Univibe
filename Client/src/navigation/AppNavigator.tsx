@@ -17,8 +17,7 @@ import CreateRoomScreen from '../screens/ListeningRoom/CreateListenRoom';
 import ListeningRoomScreen from '../screens/ListeningRoom/ListeningRoom';
 import Welcone from '../screens/Auth/Welcone';
 import artist from '../screens/Admin/artist';
-
-
+import AccountScreen from '../screens/Setting/AccountScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -41,7 +40,6 @@ export default function AppNavigator() {
         <Stack.Screen name="CreateRoom" component={CreateRoomScreen} />
         <Stack.Screen name="ListeningRoom" component={ListeningRoomScreen} />
         <Stack.Screen name="artist" component={artist} />
-
 
 
         {/* <Stack.Screen name="AIRecommend" component={AIRecommendScreen} />

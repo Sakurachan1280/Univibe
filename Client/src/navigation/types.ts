@@ -25,6 +25,10 @@ export type RootStackParamList = {
   ViewProfile: undefined;
   artist: undefined;
   Welcone: undefined;
+  AccountScreen: undefined;
+  AppDeviceScreen: undefined;
+  AboutScreen: undefined;
+  ChatScreen: undefined;
 };
 export type MainTabParamList = {
   Home: undefined;
