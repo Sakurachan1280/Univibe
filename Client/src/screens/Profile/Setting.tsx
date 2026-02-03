@@ -78,6 +78,16 @@ export default function SettingsScreen() {
             <Ionicons name="chevron-forward" size={20} color="#6B7280" />
           </TouchableOpacity>
 
+          {/* Thông báo */}
+          <TouchableOpacity
+            className="flex-row items-center py-4 px-5 bg-neutral-900/30 border-b border-white/5 active:bg-neutral-800/50"
+            onPress={() => navigation.navigate("artist")}
+          >
+            <Ionicons name="notifications-outline" size={24} color="#9CA3AF" />
+            <Text className="flex-1 text-white text-base ml-4">Thông báo</Text>
+            <Ionicons name="chevron-forward" size={20} color="#6B7280" />
+          </TouchableOpacity>
+
           {/* Ứng dụng & thiết bị */}
           <TouchableOpacity
             className="flex-row items-center py-4 px-5 bg-neutral-900/30 border-b border-white/5 active:bg-neutral-800/50"

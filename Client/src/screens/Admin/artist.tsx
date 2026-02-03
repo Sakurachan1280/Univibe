@@ -8,24 +8,12 @@ import {
     Alert,
     ActivityIndicator,
     ScrollView,
-    Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
-
-// TODO: IF RUNNING ON PHYSICAL DEVICE, REPLACE 'localhost' WITH YOUR COMPUTER'S LAN IP (e.g. 192.168.1.10)
-// ANDROID EMULATOR: Use '10.0.2.2'
-// IOS SIMULATOR: Use 'localhost'
-const API_URL =
-    Platform.OS === "android"
-        ? "http://192.168.1.27:5000"
-        : "http://localhost:5000";
-
-
-// TODO: Replace this with your actual method of retrieving the auth token (e.g., AsyncStorage)
-const USER_TOKEN = "REPLACE_WITH_VALID_BEARER_TOKEN";
+import axiosClient from '../../API/axiosClient';
 
 export default function CreateArtistScreen() {
     const navigation = useNavigation();
@@ -60,12 +48,6 @@ export default function CreateArtistScreen() {
             return;
         }
 
-        // Warn about missing token if it's the default placeholder
-        if (USER_TOKEN === "REPLACE_WITH_VALID_BEARER_TOKEN") {
-            Alert.alert("Development Warning", "Please set a valid User Token in the code to test the API.");
-            // We continue just to try the request, but it will likely fail 401
-        }
-
         setIsLoading(true);
 
         try {
@@ -86,22 +68,13 @@ export default function CreateArtistScreen() {
                 });
             }
 
-            console.log(`Sending request to ${API_URL}/api/music/artists`);
+            console.log('Sending request to /music/artists');
 
-            const response = await fetch(`${API_URL}/api/music/artists`, {
-                method: 'POST',
-                body: formData,
+            const response = await axiosClient.post('/music/artists', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
-                    'Authorization': `Bearer ${USER_TOKEN}`,
                 },
             });
-
-            const responseData = await response.json();
-
-            if (!response.ok) {
-                throw new Error(responseData.message || 'Failed to create artist');
-            }
 
             Alert.alert('Success', 'Artist created successfully!', [
                 { text: 'OK', onPress: () => navigation.goBack() }
@@ -114,7 +87,8 @@ export default function CreateArtistScreen() {
 
         } catch (error: any) {
             console.error('Error creating artist:', error);
-            Alert.alert('Error', error.message || 'Something went wrong. Please check your connection and try again.');
+            const errorMessage = error.response?.data?.message || error.message || 'Something went wrong. Please check your connection and try again.';
+            Alert.alert('Error', errorMessage);
         } finally {
             setIsLoading(false);
         }
