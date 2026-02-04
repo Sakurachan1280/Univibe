@@ -12,6 +12,7 @@ import { RootStackParamList } from "./types";
 import MainTabNavigator from './MainTabs';
 
 import ChatDetailScreen from '../screens/ChatRoom/ChatDetailScreen';
+import ChatScreen from '../screens/ChatRoom/ChatScreen';
 import MusicPlayerScreen from '../screens/ListeningRoom/MusicPlayerScreen';
 import CreateRoomScreen from '../screens/ListeningRoom/CreateListenRoom';
 import ListeningRoomScreen from '../screens/ListeningRoom/ListeningRoom';
@@ -20,6 +21,8 @@ import artist from '../screens/Admin/artist';
 import AccountScreen from '../screens/Setting/AccountScreen';
 import AdminNavigator from './AdminNavigator';
 import RegisterScreen from '../screens/Auth/Register';
+import EditProfileScreen from '../screens/Profile/EditProfile';
+import NotificationScreen from '../screens/Setting/NotificationScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -37,13 +40,15 @@ export default function AppNavigator() {
         <Stack.Screen name="ConfirmEmail" component={ConfirmEmail} />
         <Stack.Screen name="MainTabs" component={MainTabNavigator} />
         <Stack.Screen name="Welcone" component={Welcone} />
+        <Stack.Screen name="ChatScreen" component={ChatScreen} />
         <Stack.Screen name="ChatDetail" component={ChatDetailScreen} />
         <Stack.Screen name="MusicPlayer" component={MusicPlayerScreen} />
         <Stack.Screen name="CreateRoom" component={CreateRoomScreen} />
         <Stack.Screen name="ListeningRoom" component={ListeningRoomScreen} />
         <Stack.Screen name="artist" component={artist} />
         <Stack.Screen name="Register" component={RegisterScreen} />
-
+        <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+        <Stack.Screen name="NotificationScreen" component={NotificationScreen} />
         <Stack.Screen name="AdminNavigator" component={AdminNavigator} />
         {/* <Stack.Screen name="AIRecommend" component={AIRecommendScreen} />
           <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} />

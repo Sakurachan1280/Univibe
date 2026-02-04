@@ -79,7 +79,7 @@ export default function AdminAccount() {
           <View className="bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
             <View className="flex-row items-center justify-between p-5 border-b border-white/10">
               <View className="flex-row items-center flex-1">
-                <View className="w-10 h-10 rounded-full bg-green-600/20 items-center justify-center mr-3">
+                <View className="w-10 h-10 rounded-full bg-pink-600/20 items-center justify-center mr-3">
                   <Ionicons name="notifications-outline" size={20} color="#EC4899" />
                 </View>
                 <Text className="text-white font-semibold">Thông báo</Text>
@@ -94,7 +94,7 @@ export default function AdminAccount() {
 
             <View className="flex-row items-center justify-between p-5">
               <View className="flex-row items-center flex-1">
-                <View className="w-10 h-10 rounded-full bg-green-600/20 items-center justify-center mr-3">
+                <View className="w-10 h-10 rounded-full bg-pink-600/20 items-center justify-center mr-3">
                   <Ionicons name="moon-outline" size={20} color="#06B6D4" />
                 </View>
                 <Text className="text-white font-semibold">Chế độ tối</Text>

@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from "react";
-import { View, Text, Image, TouchableOpacity, Animated, PanResponder, Dimensions } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { View, Text, Image, TouchableOpacity, Animated, PanResponder, Dimensions, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
+import { getMeAPI, User } from "../../API/userAPI";
 
 interface CustomProfileMenuProps {
   isVisible: boolean;
@@ -18,6 +19,42 @@ export default function CustomProfileMenu({
   const slideX = useRef(new Animated.Value(-MENU_WIDTH)).current;
   const screenWidth = Dimensions.get("window").width;
   const navigation = useAppNavigation();
+  const [userData, setUserData] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (isVisible) {
+      openMenu();
+      fetchUserData();
+    }
+  }, [isVisible]);
+
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+      const data = await getMeAPI();
+      setUserData(data);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getAvatarSource = () => {
+    if (userData?.profile?.avatar_url) {
+      if (userData.profile.avatar_url.startsWith('http')) {
+        return { uri: userData.profile.avatar_url };
+      } else {
+        return { uri: `http://192.168.1.27:5000${userData.profile.avatar_url}` };
+      }
+    }
+    return require("../../../assets/Icon/ava.jpg");
+  };
+
+  const getDisplayName = () => {
+    return userData?.profile?.display_name || userData?.username || "User";
+  };
 
   const panResponder = useRef(
     PanResponder.create({
@@ -49,10 +86,6 @@ export default function CustomProfileMenu({
     }).start(onClose);
   };
 
-  useEffect(() => {
-    if (isVisible) openMenu();
-  }, [isVisible]);
-
   if (!isVisible) return null;
 
   return (
@@ -68,7 +101,7 @@ export default function CustomProfileMenu({
       >
         <SafeAreaView edges={["top"]} className="flex-1">
           {/* Profile Section */}
-          <TouchableOpacity 
+          <TouchableOpacity
             className="px-5 pt-6 pb-5 active:bg-gray-800/30"
             onPress={() => {
               closeMenu();
@@ -76,13 +109,19 @@ export default function CustomProfileMenu({
             }}
           >
             <View className="flex-row items-center">
-              <Image
-                source={require("../../../assets/Icon/ava.jpg")}
-                className="w-14 h-14 rounded-full"
-              />
+              {loading ? (
+                <View className="w-14 h-14 rounded-full bg-gray-800 items-center justify-center">
+                  <ActivityIndicator size="small" color="#EC4899" />
+                </View>
+              ) : (
+                <Image
+                  source={getAvatarSource()}
+                  className="w-14 h-14 rounded-full"
+                />
+              )}
               <View className="ml-3 flex-1">
                 <Text className="text-white text-xl font-bold">
-                  Sakura
+                  {loading ? "Loading..." : getDisplayName()}
                 </Text>
                 <Text className="text-gray-400 text-sm mt-0.5">
                   Xem hồ sơ

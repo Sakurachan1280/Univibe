@@ -19,7 +19,7 @@ type PlaylistItem = {
 };
 
 export default function RecentScreen() {
-    const navigation = useNavigation();
+  const navigation = useNavigation();
   const todayPlaylists: PlaylistItem[] = [
     {
       id: 1,
@@ -71,19 +71,19 @@ export default function RecentScreen() {
   ];
 
   const renderPlaylistItem = (item: PlaylistItem) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       key={item.id}
       className="flex-row items-center py-3 px-5 active:bg-neutral-800/50"
     >
       <View className="w-16 h-16 bg-gray-700 rounded-lg mr-4" />
-      
+
       <View className="flex-1">
         <Text className="text-white text-base font-medium mb-1">
           {item.title}
         </Text>
         <View className="flex-row items-center">
           {item.hasCheckmark && (
-            <Ionicons name="checkmark-circle" size={14} color="#1DB954" style={{ marginRight: 6 }} />
+            <Ionicons name="checkmark-circle" size={14} color="#EC4899" style={{ marginRight: 6 }} />
           )}
           <Text className="text-gray-400 text-sm flex-1" numberOfLines={1}>
             {item.subtitle}
@@ -104,7 +104,7 @@ export default function RecentScreen() {
   return (
     <SafeAreaView className="flex-1 bg-black">
       <StatusBar barStyle="light-content" />
-      
+
       {/* Header */}
       <View className="flex-row items-center px-5 py-4">
         <TouchableOpacity className="w-10 h-10 items-center justify-center mr-3" onPress={() => { navigation.goBack(); }}>

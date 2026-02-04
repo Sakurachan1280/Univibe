@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, Image, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -7,6 +7,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../navigation/types";
 import { QUICK_PLAY } from "../../constants/quickPlay";
 import ProfileMenu from "../../components/ModalProfile/ProfileMenu";
+import UserAvatar from "../../components/UserAvatar";
 import { useRef } from "react";
 import { PanResponder, PanResponderInstance } from "react-native";
 
@@ -37,10 +38,8 @@ export default function HomeScreen() {
       {/* HEADER */}
       <View className="flex-row items-center justify-between px-4 py-3">
         <View className="flex-row items-center">
-          <TouchableOpacity onPress={() => setShowProfileMenu(true)}>
-            <Image source={require("../../../assets/Icon/ava.jpg")} className="w-10 h-10 rounded-full" />
-          </TouchableOpacity>
-          <Text className="text-white text-2xl font-bold ml-4"> Welcome back</Text>
+          <UserAvatar size={40} onPress={() => setShowProfileMenu(true)} />
+          <Text className="text-white text-2xl font-bold ml-4">Welcome back</Text>
         </View>
 
         <View className="flex-row gap-4">
@@ -66,7 +65,7 @@ export default function HomeScreen() {
               onPress={() => navigation.navigate(item.screen as any)}
               className="w-[48%] bg-neutral-800 rounded-md flex-row items-center"
             >
-              <View className="w-14 h-14 bg-green-500 rounded-l-md" />
+              <View className="w-14 h-14 bg-pink-500 rounded-l-md" />
               <Text className="text-white ml-3 font-semibold">
                 {item.title}
               </Text>

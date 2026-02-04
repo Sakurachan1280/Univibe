@@ -158,7 +158,7 @@ export default function CreateArtistScreen() {
                 <TouchableOpacity
                     onPress={handleCreateArtist}
                     disabled={isLoading}
-                    className={`py-4 rounded-xl items-center justify-center mb-10 ${isLoading ? 'bg-gray-700' : 'bg-green-600'}`}
+                    className={`py-4 rounded-xl items-center justify-center mb-10 ${isLoading ? 'bg-gray-700' : 'bg-pink-600'}`}
                 >
                     {isLoading ? (
                         <ActivityIndicator color="white" />

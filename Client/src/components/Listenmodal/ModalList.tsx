@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Modal,  TouchableOpacity, Image, ScrollView, Pressable,} from 'react-native';
+import { View, Text, Modal, TouchableOpacity, Image, ScrollView, Pressable, } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AddSongModal from './AddSongModel';
 
@@ -42,7 +42,7 @@ export default function ListenModal({ isVisible, onClose, onPressAdd }: ListenMo
                                     Jam của Sakura
                                 </Text>
                                 <View className="flex-row items-center mt-3 gap-2">
-                                    <TouchableOpacity 
+                                    <TouchableOpacity
                                         className="w-10 h-10 rounded-full bg-neutral-800 items-center justify-center border border-neutral-700"
                                         onPress={onPressAdd}
                                     >
@@ -93,7 +93,7 @@ export default function ListenModal({ isVisible, onClose, onPressAdd }: ListenMo
                                 </View>
                                 <View className="flex-1">
                                     <Text
-                                        className="text-[#1DB954] font-medium text-base mb-0.5"
+                                        className="text-[#EC4899] font-medium text-base mb-0.5"
                                         numberOfLines={1}
                                     >
                                         ... Mười Năm (Lộn Xộn 3)
@@ -144,15 +144,15 @@ export default function ListenModal({ isVisible, onClose, onPressAdd }: ListenMo
                     {/* Bottom Controls */}
                     <View className="flex-row px-4 pb-8 pt-4 justify-between gap-3 bg-[#121212]">
                         <TouchableOpacity className="flex-1 bg-[#2a2a2a] rounded-xl py-3 items-center justify-center gap-1">
-                            <Ionicons name="shuffle" size={24} color="#1DB954" />
-                            <Text className="text-[#1DB954] text-xs font-medium">
+                            <Ionicons name="shuffle" size={24} color="#EC4899" />
+                            <Text className="text-[#EC4899] text-xs font-medium">
                                 Phát ngẫu nhiên
                             </Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity className="flex-1 bg-[#2a2a2a] rounded-xl py-3 items-center justify-center gap-1">
-                            <Ionicons name="repeat" size={24} color="#1DB954" />
-                            <Text className="text-[#1DB954] text-xs font-medium">
+                            <Ionicons name="repeat" size={24} color="#EC4899" />
+                            <Text className="text-[#EC4899] text-xs font-medium">
                                 Lặp lại
                             </Text>
                         </TouchableOpacity>

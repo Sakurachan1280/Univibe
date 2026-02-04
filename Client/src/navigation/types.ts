@@ -31,6 +31,9 @@ export type RootStackParamList = {
   AdminNavigator: undefined;
   ChatScreen: undefined;
   Register: undefined;
+  EditProfile: undefined;
+  NotificationScreen: undefined;
+
 };
 export type MainTabParamList = {
   Home: undefined;

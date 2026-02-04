@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,23 +6,61 @@ import {
   ScrollView,
   StatusBar,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useAppNavigation } from "../../navigation/useAppNavigation";
+import { getMeAPI, User } from "../../API/userAPI";
+import ShareProfileModal from "../../components/ShareProfileModal";
 
 export default function ProfileScreen() {
-    const navigation = useNavigation();
+  const navigation = useAppNavigation();
+  const [userData, setUserData] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showShareModal, setShowShareModal] = useState(false);
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const data = await getMeAPI();
+      setUserData(data);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getAvatarSource = () => {
+    if (userData?.profile?.avatar_url) {
+      // If avatar_url starts with http, use it directly, otherwise prepend base URL
+      if (userData.profile.avatar_url.startsWith('http')) {
+        return { uri: userData.profile.avatar_url };
+      } else {
+        return { uri: `http://192.168.1.27:5000${userData.profile.avatar_url}` };
+      }
+    }
+    return require("../../../assets/Icon/ava.jpg");
+  };
+
+  const getDisplayName = () => {
+    return userData?.profile?.display_name || userData?.username || "User";
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-black">
       <StatusBar barStyle="light-content" />
-      
+
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Header with Background */}
         <View className="relative">
           {/* Background */}
           <View className="absolute inset-0 bg-gray-800/60 h-68" />
-          
+
           {/* Back Button */}
           <TouchableOpacity className="absolute top-4 left-5 w-10 h-10 items-center justify-center z-10" onPress={() => { navigation.goBack(); }}>
             <Ionicons name="chevron-back" size={28} color="#fff" />
@@ -34,16 +72,24 @@ export default function ProfileScreen() {
             <View className="flex-row items-center mb-6">
               {/* Avatar */}
               <View className="w-28 h-28 rounded-full bg-gray-700 overflow-hidden mr-4">
-                <Image
-                  source={require("../../../assets/Icon/ava.jpg")}
-                  className="w-full h-full"
-                  resizeMode="cover"
-                />
+                {loading ? (
+                  <View className="w-full h-full items-center justify-center">
+                    <ActivityIndicator size="small" color="#fff" />
+                  </View>
+                ) : (
+                  <Image
+                    source={getAvatarSource()}
+                    className="w-full h-full"
+                    resizeMode="cover"
+                  />
+                )}
               </View>
-              
+
               {/* Name and Stats */}
               <View className="flex-1">
-                <Text className="text-white text-3xl font-bold mb-2">Sakura</Text>
+                <Text className="text-white text-3xl font-bold mb-2">
+                  {loading ? "Loading..." : getDisplayName()}
+                </Text>
                 <Text className="text-gray-300 text-sm">
                   1 người theo dõi • Đang theo dõi 38
                 </Text>
@@ -52,18 +98,18 @@ export default function ProfileScreen() {
 
             {/* Action Buttons */}
             <View className="flex-row items-center gap-3">
-              <TouchableOpacity className="bg-transparent border border-gray-500 rounded-full px-7 py-2 active:bg-white/10">
+              <TouchableOpacity className="bg-transparent border border-gray-500 rounded-full px-7 py-2 active:bg-white/10" onPress={() => navigation.navigate("EditProfile")}>
                 <Text className="text-white text-sm font-semibold">Chỉnh sửa</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity className="w-9 h-9 bg-transparent items-center justify-center active:bg-white/10">
+
+              <TouchableOpacity className="w-9 h-9 bg-transparent items-center justify-center active:bg-white/10" onPress={() => setShowShareModal(true)}>
                 <Ionicons name="share-outline" size={24} color="#fff" />
               </TouchableOpacity>
-              
+
               <TouchableOpacity className="w-9 h-9 bg-transparent items-center justify-center active:bg-white/10">
                 <Ionicons name="settings-outline" size={24} color="#fff" />
               </TouchableOpacity>
-              
+
               <TouchableOpacity className="w-9 h-9 bg-transparent items-center justify-center active:bg-white/10">
                 <Ionicons name="ellipsis-horizontal" size={24} color="#fff" />
               </TouchableOpacity>
@@ -76,20 +122,20 @@ export default function ProfileScreen() {
           {/* Three Cards Icon Illustration */}
           <View className="flex-row items-center justify-center mb-8 h-32">
             {/* Left Card */}
-            <View 
+            <View
               className="w-24 h-32 bg-neutral-800 rounded-2xl items-center justify-center -rotate-12 absolute left-16"
               style={{ transform: [{ rotate: '-15deg' }, { translateX: -20 }] }}
             >
               <Ionicons name="musical-notes" size={40} color="#6B7280" />
             </View>
-            
+
             {/* Center Card */}
             <View className="w-24 h-32 bg-neutral-800 rounded-2xl items-center justify-center z-10">
               <Ionicons name="person" size={40} color="#6B7280" />
             </View>
-            
+
             {/* Right Card */}
-            <View 
+            <View
               className="w-24 h-32 bg-neutral-800 rounded-2xl items-center justify-center rotate-12 absolute right-16"
               style={{ transform: [{ rotate: '15deg' }, { translateX: 20 }] }}
             >
@@ -113,6 +159,13 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Share Profile Modal */}
+      <ShareProfileModal
+        visible={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        userData={userData}
+      />
     </SafeAreaView>
   );
 }

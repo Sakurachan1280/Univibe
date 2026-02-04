@@ -1,11 +1,35 @@
-import React from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
+import { getMeAPI, User } from "../../API/userAPI";
 
 export default function AccountScreen() {
   const navigation = useAppNavigation();
+  const [userData, setUserData] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const data = await getMeAPI();
+      setUserData(data);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-black">
@@ -29,26 +53,67 @@ export default function AccountScreen() {
           Thông tin chi tiết về tài khoản
         </Text>
 
-        {/* USERNAME */}
-        <View className="mb-6">
-          <Text className="text-gray-400 text-sm mb-1">Tên người dùng</Text>
-          <Text className="text-white text-base font-medium tracking-wide">
-            31h4xiih75xjntbkootx2btk7z54
-          </Text>
-        </View>
-
-        {/* EMAIL */}
-        <TouchableOpacity className="py-5 border-y border-gray-800 flex-row justify-between items-center">
-          <View>
-            <Text className="text-gray-400 text-sm">Email</Text>
-            <Text className="text-white text-base mt-1">
-              monchan3949@gmail.com
-            </Text>
+        {loading ? (
+          <View className="items-center justify-center py-10">
+            <ActivityIndicator size="large" color="#EC4899" />
           </View>
+        ) : (
+          <>
+            {/* USERNAME */}
+            <View className="py-5 border-b border-gray-800">
+              <Text className="text-gray-400 text-sm mb-1">
+                Tên người dùng
+              </Text>
+              <Text className="text-white text-base font-medium tracking-wide">
+                {userData?.username || "N/A"}
+              </Text>
+            </View>
 
-          <Ionicons name="chevron-forward" size={20} color="#888" />
-        </TouchableOpacity>
+            {/* EMAIL */}
+            <View className="py-5 border-b border-gray-800">
+              <Text className="text-gray-400 text-sm mb-1">Email</Text>
+              <Text className="text-white text-base mt-1">
+                {userData?.email || "N/A"}
+              </Text>
+            </View>
 
+            {/* PHONE (if available) */}
+            {userData?.phone && (
+              <TouchableOpacity className="py-5 border-b border-gray-800 flex-row justify-between items-center">
+                <View>
+                  <Text className="text-gray-400 text-sm">Số điện thoại</Text>
+                  <Text className="text-white text-base mt-1">
+                    {userData.phone}
+                  </Text>
+                </View>
+
+                <Ionicons name="chevron-forward" size={20} color="#888" />
+              </TouchableOpacity>
+            )}
+
+            {/* ACCOUNT TYPE */}
+            <View className="py-5 border-b border-gray-800">
+              <Text className="text-gray-400 text-sm mb-1">
+                Loại tài khoản
+              </Text>
+              <Text className="text-white text-base font-medium">
+                {userData?.role === "admin" ? "Quản trị viên" : "Người dùng"}
+              </Text>
+            </View>
+
+            {/* AUTH PROVIDER */}
+            <View className="py-5">
+              <Text className="text-gray-400 text-sm mb-1">
+                Phương thức đăng nhập
+              </Text>
+              <Text className="text-white text-base font-medium capitalize">
+                {userData?.auth_provider === "local"
+                  ? "Email/Password"
+                  : userData?.auth_provider}
+              </Text>
+            </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

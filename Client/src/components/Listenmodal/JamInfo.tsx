@@ -92,7 +92,7 @@ export default function JamInfoModal({
           <View className="px-6 py-5 border-t border-gray-800">
             <View className="flex-row items-center justify-between mb-3">
               <View className="flex-row items-center">
-                <View className="w-8 h-8 bg-green-600 rounded items-center justify-center mr-3">
+                <View className="w-8 h-8 bg-pink-600 rounded items-center justify-center mr-3">
                   <Ionicons name="wifi" size={18} color="white" />
                 </View>
                 <Text className="text-white text-base font-medium">

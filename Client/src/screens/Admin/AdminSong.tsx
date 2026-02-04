@@ -156,8 +156,8 @@ export default function AdminSong() {
           <Text className="text-white text-xl font-bold mb-4">Thao Tác Nhanh</Text>
 
           <TouchableOpacity
-            className="bg-gradient-to-r from-green-600 to-green-500 rounded-xl p-4 mb-3"
             style={{ backgroundColor: '#EC4899' }}
+            className="rounded-xl p-4 mb-3"
             activeOpacity={0.8}
             onPress={fetchStats}
           >

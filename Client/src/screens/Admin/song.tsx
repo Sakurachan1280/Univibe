@@ -257,7 +257,7 @@ export default function CreateSongScreen() {
                         className="bg-white/10 p-4 rounded-xl border border-white/10 flex-row items-center justify-between"
                     >
                         <View className="flex-row items-center flex-1">
-                            <Ionicons name="musical-notes" size={24} color={audioFile ? "#1DB954" : "#666"} />
+                            <Ionicons name="musical-notes" size={24} color={audioFile ? "#EC4899" : "#666"} />
                             <Text className={`ml-3 text-base ${audioFile ? 'text-white' : 'text-gray-500'}`} numberOfLines={1}>
                                 {audioFile ? audioFile.name : 'Select audio file'}
                             </Text>
@@ -270,7 +270,7 @@ export default function CreateSongScreen() {
                 <View className="mb-8">
                     <Text className="text-gray-400 text-sm mb-2 font-medium">Select Artists *</Text>
                     {isLoadingArtists ? (
-                        <ActivityIndicator color="#1DB954" />
+                        <ActivityIndicator color="#EC4899" />
                     ) : (
                         <View className="bg-white/10 rounded-xl border border-white/10 p-2">
                             {artists.length === 0 ? (
@@ -280,7 +280,7 @@ export default function CreateSongScreen() {
                                     <TouchableOpacity
                                         key={artist._id}
                                         onPress={() => toggleArtist(artist._id)}
-                                        className={`flex-row items-center p-3 rounded-lg mb-1 ${selectedArtists.includes(artist._id) ? 'bg-green-600/30' : 'bg-transparent'
+                                        className={`flex-row items-center p-3 rounded-lg mb-1 ${selectedArtists.includes(artist._id) ? 'bg-pink-600/30' : 'bg-transparent'
                                             }`}
                                     >
                                         {artist.avatar ? (
@@ -295,7 +295,7 @@ export default function CreateSongScreen() {
                                         )}
                                         <Text className="text-white ml-3 flex-1">{artist.name}</Text>
                                         {selectedArtists.includes(artist._id) && (
-                                            <Ionicons name="checkmark-circle" size={24} color="#1DB954" />
+                                            <Ionicons name="checkmark-circle" size={24} color="#EC4899" />
                                         )}
                                     </TouchableOpacity>
                                 ))
@@ -308,7 +308,7 @@ export default function CreateSongScreen() {
                 <TouchableOpacity
                     onPress={handleCreateSong}
                     disabled={isLoading}
-                    className={`py-4 rounded-xl items-center justify-center mb-10 ${isLoading ? 'bg-gray-700' : 'bg-green-600'}`}
+                    className={`py-4 rounded-xl items-center justify-center mb-10 ${isLoading ? 'bg-gray-700' : 'bg-pink-600'}`}
                 >
                     {isLoading ? (
                         <ActivityIndicator color="white" />

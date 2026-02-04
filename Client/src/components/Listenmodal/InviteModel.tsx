@@ -31,7 +31,7 @@ export default function JamInviteModal({ visible, onClose }: InviteModalProps) {
         {/* Content: Pressable chặn propagation */}
         <Pressable
           className="bg-[#1a1a1a] rounded-t-3xl w-full pt-4 pb-8"
-          onPress={() => {}}
+          onPress={() => { }}
         >
           {/* Handle */}
           <View className="items-center mb-4">
@@ -44,7 +44,7 @@ export default function JamInviteModal({ visible, onClose }: InviteModalProps) {
           </Text>
 
           {/* Share Button */}
-          <TouchableOpacity className="mx-6 bg-[#1DB954] py-3 rounded-full items-center justify-center mb-6 flex-row">
+          <TouchableOpacity className="mx-6 bg-[#EC4899] py-3 rounded-full items-center justify-center mb-6 flex-row">
             <Ionicons name="share-outline" color="white" size={20} />
             <Text className="text-white font-semibold ml-2">
               Chia sẻ liên kết

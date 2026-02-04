@@ -36,7 +36,7 @@ export default function MainTabNavigator() {
             marginTop: 5,
           },
 
-          tabBarActiveTintColor: "#1DB954",
+          tabBarActiveTintColor: "#EC4899",
           tabBarInactiveTintColor: "#aaa",
 
           tabBarIcon: ({ focused, color }) => {

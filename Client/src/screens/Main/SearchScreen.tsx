@@ -1,10 +1,11 @@
-import { View, Text, TextInput, Image, Keyboard, Pressable, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, Keyboard, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useState, useRef } from "react";
 import { PanResponderInstance } from "react-native";
 import { PanResponder } from "react-native";
 import ProfileMenu from "../../components/ModalProfile/ProfileMenu";
+import UserAvatar from "../../components/UserAvatar";
 
 export default function SearchScreen() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -31,9 +32,7 @@ export default function SearchScreen() {
         {/* HEADER */}
         <View className="flex-row items-center justify-between px-4 py-3">
           <View className="flex-row items-center">
-            <TouchableOpacity onPress={() => setShowProfileMenu(true)}>
-              <Image source={require("../../../assets/Icon/ava.jpg")} className="w-10 h-10 rounded-full" />
-            </TouchableOpacity>
+            <UserAvatar size={40} onPress={() => setShowProfileMenu(true)} />
             <Text className="text-white text-2xl font-bold ml-4">
               Tìm kiếm
             </Text>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,15 +6,53 @@ import {
   Image,
   ScrollView,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { CommonActions, useNavigation } from "@react-navigation/native";
+import { CommonActions } from "@react-navigation/native";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
-
+import { useFocusEffect } from '@react-navigation/native';
+import { getMeAPI, User } from '../../API/userAPI';
 
 export default function SettingsScreen() {
   const navigation = useAppNavigation();
+  const [isLoading, setIsLoading] = useState(true);
+  const [userData, setUserData] = useState<User | null>(null);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchUserData();
+    }, [])
+  );
+
+  const fetchUserData = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getMeAPI();
+      setUserData(data);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getDisplayName = () => {
+    return userData?.profile?.display_name || userData?.username || 'User';
+  };
+
+  const getAvatarSource = () => {
+    if (userData?.profile?.avatar_url) {
+      // If avatar_url starts with http, use it directly, otherwise prepend base URL
+      if (userData.profile.avatar_url.startsWith('http')) {
+        return { uri: userData.profile.avatar_url };
+      } else {
+        return { uri: `http://192.168.1.27:5000${userData.profile.avatar_url}` };
+      }
+    }
+    return null;
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-black">
@@ -40,17 +78,29 @@ export default function SettingsScreen() {
           className="flex-row items-center mx-4 mt-5 mb-3 p-4 bg-neutral-900/50 rounded-2xl border border-white/10 active:bg-neutral-800/70"
           onPress={() => navigation.navigate("ViewProfile")}
         >
-          <View className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-purple-400 to-pink-500 items-center justify-center">
-            <Image
-              source={require("../../../assets/Icon/ava.jpg")}
-              className="w-full h-full"
-              resizeMode="cover"
-            />
-          </View>
+          {isLoading ? (
+            <View className="w-16 h-16 rounded-full bg-gray-800 items-center justify-center">
+              <ActivityIndicator size="small" color="#EC4899" />
+            </View>
+          ) : (
+            <View className="w-16 h-16 rounded-full overflow-hidden border-2 border-pink-500/30 bg-gray-800 items-center justify-center">
+              {getAvatarSource() ? (
+                <Image
+                  source={getAvatarSource()!}
+                  className="w-full h-full"
+                  resizeMode="cover"
+                />
+              ) : (
+                <Ionicons name="person" size={32} color="#666" />
+              )}
+            </View>
+          )}
 
           <View className="flex-1 ml-4">
-            <Text className="text-white text-lg font-semibold">Sakura</Text>
-            <Text className="text-gray-400 text-sm mt-0.5">Xem Hồ sơ</Text>
+            <Text className="text-white text-lg font-semibold">
+              {isLoading ? 'Loading...' : getDisplayName()}
+            </Text>
+            <Text className="text-gray-400 text-sm mt-0.5">Chỉnh sửa hồ sơ</Text>
           </View>
 
           <Ionicons name="chevron-forward" size={24} color="#9CA3AF" />
@@ -71,7 +121,7 @@ export default function SettingsScreen() {
           {/* Thông báo */}
           <TouchableOpacity
             className="flex-row items-center py-4 px-5 bg-neutral-900/30 border-b border-white/5 active:bg-neutral-800/50"
-            onPress={() => navigation.navigate("ChatScreen")}
+            onPress={() => navigation.navigate("NotificationScreen")}
           >
             <Ionicons name="notifications-outline" size={24} color="#9CA3AF" />
             <Text className="flex-1 text-white text-base ml-4">Thông báo</Text>
@@ -102,7 +152,10 @@ export default function SettingsScreen() {
 
         {/* Logout Button */}
         <View className="mx-4 mb-8">
-          <TouchableOpacity className="bg-white rounded-full py-4 px-8 items-center active:bg-gray-200" onPress={() => navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: "Welcone" }], }))}>
+          <TouchableOpacity
+            className="bg-white rounded-full py-4 px-8 items-center active:bg-gray-200"
+            onPress={() => navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: "Welcone" }] }))}
+          >
             <Text className="text-black text-base font-semibold">Đăng xuất</Text>
           </TouchableOpacity>
         </View>

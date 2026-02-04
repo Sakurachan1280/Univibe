@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {View, Text, Image, TouchableOpacity, ScrollView, StatusBar} from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
@@ -10,7 +10,7 @@ export default function ListSongScreen() {
     return (
         <SafeAreaView className="flex-1 bg-black" edges={['top']}>
             <StatusBar barStyle="light-content" />
-            
+
             <ScrollView className="flex-1">
                 {/* Header with Purple Background */}
                 <View className="bg-[#1B1B1B] pb-8">
@@ -63,11 +63,11 @@ export default function ListSongScreen() {
                                 <Ionicons
                                     name="shuffle"
                                     size={26}
-                                    color={isShuffled ? "#1DB954" : "#b3b3b3"}
+                                    color={isShuffled ? "#EC4899" : "#b3b3b3"}
                                 />
                             </TouchableOpacity>
 
-                            <TouchableOpacity className="w-14 h-14 bg-[#1DB954] rounded-full items-center justify-center">
+                            <TouchableOpacity className="w-14 h-14 bg-[#EC4899] rounded-full items-center justify-center">
                                 <Ionicons name="play" size={28} color="black" style={{ marginLeft: 2 }} />
                             </TouchableOpacity>
                         </View>

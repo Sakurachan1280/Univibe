@@ -14,7 +14,7 @@ export default function LikeSongScreen() {
                     <Pressable onPress={() => navigation.goBack()} className="mx-4 mt-2">
                         <Ionicons name="chevron-back" size={28} color="white" />
                     </Pressable>
-                        
+
                     {/* Search and Sort */}
                     <View className="mx-4 mt-4 flex-row items-center gap-2">
                         <View className="flex-1 flex-row items-center gap-3 bg-white/20 px-4 rounded-lg h-12">
@@ -48,7 +48,7 @@ export default function LikeSongScreen() {
                             </Pressable>
                         </View>
 
-                        <Pressable className="w-14 h-14 rounded-full bg-[#1DB954] justify-center items-center">
+                        <Pressable className="w-14 h-14 rounded-full bg-[#EC4899] justify-center items-center">
                             <Ionicons name="play" size={28} color="white" style={{ marginLeft: 2 }} />
                         </Pressable>
                     </View>
