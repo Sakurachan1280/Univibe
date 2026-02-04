@@ -1,26 +1,80 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StatusBar,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import axiosClient from '../../API/axiosClient';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../navigation/types';
 
 export default function AdminAlbum() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalSongs: 0,
+    totalPlaylists: 0,
+    totalArtists: 0,
+  });
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Fetch songs count
+      const songsResponse = await axiosClient.get('/music/queue?type=new');
+      const totalSongs = songsResponse.data?.length || 0;
+
+      // Fetch playlists count
+      const playlistsResponse = await axiosClient.get('/playlists');
+      const totalPlaylists = playlistsResponse.data?.length || 0;
+
+      // Fetch artists count
+      const artistsResponse = await axiosClient.get('/music/artists');
+      const totalArtists = artistsResponse.data?.length || 0;
+
+      setStats({
+        totalSongs,
+        totalPlaylists,
+        totalArtists,
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      Alert.alert('Error', 'Failed to load library statistics');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const libraryFeatures = [
     {
-      id: 'albums',
-      title: 'Albums',
-      description: 'Quản lý danh sách album',
-      icon: 'albums',
+      id: 'artists',
+      title: 'Nghệ Sĩ',
+      description: 'Quản lý danh sách nghệ sĩ',
+      icon: 'person',
       color: '#EC4899',
-      count: 0,
+      count: stats.totalArtists,
+      screen: 'ArtistManagement',
+    },
+    {
+      id: 'songs',
+      title: 'Bài Hát',
+      description: 'Quản lý danh sách bài hát',
+      icon: 'musical-notes',
+      color: '#8B5CF6',
+      count: stats.totalSongs,
+      screen: 'SongManagement',
     },
     {
       id: 'playlists',
@@ -28,17 +82,18 @@ export default function AdminAlbum() {
       description: 'Quản lý danh sách phát',
       icon: 'list',
       color: '#06B6D4',
-      count: 0,
-    },
-    {
-      id: 'genres',
-      title: 'Thể Loại',
-      description: 'Phân loại theo thể loại nhạc',
-      icon: 'musical-note',
-      color: '#EC4899',
-      count: 0,
+      count: stats.totalPlaylists,
+      screen: null, // TODO: Add playlist management screen
     },
   ];
+
+  const handleNavigate = (screen: string | null) => {
+    if (screen) {
+      navigation.navigate(screen as any);
+    } else {
+      Alert.alert('Thông báo', 'Tính năng đang phát triển');
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-black">
@@ -52,102 +107,81 @@ export default function AdminAlbum() {
 
       {/* Content */}
       <ScrollView className="flex-1 px-6 py-6">
-        {/* Library Stats */}
-        <View className="mb-6">
-          <Text className="text-white text-xl font-bold mb-4">Tổng Quan</Text>
-
-          <View className="bg-gradient-to-br from-pink-500 to-cyan-500 rounded-2xl p-6 mb-4" style={{ backgroundColor: '#EC4899' }}>
-            <View className="flex-row justify-between items-center">
-              <View>
-                <Text className="text-white/80 text-sm mb-1">Tổng số bài hát</Text>
-                <Text className="text-white text-4xl font-bold">0</Text>
-              </View>
-              <View className="bg-white/20 rounded-full p-4">
-                <Ionicons name="musical-notes" size={32} color="white" />
-              </View>
-            </View>
+        {isLoading ? (
+          <View className="flex-1 items-center justify-center py-20">
+            <ActivityIndicator size="large" color="#EC4899" />
+            <Text className="text-gray-400 mt-4">Đang tải dữ liệu...</Text>
           </View>
+        ) : (
+          <>
+            {/* Library Stats */}
+            <View className="mb-6">
+              <Text className="text-white text-xl font-bold mb-4">Tổng Quan</Text>
 
-          <View className="flex-row justify-between">
-            <View className="bg-white/5 rounded-2xl p-5 flex-1 mr-2 border border-white/10">
-              <Ionicons name="albums" size={24} color="#EC4899" />
-              <Text className="text-white text-2xl font-bold mt-3">0</Text>
-              <Text className="text-gray-400 text-sm mt-1">Albums</Text>
+              <View className="bg-gradient-to-br from-pink-500 to-cyan-500 rounded-2xl p-6 mb-4" style={{ backgroundColor: '#EC4899' }}>
+                <View className="flex-row justify-between items-center">
+                  <View>
+                    <Text className="text-white/80 text-sm mb-1">Tổng số bài hát</Text>
+                    <Text className="text-white text-4xl font-bold">{stats.totalSongs}</Text>
+                  </View>
+                  <View className="bg-white/20 rounded-full p-4">
+                    <Ionicons name="musical-notes" size={32} color="white" />
+                  </View>
+                </View>
+              </View>
+
+              <View className="flex-row justify-between">
+                <View className="bg-white/5 rounded-2xl p-5 flex-1 mr-2 border border-white/10">
+                  <Ionicons name="person" size={24} color="#EC4899" />
+                  <Text className="text-white text-2xl font-bold mt-3">{stats.totalArtists}</Text>
+                  <Text className="text-gray-400 text-sm mt-1">Nghệ sĩ</Text>
+                </View>
+
+                <View className="bg-white/5 rounded-2xl p-5 flex-1 ml-2 border border-white/10">
+                  <Ionicons name="list" size={24} color="#06B6D4" />
+                  <Text className="text-white text-2xl font-bold mt-3">{stats.totalPlaylists}</Text>
+                  <Text className="text-gray-400 text-sm mt-1">Playlists</Text>
+                </View>
+              </View>
             </View>
 
-            <View className="bg-white/5 rounded-2xl p-5 flex-1 ml-2 border border-white/10">
-              <Ionicons name="list" size={24} color="#06B6D4" />
-              <Text className="text-white text-2xl font-bold mt-3">0</Text>
-              <Text className="text-gray-400 text-sm mt-1">Playlists</Text>
-            </View>
-          </View>
-        </View>
+            {/* Library Categories */}
+            <View className="mb-6">
+              <Text className="text-white text-xl font-bold mb-4">Danh Mục</Text>
 
-        {/* Library Categories */}
-        <View className="mb-6">
-          <Text className="text-white text-xl font-bold mb-4">Danh Mục</Text>
-
-          {libraryFeatures.map((feature) => (
-            <TouchableOpacity
-              key={feature.id}
-              className="bg-white/5 rounded-2xl p-5 mb-3 border border-white/10"
-              activeOpacity={0.8}
-            >
-              <View className="flex-row items-center">
-                <View
-                  className="w-14 h-14 rounded-full items-center justify-center mr-4"
-                  style={{ backgroundColor: `${feature.color}20` }}
+              {libraryFeatures.map((feature) => (
+                <TouchableOpacity
+                  key={feature.id}
+                  className="bg-white/5 rounded-2xl p-5 mb-3 border border-white/10"
+                  activeOpacity={0.8}
+                  onPress={() => handleNavigate(feature.screen)}
                 >
-                  <Ionicons name={feature.icon as any} size={24} color={feature.color} />
-                </View>
+                  <View className="flex-row items-center">
+                    <View
+                      className="w-14 h-14 rounded-full items-center justify-center mr-4"
+                      style={{ backgroundColor: `${feature.color}20` }}
+                    >
+                      <Ionicons name={feature.icon as any} size={24} color={feature.color} />
+                    </View>
 
-                <View className="flex-1">
-                  <Text className="text-white text-lg font-bold mb-1">
-                    {feature.title}
-                  </Text>
-                  <Text className="text-gray-400 text-sm">
-                    {feature.description}
-                  </Text>
-                </View>
+                    <View className="flex-1">
+                      <Text className="text-white text-lg font-bold mb-1">
+                        {feature.title}
+                      </Text>
+                      <Text className="text-gray-400 text-sm">
+                        {feature.description}
+                      </Text>
+                    </View>
 
-                <View className="bg-white/10 rounded-full px-4 py-2">
-                  <Text className="text-white font-bold">{feature.count}</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Quick Actions */}
-        <View className="mb-6">
-          <Text className="text-white text-xl font-bold mb-4">Thao Tác</Text>
-
-          <TouchableOpacity
-            className="bg-white/5 rounded-xl p-4 mb-3 border border-white/10"
-            activeOpacity={0.8}
-          >
-            <View className="flex-row items-center justify-between">
-              <View className="flex-row items-center">
-                <Ionicons name="add-circle" size={20} color="#EC4899" />
-                <Text className="text-white font-semibold ml-3">Tạo Album mới</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#666" />
+                    <View className="bg-white/10 rounded-full px-4 py-2">
+                      <Text className="text-white font-bold">{feature.count}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
             </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            className="bg-white/5 rounded-xl p-4 border border-white/10"
-            activeOpacity={0.8}
-          >
-            <View className="flex-row items-center justify-between">
-              <View className="flex-row items-center">
-                <Ionicons name="add-circle" size={20} color="#EC4899" />
-                <Text className="text-white font-semibold ml-3">Tạo Playlist mới</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#666" />
-            </View>
-          </TouchableOpacity>
-        </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

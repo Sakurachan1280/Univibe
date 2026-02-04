@@ -20,7 +20,7 @@ export default function SignUp() {
       <View className="mb-20 gap-5">
         <TouchableOpacity activeOpacity={0.5} onPress={() => navigation.navigate("Register")} >
             <View className="flex-row items-center border border-white rounded-full py-4 px-5">
-              <Ionicons name="call-outline" size={24} color="white" />
+              <Ionicons name="mail-outline" size={24} color="white" />
               <View className="flex-1 items-center"><Text className="text-white text-xl font-bold">Tiếp tục bằng Email</Text></View>
               <View className="w-6" /></View>
           </TouchableOpacity>

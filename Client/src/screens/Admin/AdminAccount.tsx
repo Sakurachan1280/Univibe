@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,40 +6,52 @@ import {
   StatusBar,
   ScrollView,
   Switch,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { CommonActions } from '@react-navigation/native';
+import { getMeAPI, User } from '../../API/userAPI';
+import { AdminTabParamList } from '../../navigation/types';
+
+type AdminAccountNavigationProp = NativeStackNavigationProp<AdminTabParamList>;
 
 export default function AdminAccount() {
-  const navigation = useNavigation();
-  const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
-  const [darkModeEnabled, setDarkModeEnabled] = React.useState(true);
+  const navigation = useNavigation<AdminAccountNavigationProp>();
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [darkModeEnabled, setDarkModeEnabled] = useState(true);
+  const [userData, setUserData] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const data = await getMeAPI();
+      setUserData(data);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleNavigation = (screen: keyof AdminTabParamList) => {
+    navigation.navigate(screen);
+  };
 
   const settingsSections = [
     {
-      title: 'Tài Khoản',
-      items: [
-        { id: 'profile', label: 'Thông tin cá nhân', icon: 'person-outline', color: '#EC4899' },
-        { id: 'security', label: 'Bảo mật', icon: 'shield-checkmark-outline', color: '#EC4899' },
-        { id: 'privacy', label: 'Quyền riêng tư', icon: 'lock-closed-outline', color: '#EC4899' },
-      ],
-    },
-    {
-      title: 'Hệ Thống',
-      items: [
-        { id: 'database', label: 'Quản lý Database', icon: 'server-outline', color: '#06B6D4' },
-        { id: 'backup', label: 'Sao lưu & Khôi phục', icon: 'cloud-upload-outline', color: '#06B6D4' },
-        { id: 'logs', label: 'Nhật ký hệ thống', icon: 'document-text-outline', color: '#06B6D4' },
-      ],
-    },
-    {
       title: 'Ứng Dụng',
       items: [
-        { id: 'about', label: 'Về Spotichat', icon: 'information-circle-outline', color: '#EC4899' },
-        { id: 'help', label: 'Trợ giúp & Hỗ trợ', icon: 'help-circle-outline', color: '#EC4899' },
-        { id: 'version', label: 'Phiên bản 1.0.0', icon: 'code-outline', color: '#666' },
+        { id: 'about', label: 'Về Spotichat', icon: 'information-circle-outline', color: '#EC4899', screen: 'AboutScreen' },
+        { id: 'help', label: 'Trợ giúp & Hỗ trợ', icon: 'help-circle-outline', color: '#06B6D4', screen: 'HelpScreen' },
+        { id: 'logs', label: 'Nhật ký hệ thống', icon: 'document-text-outline', color: '#EC4899', screen: 'SystemLogsScreen' },
+        { id: 'version', label: 'Phiên bản 1.0.0', icon: 'code-outline', color: '#666', screen: null },
       ],
     },
   ];
@@ -63,12 +75,17 @@ export default function AdminAccount() {
               <Ionicons name="person" size={32} color="white" />
             </View>
             <View className="flex-1">
-              <Text className="text-white text-xl font-bold">Admin</Text>
-              <Text className="text-white/80 text-sm mt-1">Quản trị viên hệ thống</Text>
+              {isLoading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <>
+                  <Text className="text-white text-xl font-bold">
+                    Admin {userData?.username ? `• ${userData.username}` : ''}
+                  </Text>
+                  <Text className="text-white/80 text-sm mt-1">Quản trị viên hệ thống</Text>
+                </>
+              )}
             </View>
-            <TouchableOpacity className="bg-white/20 rounded-full p-2">
-              <Ionicons name="create-outline" size={20} color="white" />
-            </TouchableOpacity>
           </View>
         </View>
 
@@ -122,6 +139,7 @@ export default function AdminAccount() {
                     }`}
                   activeOpacity={0.7}
                   disabled={item.id === 'version'}
+                  onPress={() => item.screen && handleNavigation(item.screen as any)}
                 >
                   <View className="flex-row items-center flex-1">
                     <View

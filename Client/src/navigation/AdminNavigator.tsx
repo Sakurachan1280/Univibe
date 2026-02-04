@@ -11,6 +11,9 @@ import CreateSongScreen from "../screens/Admin/song";
 import CreateArtistScreen from "../screens/Admin/artist";
 import ArtistManagementScreen from "../screens/Admin/ArtistManagement";
 import SongManagementScreen from "../screens/Admin/SongManagement";
+import AboutScreen from "../screens/Admin/AboutScreen";
+import HelpScreen from "../screens/Admin/HelpScreen";
+import SystemLogsScreen from "../screens/Admin/SystemLogsScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -52,6 +55,26 @@ const PlaylistStack = () => (
       component={AlbumListScreen}
       options={{ headerShown: false }}
     />
+    <Stack.Screen
+      name="ArtistManagement"
+      component={ArtistManagementScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="SongManagement"
+      component={SongManagementScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="CreateArtist"
+      component={CreateArtistScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="CreateSong"
+      component={CreateSongScreen}
+      options={{ headerShown: false }}
+    />
   </Stack.Navigator>
 );
 
@@ -60,6 +83,21 @@ const AccountStack = () => (
     <Stack.Screen
       name="AccountSettings"
       component={AccountScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="AboutScreen"
+      component={AboutScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="HelpScreen"
+      component={HelpScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="SystemLogsScreen"
+      component={SystemLogsScreen}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>

@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { useNavigation } from '@react-navigation/native';
-import axiosClient from '../../API/axiosClient';
+import axiosClient, { BASE_URL } from '../../API/axiosClient';
 
 interface Artist {
     _id: string;
@@ -285,7 +285,7 @@ export default function CreateSongScreen() {
                                     >
                                         {artist.avatar ? (
                                             <Image
-                                                source={{ uri: `http://192.168.1.27:5000${artist.avatar}` }}
+                                                source={{ uri: `${BASE_URL}${artist.avatar}` }}
                                                 className="w-10 h-10 rounded-full"
                                             />
                                         ) : (

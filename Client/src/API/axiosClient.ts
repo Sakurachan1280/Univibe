@@ -1,8 +1,11 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
+export const BASE_URL = "http://192.168.0.151:5000";
+
 const axiosClient = axios.create({
-  baseURL: "http://192.168.1.27:5000/api/v1",
+  baseURL: `${BASE_URL}/api/v1`,
+
   timeout: 10000,
 });
 
@@ -12,7 +15,6 @@ axiosClient.interceptors.request.use(async (config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-
   return config;
 });
 

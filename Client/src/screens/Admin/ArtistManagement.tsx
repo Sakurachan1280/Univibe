@@ -9,12 +9,15 @@ import {
     ScrollView,
     Modal,
     TextInput,
+    KeyboardAvoidingView,
+    Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import axiosClient from '../../API/axiosClient';
+
+import axiosClient, { BASE_URL } from '../../API/axiosClient';
 
 interface Artist {
     _id: string;
@@ -175,7 +178,7 @@ export default function ArtistManagementScreen() {
                                 <View className="flex-row items-center">
                                     {artist.avatar ? (
                                         <Image
-                                            source={{ uri: `http://192.168.1.27:5000${artist.avatar}` }}
+                                            source={{ uri: `${BASE_URL}${artist.avatar}` }}
                                             className="w-16 h-16 rounded-full"
                                         />
                                     ) : (
@@ -222,8 +225,11 @@ export default function ArtistManagementScreen() {
                 transparent={true}
                 onRequestClose={() => setEditModalVisible(false)}
             >
-                <View className="flex-1 bg-black/80 justify-end">
-                    <View className="bg-gray-900 rounded-t-3xl p-6" style={{ maxHeight: '80%' }}>
+                <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                className="flex-1 bg-black/80 justify-end"
+            >
+                <View className="bg-gray-900 rounded-t-3xl p-6" style={{ maxHeight: '80%' }}>
                         <View className="flex-row items-center justify-between mb-6">
                             <Text className="text-white text-xl font-bold">Chỉnh Sửa Nghệ Sĩ</Text>
                             <TouchableOpacity onPress={() => setEditModalVisible(false)}>
@@ -240,7 +246,7 @@ export default function ArtistManagementScreen() {
                                             <Image source={{ uri: editAvatar }} className="w-full h-full" />
                                         ) : selectedArtist?.avatar ? (
                                             <Image
-                                                source={{ uri: `http://192.168.1.27:5000${selectedArtist.avatar}` }}
+                                                source={{ uri: `${BASE_URL}${selectedArtist.avatar}` }}
                                                 className="w-full h-full"
                                             />
                                         ) : (
@@ -301,7 +307,8 @@ export default function ArtistManagementScreen() {
                             </TouchableOpacity>
                         </ScrollView>
                     </View>
-                </View>
+
+            </KeyboardAvoidingView>
             </Modal>
         </SafeAreaView>
     );

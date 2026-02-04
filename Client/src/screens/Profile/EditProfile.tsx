@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import axiosClient from '../../API/axiosClient';
+import axiosClient, { BASE_URL } from '../../API/axiosClient';
 import { getMeAPI } from '../../API/userAPI';
 
 export default function EditProfileScreen() {
@@ -165,7 +165,7 @@ export default function EditProfileScreen() {
                 >
                     {newCover || coverUrl ? (
                         <Image
-                            source={{ uri: newCover || `http://192.168.1.27:5000${coverUrl}` }}
+                            source={{ uri: newCover || `${BASE_URL}${coverUrl}` }}
                             className="w-full h-full"
                         />
                     ) : (
@@ -190,7 +190,7 @@ export default function EditProfileScreen() {
                         <View className="w-32 h-32 rounded-full border-4 border-black overflow-hidden bg-gray-800">
                             {newAvatar || avatarUrl ? (
                                 <Image
-                                    source={{ uri: newAvatar || `http://192.168.1.27:5000${avatarUrl}` }}
+                                    source={{ uri: newAvatar || `${BASE_URL}${avatarUrl}` }}
                                     className="w-full h-full"
                                 />
                             ) : (

@@ -33,7 +33,12 @@ export type RootStackParamList = {
   Register: undefined;
   EditProfile: undefined;
   NotificationScreen: undefined;
-
+  CreateArtist: undefined;
+  CreateSong: undefined;
+  CreatePlaylist: undefined;
+  HelpScreen: undefined;
+  SystemLogsScreen: undefined;
+  AdminAccount: undefined;
 };
 export type MainTabParamList = {
   Home: undefined;
@@ -41,4 +46,11 @@ export type MainTabParamList = {
   Library: undefined;
   Chat: undefined;
   Create: undefined;
+};
+
+export type AdminTabParamList = {
+  AdminAccount: undefined;
+  AboutScreen: undefined;
+  HelpScreen: undefined;
+  SystemLogsScreen: undefined;
 };

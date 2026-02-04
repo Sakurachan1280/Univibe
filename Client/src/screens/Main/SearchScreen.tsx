@@ -5,7 +5,7 @@ import { useState, useRef } from "react";
 import { PanResponderInstance } from "react-native";
 import { PanResponder } from "react-native";
 import ProfileMenu from "../../components/ModalProfile/ProfileMenu";
-import UserAvatar from "../../components/UserAvatar";
+import UserAvatar from "../../components/ModalProfile/UserAvatar";
 
 export default function SearchScreen() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);

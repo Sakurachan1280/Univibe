@@ -12,7 +12,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
 import { getMeAPI, User } from "../../API/userAPI";
-import ShareProfileModal from "../../components/ShareProfileModal";
+import ShareProfileModal from "../../components/ModalProfile/ShareProfileModal";
+import { BASE_URL } from "../../API/axiosClient";
 
 export default function ProfileScreen() {
   const navigation = useAppNavigation();
@@ -41,7 +42,7 @@ export default function ProfileScreen() {
       if (userData.profile.avatar_url.startsWith('http')) {
         return { uri: userData.profile.avatar_url };
       } else {
-        return { uri: `http://192.168.1.27:5000${userData.profile.avatar_url}` };
+        return { uri: `${BASE_URL}${userData.profile.avatar_url}` };
       }
     }
     return require("../../../assets/Icon/ava.jpg");

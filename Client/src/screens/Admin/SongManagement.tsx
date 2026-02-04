@@ -14,8 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import * as DocumentPicker from 'expo-document-picker';
-import axiosClient from '../../API/axiosClient';
+import axiosClient, { BASE_URL } from '../../API/axiosClient';
 
 interface Song {
     _id: string;
@@ -192,7 +191,7 @@ export default function SongManagementScreen() {
                                 <View className="flex-row items-center">
                                     {song.cover_image ? (
                                         <Image
-                                            source={{ uri: `http://192.168.1.27:5000${song.cover_image}` }}
+                                            source={{ uri: `${BASE_URL}${song.cover_image}` }}
                                             className="w-16 h-16 rounded-xl"
                                         />
                                     ) : (
@@ -262,7 +261,7 @@ export default function SongManagementScreen() {
                                             <Image source={{ uri: editCover }} className="w-full h-full" />
                                         ) : selectedSong?.cover_image ? (
                                             <Image
-                                                source={{ uri: `http://192.168.1.27:5000${selectedSong.cover_image}` }}
+                                                source={{ uri: `${BASE_URL}${selectedSong.cover_image}` }}
                                                 className="w-full h-full"
                                             />
                                         ) : (

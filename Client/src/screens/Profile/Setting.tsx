@@ -12,19 +12,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CommonActions } from "@react-navigation/native";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
-import { useFocusEffect } from '@react-navigation/native';
 import { getMeAPI, User } from '../../API/userAPI';
+import { BASE_URL } from '../../API/axiosClient';
 
 export default function SettingsScreen() {
   const navigation = useAppNavigation();
   const [isLoading, setIsLoading] = useState(true);
   const [userData, setUserData] = useState<User | null>(null);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      fetchUserData();
-    }, [])
-  );
+  useEffect(() => {
+    fetchUserData();
+  }, []);
 
   const fetchUserData = async () => {
     try {
@@ -47,9 +45,8 @@ export default function SettingsScreen() {
       // If avatar_url starts with http, use it directly, otherwise prepend base URL
       if (userData.profile.avatar_url.startsWith('http')) {
         return { uri: userData.profile.avatar_url };
-      } else {
-        return { uri: `http://192.168.1.27:5000${userData.profile.avatar_url}` };
       }
+      return { uri: `${BASE_URL}${userData.profile.avatar_url}` };
     }
     return null;
   };

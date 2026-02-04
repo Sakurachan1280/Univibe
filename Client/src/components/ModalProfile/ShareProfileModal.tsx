@@ -10,7 +10,8 @@ import {
     ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { User } from '../API/userAPI';
+import { User } from '../../API/userAPI';
+import { BASE_URL } from '../../API/axiosClient';
 
 interface ShareProfileModalProps {
     visible: boolean;
@@ -28,7 +29,7 @@ export default function ShareProfileModal({
             if (userData.profile.avatar_url.startsWith('http')) {
                 return { uri: userData.profile.avatar_url };
             } else {
-                return { uri: `http://192.168.1.27:5000${userData.profile.avatar_url}` };
+                return { uri: `${BASE_URL}${userData.profile.avatar_url}` };
             }
         }
         return require('../../assets/Icon/ava.jpg');
