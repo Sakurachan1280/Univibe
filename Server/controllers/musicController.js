@@ -159,6 +159,17 @@ const logAction = async (req, res) => {
   }
 };
 
+const getRandomSongs = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 20;
+    const songs = await musicService.getRandomSongs(limit);
+    console.log('Random songs sample:', JSON.stringify(songs[0], null, 2));
+    res.json(songs);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   createArtist,
   getArtists,
@@ -169,5 +180,6 @@ module.exports = {
   deleteSong,
   playSong,
   getQueue,
+  getRandomSongs,
   logAction
 };

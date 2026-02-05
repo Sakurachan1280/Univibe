@@ -54,6 +54,9 @@ router.delete('/songs/:id',
   musicController.deleteSong
 );
 
+// 3a. Lấy danh sách bài hát ngẫu nhiên
+router.get('/songs/random', musicController.getRandomSongs);
+
 // 3. Load bài hát để phát (Play) - MUST be after PUT/DELETE
 router.get('/songs/:id', musicController.playSong);
 

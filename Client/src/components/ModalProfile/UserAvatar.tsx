@@ -34,7 +34,7 @@ export default function UserAvatar({ size = 40, onPress }: UserAvatarProps) {
             }
             return { uri: `${BASE_URL}${userData.profile.avatar_url}` };
         }
-        return require("../../assets/Icon/ava.jpg");
+        return require("../../../assets/Icon/ava.jpg");
     };
 
     const AvatarContent = () => (

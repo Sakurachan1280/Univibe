@@ -1,12 +1,33 @@
-import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, TouchableOpacity, ScrollView, StatusBar, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
+import { getRandomSongs, Song } from "../../API/songAPI";
 
 export default function ListSongScreen() {
     const navigation = useAppNavigation();
     const [isShuffled, setIsShuffled] = useState(false);
+    const [songs, setSongs] = useState<Song[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        loadRandomSongs();
+    }, []);
+
+    const loadRandomSongs = async () => {
+        try {
+            setLoading(true);
+            const randomSongs = await getRandomSongs(20);
+            console.log('Loaded songs:', randomSongs);
+            console.log('First song:', randomSongs[0]);
+            setSongs(randomSongs);
+        } catch (error) {
+            console.error('Error loading random songs:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
     return (
         <SafeAreaView className="flex-1 bg-black" edges={['top']}>
             <StatusBar barStyle="light-content" />
@@ -45,19 +66,7 @@ export default function ListSongScreen() {
 
                 {/* Action Buttons */}
                 <View className="px-4 pt-6 pb-4">
-                    <View className="flex-row items-center justify-between mb-6">
-                        <View className="flex-row items-center space-x-5 gap-3">
-                            <TouchableOpacity>
-                                <Ionicons name="add-circle-outline" size={30} color="#b3b3b3" />
-                            </TouchableOpacity>
-                            <TouchableOpacity>
-                                <Ionicons name="arrow-down-circle-outline" size={30} color="#b3b3b3" />
-                            </TouchableOpacity>
-                            <TouchableOpacity>
-                                <Ionicons name="share-outline" size={26} color="#b3b3b3" />
-                            </TouchableOpacity>
-                        </View>
-
+                    <View className="flex-row items-center justify-end mb-6">
                         <View className="flex-row items-center space-x-5 gap-5">
                             <TouchableOpacity onPress={() => setIsShuffled(!isShuffled)}>
                                 <Ionicons
@@ -95,45 +104,43 @@ export default function ListSongScreen() {
 
                 {/* Song List */}
                 <View className="px-4">
-                    {[
-                        { id: 1, title: "Người Đi Bao", artist: "Low G" },
-                        { id: 2, title: "chẳng phải tình đầu sao đau đến thế", artist: "MIN, Dangrangto, antransax" },
-                        { id: 3, title: "Từng Ngày Yêu Em", artist: "buitruonglinh" },
-                        { id: 4, title: "Không Thời Gian", artist: "Dương Domic" },
-                        { id: 5, title: "Ngàn Năm Ánh Sáng", artist: "Đặng Vinh Thịnh, BMZ, Nguyễn Trung Đức" },
-                        { id: 6, title: "Giờ Thì", artist: "buitruonglinh" },
-                        { id: 7, title: "vạn vật như muốn ta bên nhau", artist: "RIO" },
-                        { id: 8, title: "một bài hát không vui mấy", artist: "T.R.I, Dangrangto, DONAL" },
-                        { id: 9, title: "Lễ Đường", artist: "Kai Đinh" },
-                        { id: 10, title: "Trần Bộ Nhớ", artist: "Dương Domic" },
-                        { id: 11, title: "Phép Màu - Đàn Cá Gỗ", artist: "MAYDAYs, Minh Tốc & Lam" },
-                        { id: 12, title: "In Love", artist: "Low G, JustaTee" },
-                    ].map((item, index) => (
-                        <TouchableOpacity
-                            key={item.id}
-                            className="flex-row items-center justify-between py-3"
-                            onPress={() => navigation.navigate("MusicPlayer")}
-                        >
-                            <View className="flex-row items-center flex-1">
-                                <View className="w-12 h-12 rounded bg-neutral-800 mr-3 items-center justify-center">
-                                    <Text className="text-white/40 text-xs">{index + 1}</Text>
+                    {loading ? (
+                        <View className="items-center justify-center py-10">
+                            <ActivityIndicator size="large" color="#EC4899" />
+                            <Text className="text-white/60 mt-4">Đang tải bài hát...</Text>
+                        </View>
+                    ) : songs.length === 0 ? (
+                        <View className="items-center justify-center py-10">
+                            <Text className="text-white/60">Không có bài hát nào</Text>
+                        </View>
+                    ) : (
+                        songs.map((item, index) => (
+                            <TouchableOpacity
+                                key={item._id}
+                                className="flex-row items-center justify-between py-3"
+                                onPress={() => navigation.navigate("MusicPlayer")}
+                            >
+                                <View className="flex-row items-center flex-1">
+                                    <View className="w-12 h-12 rounded bg-neutral-800 mr-3 items-center justify-center">
+                                        <Text className="text-white/40 text-xs">{index + 1}</Text>
+                                    </View>
+
+                                    <View className="flex-1">
+                                        <Text className="text-white font-medium text-base" numberOfLines={1}>
+                                            {item.title}
+                                        </Text>
+                                        <Text className="text-white/60 text-sm mt-0.5" numberOfLines={1}>
+                                            {item.artist}
+                                        </Text>
+                                    </View>
                                 </View>
 
-                                <View className="flex-1">
-                                    <Text className="text-white font-medium text-base" numberOfLines={1}>
-                                        {item.title}
-                                    </Text>
-                                    <Text className="text-white/60 text-sm mt-0.5" numberOfLines={1}>
-                                        {item.artist}
-                                    </Text>
-                                </View>
-                            </View>
-
-                            <TouchableOpacity className="ml-2">
-                                <Ionicons name="ellipsis-horizontal" size={22} color="white" />
+                                <TouchableOpacity className="ml-2">
+                                    <Ionicons name="ellipsis-horizontal" size={22} color="white" />
+                                </TouchableOpacity>
                             </TouchableOpacity>
-                        </TouchableOpacity>
-                    ))}
+                        ))
+                    )}
                 </View>
             </ScrollView>
         </SafeAreaView>
