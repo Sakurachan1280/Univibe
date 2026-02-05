@@ -6,13 +6,13 @@ import { Ionicons } from "@expo/vector-icons";
 // Screens
 import MusicListScreen from "../screens/Admin/AdminSong";
 import AlbumListScreen from "../screens/Admin/AdminAlbum";
-import AccountScreen from "../screens/Admin/AdminAccount";
+import AccountScreen from "../screens/Admin/AdminSetting";
 import CreateSongScreen from "../screens/Admin/song";
 import CreateArtistScreen from "../screens/Admin/artist";
 import ArtistManagementScreen from "../screens/Admin/ArtistManagement";
 import SongManagementScreen from "../screens/Admin/SongManagement";
 import AboutScreen from "../screens/Admin/AboutScreen";
-import HelpScreen from "../screens/Admin/HelpScreen";
+import HelpScreen from "../screens/Setting/HelpScreen";
 import SystemLogsScreen from "../screens/Admin/SystemLogsScreen";
 
 const Stack = createNativeStackNavigator();

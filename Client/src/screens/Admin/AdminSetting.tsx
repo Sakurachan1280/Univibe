@@ -49,8 +49,7 @@ export default function AdminAccount() {
       title: 'Ứng Dụng',
       items: [
         { id: 'about', label: 'Về Spotichat', icon: 'information-circle-outline', color: '#EC4899', screen: 'AboutScreen' },
-        { id: 'help', label: 'Trợ giúp & Hỗ trợ', icon: 'help-circle-outline', color: '#06B6D4', screen: 'HelpScreen' },
-        { id: 'logs', label: 'Nhật ký hệ thống', icon: 'document-text-outline', color: '#EC4899', screen: 'SystemLogsScreen' },
+        { id: 'logs', label: 'Nhật ký hệ thống', icon: 'document-text-outline', color: '#06B6D4', screen: 'SystemLogsScreen' },
         { id: 'version', label: 'Phiên bản 1.0.0', icon: 'code-outline', color: '#666', screen: null },
       ],
     },
@@ -161,8 +160,6 @@ export default function AdminAccount() {
 
         {/* Danger Zone */}
         <View className="mb-8">
-          <Text className="text-white text-xl font-bold mb-4">Vùng Nguy Hiểm</Text>
-
           <TouchableOpacity
             className="bg-red-600/10 rounded-2xl p-5 border border-red-600/30"
             activeOpacity={0.8}

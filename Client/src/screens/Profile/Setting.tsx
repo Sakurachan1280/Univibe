@@ -137,11 +137,21 @@ export default function SettingsScreen() {
 
           {/* Giới thiệu */}
           <TouchableOpacity
-            className="flex-row items-center py-4 px-5 bg-neutral-900/30 rounded-b-xl active:bg-neutral-800/50"
+            className="flex-row items-center py-4 px-5 bg-neutral-900/30 border-b border-white/5 active:bg-neutral-800/50"
             onPress={() => navigation.navigate("AboutScreen")}
           >
             <Ionicons name="information-circle-outline" size={24} color="#9CA3AF" />
             <Text className="flex-1 text-white text-base ml-4">Giới thiệu</Text>
+            <Ionicons name="chevron-forward" size={20} color="#6B7280" />
+          </TouchableOpacity>
+
+          {/* Trợ giúp & Hỗ trợ */}
+          <TouchableOpacity
+            className="flex-row items-center py-4 px-5 bg-neutral-900/30 rounded-b-xl active:bg-neutral-800/50"
+            onPress={() => navigation.navigate("HelpScreen")}
+          >
+            <Ionicons name="help-circle-outline" size={24} color="#9CA3AF" />
+            <Text className="flex-1 text-white text-base ml-4">Trợ giúp & Hỗ trợ</Text>
             <Ionicons name="chevron-forward" size={20} color="#6B7280" />
           </TouchableOpacity>
 
