@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Room = require('../models/Room');
 
 const onlineUsers = new Map();
 
@@ -10,6 +11,7 @@ const socketHandler = (io) => {
     socket.on('user_connected', async (userId) => {
       onlineUsers.set(userId, socket.id);
       socket.userId = userId;
+      socket.join(userId);
       await User.findByIdAndUpdate(userId, { 
         'status.is_online': true,
         'status.last_active': new Date()
@@ -17,6 +19,63 @@ const socketHandler = (io) => {
 
       io.emit('user_status_change', { userId, status: 'online' });
       console.log(`User ${userId} is Online`);
+    });
+
+    socket.on('join_music_room', async ({ roomId, userId }) => {
+      socket.join(roomId);
+      console.log(`User ${userId} joined Music Room: ${roomId}`);
+
+      const room = await Room.findByIdAndUpdate(roomId, 
+        { $addToSet: { participants: userId } },
+        { new: true }
+      );
+
+      const user = await User.findById(userId).select('username profile.avatar_url');
+      io.to(roomId).emit('room_participant_joined', user);
+
+      socket.emit('sync_current_state', {
+        song: room.current_song,
+        playbackState: room.playback_state
+      });
+    });
+
+    // RỜI PHÒNG
+    socket.on('leave_music_room', async ({ roomId, userId }) => {
+      socket.leave(roomId);
+      await Room.findByIdAndUpdate(roomId, { $pull: { participants: userId } });
+      io.to(roomId).emit('room_participant_left', { userId });
+    });
+
+    // ĐỒNG BỘ NHẠC
+    socket.on('music_action', async (data) => {
+      const { roomId, action, currentTime, songInfo } = data;
+      
+      let updateData = {
+        'playback_state.current_time': currentTime,
+        'playback_state.updated_at': new Date()
+      };
+
+      if (action === 'play') updateData['playback_state.status'] = 'playing';
+      if (action === 'pause') updateData['playback_state.status'] = 'paused';
+      if (songInfo) updateData['current_song'] = songInfo; // Nếu đổi bài
+
+      await Room.findByIdAndUpdate(roomId, updateData);
+
+      socket.to(roomId).emit('music_sync', {
+        action: action, // 'play', 'pause', 'seek', 'next'
+        currentTime: currentTime,
+        song: songInfo
+      });
+    });
+
+    // CHAT TRONG PHÒNG
+    socket.on('room_chat_message', ({ roomId, userId, content }) => {
+       // Phát lại tin nhắn cho cả phòng
+       io.to(roomId).emit('room_chat_receive', {
+         userId,
+         content,
+         timestamp: new Date()
+       });
     });
 
     socket.on('join_chat', (room) => {

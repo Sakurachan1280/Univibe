@@ -7,6 +7,8 @@ const playlistRoutes = require('./playlistRoutes');
 const libraryRoutes = require('./libraryRoutes');
 const socialRoutes = require('./socialRoutes');
 const chatRoutes = require('./chatRoutes');
+const storyRoutes = require('./storyRoutes');
+const roomRoutes = require('./roomRoutes');
 
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
@@ -15,5 +17,7 @@ router.use('/playlists', playlistRoutes);
 router.use('/library', libraryRoutes);
 router.use('/social', socialRoutes);
 router.use('/chat', chatRoutes);
+router.use('/stories', storyRoutes);
+router.use('/rooms', roomRoutes);
 
 module.exports = router;

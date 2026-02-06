@@ -1,15 +1,38 @@
 const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('../config/cloudinary');
 const path = require('path');
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'public/uploads/');
-  },
-  filename: function (req, file, cb) {
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req, file) => {
     const isAudio = file.mimetype.startsWith('audio/') || file.mimetype === 'application/octet-stream';
-    const prefix = isAudio ? 'song' : 'image';
-    cb(null, `${prefix}-${Date.now()}${path.extname(file.originalname)}`);
-  }
+    
+    if (isAudio) {
+      return {
+        folder: 'spoti_music',    
+        resource_type: 'video',    
+        allowed_formats: ['mp3', 'wav', 'm4a', 'flac'],
+        public_id: `song-${Date.now()}` 
+      };
+    } 
+    
+    else if (file.mimetype.startsWith('image/')) {
+      return {
+        folder: 'spoti_images',    // Tên thư mục chứa ảnh
+        resource_type: 'image',
+        allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+        public_id: `image-${Date.now()}`
+      };
+    }
+    
+    else {
+      return {
+        folder: 'spoti_others',
+        resource_type: 'raw'
+      };
+    }
+  },
 });
 
 const fileFilter = (req, file, cb) => {
@@ -29,7 +52,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ 
   storage: storage,
   fileFilter: fileFilter,
-  limits: { fileSize: 20 * 1024 * 1024 }
+  limits: { fileSize: 50 * 1024 * 1024 }
 });
 
 module.exports = upload;
