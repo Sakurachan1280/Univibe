@@ -4,7 +4,8 @@ const createArtist = async (req, res) => {
   try {
     const data = req.body;
     if (req.files && req.files.avatar) {
-      data.avatar = req.files.avatar[0].path;
+      // Đảm bảo lấy secure URL từ Cloudinary
+      data.avatar = req.files.avatar[0].path || req.files.avatar[0].url;
     }
     const artist = await musicService.createArtist(data);
     res.status(201).json(artist);
@@ -32,7 +33,8 @@ const updateArtist = async (req, res) => {
     console.log('Update data:', req.body);
     const data = req.body;
     if (req.files && req.files.avatar) {
-      data.avatar = req.files.avatar[0].path;
+      // Đảm bảo lấy secure URL từ Cloudinary
+      data.avatar = req.files.avatar[0].path || req.files.avatar[0].url;
       console.log('New avatar:', data.avatar);
     }
     const artist = await musicService.updateArtist(req.params.id, data);
@@ -75,12 +77,16 @@ const createSong = async (req, res) => {
       console.log('>> [CREATE SONG] Files received:', Object.keys(req.files));
 
       if (req.files.audio) {
-        data.file_url = req.files.audio[0].path;
+        // Đảm bảo lấy secure URL từ Cloudinary
+        data.file_url = req.files.audio[0].path || req.files.audio[0].url;
+        console.log('>> [CREATE SONG] Audio file object:', JSON.stringify(req.files.audio[0], null, 2));
         console.log('>> [CREATE SONG] Audio uploaded to Cloudinary:', data.file_url);
       }
 
       if (req.files.cover) {
-        data.cover_image = req.files.cover[0].path;
+        // Đảm bảo lấy secure URL từ Cloudinary
+        data.cover_image = req.files.cover[0].path || req.files.cover[0].url;
+        console.log('>> [CREATE SONG] Cover file object:', JSON.stringify(req.files.cover[0], null, 2));
         console.log('>> [CREATE SONG] Cover uploaded to Cloudinary:', data.cover_image);
       }
     }
@@ -110,8 +116,9 @@ const updateSong = async (req, res) => {
     const data = req.body;
 
     if (req.files) {
-      if (req.files.audio) data.file_url = req.files.audio[0].path;
-      if (req.files.cover) data.cover_image = req.files.cover[0].path;
+      // Đảm bảo lấy secure URL từ Cloudinary
+      if (req.files.audio) data.file_url = req.files.audio[0].path || req.files.audio[0].url;
+      if (req.files.cover) data.cover_image = req.files.cover[0].path || req.files.cover[0].url;
     }
 
     if (data.artist_ids && typeof data.artist_ids === 'string') {
