@@ -19,6 +19,7 @@
     "axios": "^1.13.4",
     "babel-preset-expo": "^54.0.9",
     "expo": "~54.0.30",
+    "expo-av": "^16.0.8",
     "expo-barcode-scanner": "^13.0.1",
     "expo-document-picker": "^14.0.8",
     "expo-image-picker": "^17.0.10",

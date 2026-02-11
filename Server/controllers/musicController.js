@@ -4,7 +4,7 @@ const createArtist = async (req, res) => {
   try {
     const data = req.body;
     if (req.files && req.files.avatar) {
-      data.avatar = `/uploads/${req.files.avatar[0].filename}`;
+      data.avatar = req.files.avatar[0].path;
     }
     const artist = await musicService.createArtist(data);
     res.status(201).json(artist);
@@ -32,7 +32,7 @@ const updateArtist = async (req, res) => {
     console.log('Update data:', req.body);
     const data = req.body;
     if (req.files && req.files.avatar) {
-      data.avatar = `/uploads/${req.files.avatar[0].filename}`;
+      data.avatar = req.files.avatar[0].path;
       console.log('New avatar:', data.avatar);
     }
     const artist = await musicService.updateArtist(req.params.id, data);
@@ -66,11 +66,23 @@ const deleteArtist = async (req, res) => {
 
 const createSong = async (req, res) => {
   try {
+    console.log('>> [CREATE SONG] Request received');
+    console.log('>> [CREATE SONG] Body:', req.body);
+
     const data = req.body;
 
     if (req.files) {
-      if (req.files.audio) data.file_url = `/uploads/${req.files.audio[0].filename}`;
-      if (req.files.cover) data.cover_image = `/uploads/${req.files.cover[0].filename}`;
+      console.log('>> [CREATE SONG] Files received:', Object.keys(req.files));
+
+      if (req.files.audio) {
+        data.file_url = req.files.audio[0].path;
+        console.log('>> [CREATE SONG] Audio uploaded to Cloudinary:', data.file_url);
+      }
+
+      if (req.files.cover) {
+        data.cover_image = req.files.cover[0].path;
+        console.log('>> [CREATE SONG] Cover uploaded to Cloudinary:', data.cover_image);
+      }
     }
 
     if (data.artist_ids && typeof data.artist_ids === 'string') {
@@ -81,9 +93,13 @@ const createSong = async (req, res) => {
       try { data.lyrics = JSON.parse(data.lyrics); } catch (e) { }
     }
 
+    console.log('>> [CREATE SONG] Creating song in database...');
     const song = await musicService.createSong(data);
+    console.log('>> [CREATE SONG] Song created successfully:', song._id);
+
     res.status(201).json(song);
   } catch (err) {
+    console.error('>> [CREATE SONG] Error:', err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -94,8 +110,8 @@ const updateSong = async (req, res) => {
     const data = req.body;
 
     if (req.files) {
-      if (req.files.audio) data.file_url = `/uploads/${req.files.audio[0].filename}`;
-      if (req.files.cover) data.cover_image = `/uploads/${req.files.cover[0].filename}`;
+      if (req.files.audio) data.file_url = req.files.audio[0].path;
+      if (req.files.cover) data.cover_image = req.files.cover[0].path;
     }
 
     if (data.artist_ids && typeof data.artist_ids === 'string') {
