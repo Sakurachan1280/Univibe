@@ -26,20 +26,9 @@ export default function MusicPlayerScreen() {
   const isSeekingRef = useRef(false);
   const repeatModeRef = useRef<'off' | 'all' | 'one'>('off');
 
-  // Load random songs on mount or use passed params
+  // Load random songs on mount
   useEffect(() => {
-    const params = navigation.getState().routes.find(r => r.name === 'MusicPlayer')?.params as { song?: Song; queue?: Song[] } | undefined;
-
-    if (params?.song) {
-      // If a specific song is passed, use it
-      const passedQueue = params.queue || [params.song];
-      setQueue(passedQueue);
-      setCurrentIndex(0);
-      setLoading(false);
-    } else {
-      // Otherwise load random songs
-      loadQueue();
-    }
+    loadQueue();
 
     return () => {
       // Cleanup audio when component unmounts
@@ -617,7 +606,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   slider: {
-    height: 4,
+    height: 40,
   },
   secondaryControl: {
     width: 44,
