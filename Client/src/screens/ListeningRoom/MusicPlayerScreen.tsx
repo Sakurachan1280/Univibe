@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { View, Text, TouchableOpacity, Dimensions, Image, ActivityIndicator, Alert, StyleSheet, Modal, ScrollView } from "react-native";
+import { useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
 import Slider from "@react-native-community/slider";
@@ -11,6 +12,7 @@ import { LinearGradient } from "expo-linear-gradient";
 const { width, height } = Dimensions.get("window");
 export default function MusicPlayerScreen() {
   const navigation = useAppNavigation();
+  const route = useRoute<any>();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -26,9 +28,15 @@ export default function MusicPlayerScreen() {
   const isSeekingRef = useRef(false);
   const repeatModeRef = useRef<'off' | 'all' | 'one'>('off');
 
-  // Load random songs on mount
+  // Load songs on mount
   useEffect(() => {
-    loadQueue();
+    const initialSong = route.params?.song;
+    if (initialSong) {
+      setSong(initialSong);
+      loadQueueWithInitial(initialSong);
+    } else {
+      loadQueue();
+    }
 
     return () => {
       // Cleanup audio when component unmounts
@@ -36,7 +44,7 @@ export default function MusicPlayerScreen() {
         soundRef.current.unloadAsync();
       }
     };
-  }, []);
+  }, [route.params?.song]);
 
   // Load current song when queue or index changes
   useEffect(() => {
@@ -44,6 +52,27 @@ export default function MusicPlayerScreen() {
       loadSong(queue[currentIndex]);
     }
   }, [currentIndex, queue]);
+
+  const loadQueueWithInitial = async (initialSong: Song) => {
+    try {
+      setLoading(true);
+      // Combine initial song with random songs for queue
+      const randomSongs = await musicAPI.getRandomSongs(19); // Get 19 random songs
+      // Filter out initial song if it happens to be in random list
+      const filteredRandom = randomSongs.filter(s => s._id !== initialSong._id);
+
+      const newQueue = [initialSong, ...filteredRandom];
+      setQueue(newQueue);
+      setCurrentIndex(0); // Start at the initial song
+    } catch (error) {
+      console.error("Error loading queue with initial song:", error);
+      // Fallback to just the initial song
+      setQueue([initialSong]);
+      setCurrentIndex(0);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadQueue = async () => {
     try {
