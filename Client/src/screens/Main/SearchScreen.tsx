@@ -222,7 +222,7 @@ export default function SearchScreen() {
                           key={song._id}
                           className="flex-row items-center py-3 active:bg-white/5 rounded-lg"
                           activeOpacity={0.7}
-                          onPress={() => navigation.navigate("MusicPlayer")}
+                          onPress={() => navigation.navigate("MusicPlayer", { song, queue: songs })}
                         >
                           {song.cover_image ? (
                             <Image
