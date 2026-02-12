@@ -15,7 +15,7 @@ export type RootStackParamList = {
   Playlists: undefined;
   NowPlaying: undefined;
   ChatDetail: { userId: string };
-  MusicPlayer: undefined;
+  MusicPlayer: { song?: any }; // TODO: Replace 'any' with proper Song interface
   CreateRoom: undefined;
   ListeningRoom: undefined;
   HomeMain: undefined;

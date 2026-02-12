@@ -3,7 +3,7 @@ import * as SecureStore from "expo-secure-store";
 
 // HARDCODE IP của server - Thay đổi IP này nếu server chạy trên máy khác
 // IP hiện tại của máy server: 192.168.19.1
-export const BASE_URL = "http://192.168.1.32:5000";
+export const BASE_URL = "http://192.168.0.107:5000";
 
 // Export getter function để lấy BASE_URL hiện tại
 export const getServerURL = () => BASE_URL;
