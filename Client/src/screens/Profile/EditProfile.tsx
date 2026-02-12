@@ -13,8 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import axiosClient, { BASE_URL } from '../../API/axiosClient';
-import { getMeAPI } from '../../API/userAPI';
+import { BASE_URL } from '../../API/axiosClient';
+import { getMeAPI, updateProfileAPI } from '../../API/userAPI';
 
 export default function EditProfileScreen() {
     const navigation = useNavigation();
@@ -111,11 +111,7 @@ export default function EditProfileScreen() {
                 });
             }
 
-            await axiosClient.put('/users/profile', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            await updateProfileAPI(formData);
 
             Alert.alert('Success', 'Profile updated successfully');
             navigation.goBack();

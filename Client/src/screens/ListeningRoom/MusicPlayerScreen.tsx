@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { View, Text, TouchableOpacity, Dimensions, Image, ActivityIndicator, Alert, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, Dimensions, Image, ActivityIndicator, Alert, StyleSheet, Modal, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
 import Slider from "@react-native-community/slider";
@@ -9,7 +9,6 @@ import musicAPI, { Song } from "../../API/musicAPI";
 import { LinearGradient } from "expo-linear-gradient";
 
 const { width, height } = Dimensions.get("window");
-
 export default function MusicPlayerScreen() {
   const navigation = useAppNavigation();
   const [isPlaying, setIsPlaying] = useState(false);
@@ -22,14 +21,16 @@ export default function MusicPlayerScreen() {
   const [isLiked, setIsLiked] = useState(false);
   const [isShuffle, setIsShuffle] = useState(false);
   const [repeatMode, setRepeatMode] = useState<'off' | 'all' | 'one'>('off');
-  
+  const [queueModalVisible, setQueueModalVisible] = useState(false);
+
   const soundRef = useRef<Audio.Sound | null>(null);
   const isSeekingRef = useRef(false);
+  const repeatModeRef = useRef<'off' | 'all' | 'one'>('off');
 
   // Load random songs on mount
   useEffect(() => {
     loadQueue();
-    
+
     return () => {
       // Cleanup audio when component unmounts
       if (soundRef.current) {
@@ -74,10 +75,10 @@ export default function MusicPlayerScreen() {
         soundRef.current = null;
       }
 
-      // Load new sound
+      // Load new sound and AUTO-PLAY
       const { sound } = await Audio.Sound.createAsync(
         { uri: songData.file_url },
-        { shouldPlay: false },
+        { shouldPlay: true }, // ✅ TỰ ĐỘNG PHÁT NHẠC
         onPlaybackStatusUpdate
       );
 
@@ -99,16 +100,16 @@ export default function MusicPlayerScreen() {
   const onPlaybackStatusUpdate = (status: any) => {
     if (status.isLoaded) {
       setDuration(status.durationMillis / 1000);
-      
+
       if (!isSeekingRef.current) {
         setCurrentTime(status.positionMillis / 1000);
       }
 
       setIsPlaying(status.isPlaying);
 
-      // Auto play next song when current song finishes
+      // ✅ TỰ ĐỘNG CHUYỂN BÀI khi phát hết
       if (status.didJustFinish) {
-        handleNext();
+        handleSongFinish();
       }
     }
   };
@@ -147,7 +148,7 @@ export default function MusicPlayerScreen() {
       isSeekingRef.current = true;
       setCurrentTime(value);
       await soundRef.current.setPositionAsync(value * 1000);
-      
+
       if (song) {
         await musicAPI.logAction({
           song_id: song._id,
@@ -162,7 +163,17 @@ export default function MusicPlayerScreen() {
     }
   };
 
-  const handlePrevious = () => {
+  const handlePrevious = async () => {
+    // Nếu đang ở chế độ repeat one, phát lại bài hiện tại từ đầu
+    if (repeatMode === 'one') {
+      if (soundRef.current) {
+        await soundRef.current.setPositionAsync(0);
+        await soundRef.current.playAsync();
+      }
+      return;
+    }
+
+    // Các chế độ khác: chuyển về bài trước
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
       if (song) {
@@ -174,9 +185,67 @@ export default function MusicPlayerScreen() {
     }
   };
 
-  const handleNext = () => {
+  // ✅ XỬ LÝ KHI BÀI HÁT KẾT THÚC (tự động)
+  const handleSongFinish = async () => {
+    // Sử dụng ref để tránh stale closure
+    const currentRepeatMode = repeatModeRef.current;
+
+    if (currentRepeatMode === 'one') {
+      // Lặp lại bài hiện tại
+      if (soundRef.current) {
+        await soundRef.current.setPositionAsync(0);
+        await soundRef.current.playAsync();
+      }
+    } else if (currentRepeatMode === 'all') {
+      // Chuyển bài tiếp theo, hoặc quay lại đầu queue
+      if (currentIndex < queue.length - 1) {
+        setCurrentIndex(currentIndex + 1);
+      } else {
+        setCurrentIndex(0); // Quay lại bài đầu
+      }
+    } else {
+      // Chế độ off: chỉ chuyển nếu chưa hết queue
+      if (currentIndex < queue.length - 1) {
+        setCurrentIndex(currentIndex + 1);
+      } else {
+        // Hết queue - dừng phát
+        setIsPlaying(false);
+      }
+    }
+
+    // Log complete action
+    if (song) {
+      await musicAPI.logAction({
+        song_id: song._id,
+        action_type: "complete",
+        duration_listened: duration,
+      });
+    }
+  };
+
+  // ✅ XỬ LÝ KHI NGƯỜI DÙNG BẤM NÚT NEXT (thủ công)
+  const handleNext = async () => {
+    // Nếu đang ở chế độ repeat one, phát lại bài hiện tại từ đầu
+    if (repeatMode === 'one') {
+      if (soundRef.current) {
+        await soundRef.current.setPositionAsync(0);
+        await soundRef.current.playAsync();
+      }
+      return;
+    }
+
+    // Các chế độ khác: chuyển bài tiếp theo
     if (currentIndex < queue.length - 1) {
       setCurrentIndex(currentIndex + 1);
+      if (song) {
+        musicAPI.logAction({
+          song_id: song._id,
+          action_type: "skip",
+        });
+      }
+    } else if (repeatMode === 'all') {
+      // Nếu đang ở chế độ repeat all, quay lại đầu
+      setCurrentIndex(0);
       if (song) {
         musicAPI.logAction({
           song_id: song._id,
@@ -196,12 +265,14 @@ export default function MusicPlayerScreen() {
     // TODO: Implement shuffle logic
   };
 
+  // ✅ CHUYỂN ĐỔI CHẾ ĐỘ LẶP LẠI
   const toggleRepeat = () => {
     const modes: Array<'off' | 'all' | 'one'> = ['off', 'all', 'one'];
     const currentModeIndex = modes.indexOf(repeatMode);
     const nextMode = modes[(currentModeIndex + 1) % modes.length];
     setRepeatMode(nextMode);
-    // TODO: Implement repeat logic
+    // Đồng bộ ref để tránh stale closure trong callback
+    repeatModeRef.current = nextMode;
   };
 
   const formatTime = (seconds: number) => {
@@ -213,11 +284,11 @@ export default function MusicPlayerScreen() {
   if (loading && !song) {
     return (
       <LinearGradient
-        colors={['#1a0a2e', '#0f0519', '#000000']}
+        colors={['#1a0520', '#0f0314', '#000000']}
         style={{ flex: 1 }}
       >
         <SafeAreaView className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#a855f7" />
+          <ActivityIndicator size="large" color="#ec4899" />
           <Text className="text-white mt-4 text-lg">Đang tải bài hát...</Text>
         </SafeAreaView>
       </LinearGradient>
@@ -228,14 +299,14 @@ export default function MusicPlayerScreen() {
 
   return (
     <LinearGradient
-      colors={['#1a0a2e', '#16213e', '#0f3460', '#000000']}
+      colors={['#1a0520', '#2d1b3d', '#4a1942', '#000000']}
       style={{ flex: 1 }}
     >
       <SafeAreaView className="flex-1">
         <View className="flex-1 justify-between">
           {/* HEADER */}
           <View className="px-6 pt-2 pb-4 flex-row justify-between items-center">
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => navigation.goBack()}
               style={styles.headerButton}
             >
@@ -267,7 +338,7 @@ export default function MusicPlayerScreen() {
                 />
               ) : (
                 <View style={[styles.albumArt, styles.placeholderAlbumArt]}>
-                  <Ionicons name="musical-notes" size={100} color="#a855f7" />
+                  <Ionicons name="musical-notes" size={100} color="#ec4899" />
                 </View>
               )}
             </View>
@@ -284,14 +355,14 @@ export default function MusicPlayerScreen() {
                   {artistNames}
                 </Text>
               </View>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={toggleLike}
                 style={styles.likeButton}
               >
-                <Ionicons 
-                  name={isLiked ? "heart" : "heart-outline"} 
-                  size={32} 
-                  color={isLiked ? "#ef4444" : "white"} 
+                <Ionicons
+                  name={isLiked ? "heart" : "heart-outline"}
+                  size={32}
+                  color={isLiked ? "#ef4444" : "white"}
                 />
               </TouchableOpacity>
             </View>
@@ -305,7 +376,7 @@ export default function MusicPlayerScreen() {
               value={currentTime}
               onValueChange={setCurrentTime}
               onSlidingComplete={handleSeek}
-              minimumTrackTintColor="#a855f7"
+              minimumTrackTintColor="#ec4899"
               maximumTrackTintColor="rgba(255,255,255,0.2)"
               thumbTintColor="#ffffff"
               style={styles.slider}
@@ -324,31 +395,31 @@ export default function MusicPlayerScreen() {
           {/* PLAYBACK CONTROLS */}
           <View className="px-8 mt-6">
             <View className="flex-row justify-between items-center mb-8">
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={toggleShuffle}
                 style={styles.secondaryControl}
               >
-                <Ionicons 
-                  name="shuffle" 
-                  size={24} 
-                  color={isShuffle ? "#a855f7" : "rgba(255,255,255,0.6)"} 
+                <Ionicons
+                  name="shuffle"
+                  size={24}
+                  color={isShuffle ? "#ec4899" : "rgba(255,255,255,0.6)"}
                 />
               </TouchableOpacity>
 
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={handlePrevious}
                 disabled={currentIndex === 0}
                 style={styles.skipButton}
               >
-                <Ionicons 
-                  name="play-skip-back" 
-                  size={36} 
-                  color={currentIndex === 0 ? "rgba(255,255,255,0.3)" : "white"} 
+                <Ionicons
+                  name="play-skip-back"
+                  size={36}
+                  color={currentIndex === 0 ? "rgba(255,255,255,0.3)" : "white"}
                 />
               </TouchableOpacity>
 
-              <TouchableOpacity 
-                onPress={togglePlayPause} 
+              <TouchableOpacity
+                onPress={togglePlayPause}
                 disabled={!song}
                 style={styles.playButton}
               >
@@ -356,12 +427,12 @@ export default function MusicPlayerScreen() {
                   <ActivityIndicator size="large" color="white" />
                 ) : (
                   <LinearGradient
-                    colors={['#a855f7', '#7c3aed']}
+                    colors={['#ec4899', '#db2777']}
                     style={styles.playButtonGradient}
                   >
-                    <Ionicons 
-                      name={isPlaying ? "pause" : "play"} 
-                      size={40} 
+                    <Ionicons
+                      name={isPlaying ? "pause" : "play"}
+                      size={40}
                       color="white"
                       style={{ marginLeft: isPlaying ? 0 : 4 }}
                     />
@@ -369,26 +440,26 @@ export default function MusicPlayerScreen() {
                 )}
               </TouchableOpacity>
 
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={handleNext}
                 disabled={currentIndex === queue.length - 1}
                 style={styles.skipButton}
               >
-                <Ionicons 
-                  name="play-skip-forward" 
-                  size={36} 
-                  color={currentIndex === queue.length - 1 ? "rgba(255,255,255,0.3)" : "white"} 
+                <Ionicons
+                  name="play-skip-forward"
+                  size={36}
+                  color={currentIndex === queue.length - 1 ? "rgba(255,255,255,0.3)" : "white"}
                 />
               </TouchableOpacity>
 
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={toggleRepeat}
                 style={styles.secondaryControl}
               >
-                <Ionicons 
-                  name={repeatMode === 'one' ? "repeat-outline" : "repeat"} 
-                  size={24} 
-                  color={repeatMode !== 'off' ? "#a855f7" : "rgba(255,255,255,0.6)"} 
+                <Ionicons
+                  name="repeat"
+                  size={24}
+                  color={repeatMode !== 'off' ? "#ec4899" : "rgba(255,255,255,0.6)"}
                 />
                 {repeatMode === 'one' && (
                   <View style={styles.repeatOneBadge}>
@@ -401,8 +472,8 @@ export default function MusicPlayerScreen() {
 
           {/* BOTTOM ACTIONS */}
           <View className="flex-row justify-between items-center px-8 pb-6">
-            <TouchableOpacity 
-              activeOpacity={0.7} 
+            <TouchableOpacity
+              activeOpacity={0.7}
               onPress={() => navigation.navigate("CreateRoom")}
               style={styles.bottomAction}
             >
@@ -413,12 +484,88 @@ export default function MusicPlayerScreen() {
               <Ionicons name="share-outline" size={26} color="white" />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.bottomAction}>
+            <TouchableOpacity
+              onPress={() => setQueueModalVisible(true)}
+              style={styles.bottomAction}
+            >
               <Ionicons name="list" size={26} color="white" />
             </TouchableOpacity>
           </View>
         </View>
       </SafeAreaView>
+
+      {/* QUEUE MODAL */}
+      <Modal
+        visible={queueModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setQueueModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Danh sách phát</Text>
+              <TouchableOpacity
+                onPress={() => setQueueModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={28} color="white" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.queueList}>
+              {queue.map((item, index) => {
+                const isCurrentSong = index === currentIndex;
+                const artistNames = item.artist_ids?.map(a => a.name).join(", ") || "Unknown Artist";
+
+                return (
+                  <TouchableOpacity
+                    key={item._id}
+                    style={[
+                      styles.queueItem,
+                      isCurrentSong && styles.currentQueueItem
+                    ]}
+                    onPress={() => {
+                      setCurrentIndex(index);
+                      setQueueModalVisible(false);
+                    }}
+                  >
+                    <View style={styles.queueItemLeft}>
+                      {item.cover_image ? (
+                        <Image
+                          source={{ uri: item.cover_image }}
+                          style={styles.queueItemImage}
+                        />
+                      ) : (
+                        <View style={styles.queueItemImagePlaceholder}>
+                          <Ionicons name="musical-notes" size={20} color="#ec4899" />
+                        </View>
+                      )}
+                      <View style={styles.queueItemInfo}>
+                        <Text
+                          style={[
+                            styles.queueItemTitle,
+                            isCurrentSong && styles.currentQueueItemText
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {item.title}
+                        </Text>
+                        <Text style={styles.queueItemArtist} numberOfLines={1}>
+                          {artistNames}
+                        </Text>
+                      </View>
+                    </View>
+                    {isCurrentSong && (
+                      <Ionicons name="volume-high" size={20} color="#ec4899" />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </LinearGradient>
   );
 }
@@ -433,7 +580,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   albumArtContainer: {
-    shadowColor: '#a855f7',
+    shadowColor: '#ec4899',
     shadowOffset: { width: 0, height: 20 },
     shadowOpacity: 0.5,
     shadowRadius: 30,
@@ -445,11 +592,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   placeholderAlbumArt: {
-    backgroundColor: 'rgba(168, 85, 247, 0.15)',
+    backgroundColor: 'rgba(236, 72, 153, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.3)',
+    borderColor: 'rgba(236, 72, 153, 0.3)',
   },
   likeButton: {
     width: 50,
@@ -483,7 +630,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#a855f7',
+    shadowColor: '#ec4899',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.6,
     shadowRadius: 16,
@@ -503,7 +650,7 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: '#a855f7',
+    backgroundColor: '#ec4899',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -519,5 +666,91 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#1a0a2e',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: height * 0.7,
+    paddingBottom: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  modalTitle: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  closeButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  queueList: {
+    paddingHorizontal: 16,
+  },
+  queueItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    marginVertical: 4,
+  },
+  currentQueueItem: {
+    backgroundColor: 'rgba(236, 72, 153, 0.2)',
+  },
+  queueItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  queueItemImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+  },
+  queueItemImagePlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    backgroundColor: 'rgba(236, 72, 153, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(236, 72, 153, 0.3)',
+  },
+  queueItemInfo: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  queueItemTitle: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  currentQueueItemText: {
+    color: '#ec4899',
+  },
+  queueItemArtist: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 13,
+    marginTop: 2,
   },
 });

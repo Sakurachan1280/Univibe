@@ -1,9 +1,12 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
-//export const BASE_URL = "http://192.168.0.151:5000";
-export const BASE_URL = "http://192.168.0.136:5000";
-//export const BASE_URL = "http://192.168.1.27:5000";
+// HARDCODE IP của server - Thay đổi IP này nếu server chạy trên máy khác
+// IP hiện tại của máy server: 192.168.19.1
+export const BASE_URL = "http://192.168.1.32:5000";
+
+// Export getter function để lấy BASE_URL hiện tại
+export const getServerURL = () => BASE_URL;
 
 const axiosClient = axios.create({
   baseURL: `${BASE_URL}/api/v1`,
@@ -25,6 +28,5 @@ axiosClient.interceptors.request.use(async (config) => {
 
   return config;
 });
-
 
 export default axiosClient;

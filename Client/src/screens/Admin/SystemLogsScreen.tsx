@@ -10,8 +10,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import axiosClient from '../../API/axiosClient';
 import { getMeAPI } from '../../API/userAPI';
+import { getQueueSongs } from '../../API/songAPI';
+import { getAllArtists } from '../../API/artistAPI';
+import { getMyPlaylists } from '../../API/playlistAPI';
 
 interface LogEntry {
   _id: string;
@@ -40,7 +42,7 @@ export default function SystemLogsScreen() {
       const userData = await getMeAPI();
       const username = userData?.username || 'Admin';
       setCurrentUser(username);
-      
+
       // Then fetch logs
       await fetchLogs(username);
     } catch (error) {
@@ -54,12 +56,12 @@ export default function SystemLogsScreen() {
       setIsLoading(true);
       // Fetch recent songs, artists, and playlists
       const [songsRes, artistsRes, playlistsRes] = await Promise.all([
-        axiosClient.get('/music/queue?type=new'),
-        axiosClient.get('/music/artists'),
-        axiosClient.get('/playlists'),
+        getQueueSongs('new'),
+        getAllArtists(),
+        getMyPlaylists(),
       ]);
 
-      const songLogs = (songsRes.data || []).slice(0, 10).map((song: any) => ({
+      const songLogs = (songsRes || []).slice(0, 10).map((song: any) => ({
         _id: song._id,
         action: 'created',
         entityType: 'song' as const,
@@ -68,7 +70,7 @@ export default function SystemLogsScreen() {
         createdAt: song.createdAt || song.updatedAt || new Date().toISOString(),
       }));
 
-      const artistLogs = (artistsRes.data || []).slice(0, 5).map((artist: any) => ({
+      const artistLogs = (artistsRes || []).slice(0, 5).map((artist: any) => ({
         _id: artist._id,
         action: 'created',
         entityType: 'artist' as const,
@@ -77,7 +79,7 @@ export default function SystemLogsScreen() {
         createdAt: artist.createdAt || artist.updatedAt || new Date().toISOString(),
       }));
 
-      const playlistLogs = (playlistsRes.data || []).slice(0, 5).map((playlist: any) => ({
+      const playlistLogs = (playlistsRes || []).slice(0, 10).map((playlist: any) => ({
         _id: playlist._id,
         action: 'created',
         entityType: 'playlist' as const,

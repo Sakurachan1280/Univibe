@@ -11,7 +11,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import axiosClient from '../../API/axiosClient';
+import { getQueueSongs } from '../../API/songAPI';
+import { getAllArtists } from '../../API/artistAPI';
+import { getMyPlaylists } from '../../API/playlistAPI';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
 
@@ -31,18 +33,18 @@ export default function AdminAlbum() {
   const fetchStats = async () => {
     try {
       setIsLoading(true);
-      
+
       // Fetch songs count
-      const songsResponse = await axiosClient.get('/music/queue?type=new');
-      const totalSongs = songsResponse.data?.length || 0;
+      const songsResponse = await getQueueSongs('new');
+      const totalSongs = songsResponse?.length || 0;
 
       // Fetch playlists count
-      const playlistsResponse = await axiosClient.get('/playlists');
-      const totalPlaylists = playlistsResponse.data?.length || 0;
+      const playlistsResponse = await getMyPlaylists();
+      const totalPlaylists = playlistsResponse?.length || 0;
 
       // Fetch artists count
-      const artistsResponse = await axiosClient.get('/music/artists');
-      const totalArtists = artistsResponse.data?.length || 0;
+      const artistsResponse = await getAllArtists();
+      const totalArtists = artistsResponse?.length || 0;
 
       setStats({
         totalSongs,

@@ -14,12 +14,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import axiosClient, { BASE_URL } from '../../API/axiosClient';
+import { BASE_URL } from '../../API/axiosClient';
+import { getQueueSongs, deleteSong, updateSong } from '../../API/songAPI';
 
-interface Song {
+// Local interface for admin song management - matches server response structure
+interface AdminSong {
     _id: string;
     title: string;
-    duration: number;
+    duration: number | string;
     file_url: string;
     cover_image: string;
     artist_ids: any[];
@@ -28,10 +30,10 @@ interface Song {
 
 export default function SongManagementScreen() {
     const navigation = useNavigation();
-    const [songs, setSongs] = useState<Song[]>([]);
+    const [songs, setSongs] = useState<AdminSong[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [editModalVisible, setEditModalVisible] = useState(false);
-    const [selectedSong, setSelectedSong] = useState<Song | null>(null);
+    const [selectedSong, setSelectedSong] = useState<AdminSong | null>(null);
     const [editTitle, setEditTitle] = useState('');
     const [editDuration, setEditDuration] = useState('');
     const [editGenres, setEditGenres] = useState('');
@@ -45,8 +47,8 @@ export default function SongManagementScreen() {
     const fetchSongs = async () => {
         try {
             setIsLoading(true);
-            const response = await axiosClient.get('/music/queue?type=new');
-            setSongs(response.data);
+            const songsData = await getQueueSongs('new');
+            setSongs(songsData as any);
         } catch (error) {
             console.error('Error fetching songs:', error);
             Alert.alert('Error', 'Failed to load songs');
@@ -55,7 +57,7 @@ export default function SongManagementScreen() {
         }
     };
 
-    const handleEdit = (song: Song) => {
+    const handleEdit = (song: AdminSong) => {
         setSelectedSong(song);
         setEditTitle(song.title);
         setEditDuration(song.duration?.toString() || '300');
@@ -64,7 +66,7 @@ export default function SongManagementScreen() {
         setEditModalVisible(true);
     };
 
-    const handleDelete = (song: Song) => {
+    const handleDelete = (song: AdminSong) => {
         Alert.alert(
             'Xóa Bài Hát',
             `Bạn có chắc muốn xóa "${song.title}"?`,
@@ -75,7 +77,7 @@ export default function SongManagementScreen() {
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            await axiosClient.delete(`/music/songs/${song._id}`);
+                            await deleteSong(song._id);
                             Alert.alert('Success', 'Đã xóa bài hát');
                             fetchSongs();
                         } catch (error: any) {
@@ -139,11 +141,7 @@ export default function SongManagementScreen() {
                 });
             }
 
-            await axiosClient.put(`/music/songs/${selectedSong?._id}`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            await updateSong(selectedSong?._id!, formData);
 
             Alert.alert('Success', 'Đã cập nhật bài hát');
             setEditModalVisible(false);
@@ -156,10 +154,11 @@ export default function SongManagementScreen() {
         }
     };
 
-    const formatDuration = (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    const formatDuration = (seconds: number | string) => {
+        const secs = typeof seconds === 'string' ? parseInt(seconds) : seconds;
+        const mins = Math.floor(secs / 60);
+        const remainder = secs % 60;
+        return `${mins}:${remainder.toString().padStart(2, '0')}`;
     };
 
     return (
@@ -191,8 +190,12 @@ export default function SongManagementScreen() {
                                 <View className="flex-row items-center">
                                     {song.cover_image ? (
                                         <Image
-                                            source={{ uri: `${BASE_URL}${song.cover_image}` }}
-                                            className="w-16 h-16 rounded-xl"
+                                            source={{
+                                                uri: song.cover_image.startsWith('http')
+                                                    ? song.cover_image
+                                                    : `${BASE_URL}${song.cover_image}`
+                                            }}
+                                            className="w-16 h-16 rounded-lg"
                                         />
                                     ) : (
                                         <View className="w-16 h-16 rounded-xl bg-gray-700 items-center justify-center">
@@ -261,7 +264,11 @@ export default function SongManagementScreen() {
                                             <Image source={{ uri: editCover }} className="w-full h-full" />
                                         ) : selectedSong?.cover_image ? (
                                             <Image
-                                                source={{ uri: `${BASE_URL}${selectedSong.cover_image}` }}
+                                                source={{
+                                                    uri: selectedSong.cover_image.startsWith('http')
+                                                        ? selectedSong.cover_image
+                                                        : `${BASE_URL}${selectedSong.cover_image}`
+                                                }}
                                                 className="w-full h-full"
                                             />
                                         ) : (

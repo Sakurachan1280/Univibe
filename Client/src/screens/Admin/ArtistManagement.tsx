@@ -17,14 +17,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 
-import axiosClient, { BASE_URL } from '../../API/axiosClient';
-
-interface Artist {
-    _id: string;
-    name: string;
-    bio: string;
-    avatar: string;
-}
+import { BASE_URL } from '../../API/axiosClient';
+import { getAllArtists, deleteArtist, updateArtist, Artist } from '../../API/artistAPI';
 
 export default function ArtistManagementScreen() {
     const navigation = useNavigation();
@@ -44,8 +38,8 @@ export default function ArtistManagementScreen() {
     const fetchArtists = async () => {
         try {
             setIsLoading(true);
-            const response = await axiosClient.get('/music/artists');
-            setArtists(response.data);
+            const artistsData = await getAllArtists();
+            setArtists(artistsData);
         } catch (error) {
             console.error('Error fetching artists:', error);
             Alert.alert('Error', 'Failed to load artists');
@@ -74,13 +68,11 @@ export default function ArtistManagementScreen() {
                     onPress: async () => {
                         try {
                             console.log('Deleting artist:', artist._id);
-                            const response = await axiosClient.delete(`/music/artists/${artist._id}`);
-                            console.log('Delete response:', response.data);
+                            await deleteArtist(artist._id);
                             Alert.alert('Success', 'Đã xóa nghệ sĩ');
                             fetchArtists();
                         } catch (error: any) {
                             console.error('Delete error:', error);
-                            console.error('Error response:', error.response?.data);
                             Alert.alert('Error', error.response?.data?.message || 'Failed to delete artist');
                         }
                     },
@@ -133,11 +125,7 @@ export default function ArtistManagementScreen() {
                 });
             }
 
-            await axiosClient.put(`/music/artists/${selectedArtist?._id}`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            await updateArtist(selectedArtist?._id!, formData);
 
             Alert.alert('Success', 'Đã cập nhật nghệ sĩ');
             setEditModalVisible(false);
@@ -178,7 +166,11 @@ export default function ArtistManagementScreen() {
                                 <View className="flex-row items-center">
                                     {artist.avatar ? (
                                         <Image
-                                            source={{ uri: `${BASE_URL}${artist.avatar}` }}
+                                            source={{
+                                                uri: artist.avatar.startsWith('http')
+                                                    ? artist.avatar
+                                                    : `${BASE_URL}${artist.avatar}`
+                                            }}
                                             className="w-16 h-16 rounded-full"
                                         />
                                     ) : (
@@ -226,10 +218,10 @@ export default function ArtistManagementScreen() {
                 onRequestClose={() => setEditModalVisible(false)}
             >
                 <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                className="flex-1 bg-black/80 justify-end"
-            >
-                <View className="bg-gray-900 rounded-t-3xl p-6" style={{ maxHeight: '80%' }}>
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    className="flex-1 bg-black/80 justify-end"
+                >
+                    <View className="bg-gray-900 rounded-t-3xl p-6" style={{ maxHeight: '80%' }}>
                         <View className="flex-row items-center justify-between mb-6">
                             <Text className="text-white text-xl font-bold">Chỉnh Sửa Nghệ Sĩ</Text>
                             <TouchableOpacity onPress={() => setEditModalVisible(false)}>
@@ -246,7 +238,11 @@ export default function ArtistManagementScreen() {
                                             <Image source={{ uri: editAvatar }} className="w-full h-full" />
                                         ) : selectedArtist?.avatar ? (
                                             <Image
-                                                source={{ uri: `${BASE_URL}${selectedArtist.avatar}` }}
+                                                source={{
+                                                    uri: selectedArtist.avatar.startsWith('http')
+                                                        ? selectedArtist.avatar
+                                                        : `${BASE_URL}${selectedArtist.avatar}`
+                                                }}
                                                 className="w-full h-full"
                                             />
                                         ) : (
@@ -308,7 +304,7 @@ export default function ArtistManagementScreen() {
                         </ScrollView>
                     </View>
 
-            </KeyboardAvoidingView>
+                </KeyboardAvoidingView>
             </Modal>
         </SafeAreaView>
     );

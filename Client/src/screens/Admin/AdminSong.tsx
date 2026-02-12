@@ -9,7 +9,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import axiosClient from '../../API/axiosClient';
+import { getQueueSongs } from '../../API/songAPI';
+import { getAllArtists } from '../../API/artistAPI';
 
 export default function AdminSong() {
   const navigation = useNavigation();
@@ -25,12 +26,12 @@ export default function AdminSong() {
     try {
       setIsLoading(true);
       const [songsResponse, artistsResponse] = await Promise.all([
-        axiosClient.get('/music/queue?type=new'),
-        axiosClient.get('/music/artists'),
+        getQueueSongs('new'),
+        getAllArtists(),
       ]);
 
-      setSongCount(songsResponse.data?.length || 0);
-      setArtistCount(artistsResponse.data?.length || 0);
+      setSongCount(songsResponse?.length || 0);
+      setArtistCount(artistsResponse?.length || 0);
     } catch (error) {
       console.error('Error fetching stats:', error);
     } finally {

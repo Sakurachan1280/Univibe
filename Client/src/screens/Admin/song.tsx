@@ -14,13 +14,11 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { useNavigation } from '@react-navigation/native';
-import axiosClient, { BASE_URL } from '../../API/axiosClient';
+import { BASE_URL } from '../../API/axiosClient';
+import { getAllArtists, Artist as ArtistType } from '../../API/artistAPI';
+import { createSong } from '../../API/songAPI';
 
-interface Artist {
-    _id: string;
-    name: string;
-    avatar: string;
-}
+// Using Artist type from artistAPI
 
 export default function CreateSongScreen() {
     const navigation = useNavigation();
@@ -30,7 +28,7 @@ export default function CreateSongScreen() {
     const [coverImage, setCoverImage] = useState<string | null>(null);
     const [audioFile, setAudioFile] = useState<any>(null);
     const [selectedArtists, setSelectedArtists] = useState<string[]>([]);
-    const [artists, setArtists] = useState<Artist[]>([]);
+    const [artists, setArtists] = useState<ArtistType[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingArtists, setIsLoadingArtists] = useState(true);
 
@@ -40,8 +38,8 @@ export default function CreateSongScreen() {
 
     const fetchArtists = async () => {
         try {
-            const response = await axiosClient.get('/music/artists');
-            setArtists(response.data);
+            const artistsData = await getAllArtists();
+            setArtists(artistsData);
         } catch (error: any) {
             console.error('Error fetching artists:', error);
             Alert.alert('Error', 'Failed to load artists. Please try again.');
@@ -150,13 +148,9 @@ export default function CreateSongScreen() {
                 });
             }
 
-            console.log('Sending request to /music/songs');
+            console.log('Creating song via songAPI');
 
-            const response = await axiosClient.post('/music/songs', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            await createSong(formData);
 
             Alert.alert('Success', 'Song created successfully!', [
                 { text: 'OK', onPress: () => navigation.goBack() }
@@ -285,7 +279,11 @@ export default function CreateSongScreen() {
                                     >
                                         {artist.avatar ? (
                                             <Image
-                                                source={{ uri: `${BASE_URL}${artist.avatar}` }}
+                                                source={{
+                                                    uri: artist.avatar.startsWith('http')
+                                                        ? artist.avatar
+                                                        : `${BASE_URL}${artist.avatar}`
+                                                }}
                                                 className="w-10 h-10 rounded-full"
                                             />
                                         ) : (

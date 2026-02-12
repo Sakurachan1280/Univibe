@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
-import axiosClient from '../../API/axiosClient';
+import { createArtist } from '../../API/artistAPI';
 
 export default function CreateArtistScreen() {
     const navigation = useNavigation();
@@ -68,13 +68,9 @@ export default function CreateArtistScreen() {
                 });
             }
 
-            console.log('Sending request to /music/artists');
+            console.log('Creating artist via artistAPI');
 
-            const response = await axiosClient.post('/music/artists', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            await createArtist(formData);
 
             Alert.alert('Success', 'Artist created successfully!', [
                 { text: 'OK', onPress: () => navigation.goBack() }
