@@ -193,6 +193,20 @@ const getRandomSongs = async (req, res) => {
   }
 };
 
+const searchSongs = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      return res.status(400).json({ message: 'Search query is required' });
+    }
+    const songs = await musicService.searchSongs(q);
+    res.json(songs);
+  } catch (err) {
+    console.error('Error searching songs:', err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   createArtist,
   getArtists,
@@ -204,5 +218,6 @@ module.exports = {
   playSong,
   getQueue,
   getRandomSongs,
+  searchSongs,
   logAction
 };

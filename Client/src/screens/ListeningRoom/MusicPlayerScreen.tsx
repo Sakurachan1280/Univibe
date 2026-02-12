@@ -22,7 +22,6 @@ export default function MusicPlayerScreen() {
   const [isShuffle, setIsShuffle] = useState(false);
   const [repeatMode, setRepeatMode] = useState<'off' | 'all' | 'one'>('off');
   const [queueModalVisible, setQueueModalVisible] = useState(false);
-
   const soundRef = useRef<Audio.Sound | null>(null);
   const isSeekingRef = useRef(false);
   const repeatModeRef = useRef<'off' | 'all' | 'one'>('off');

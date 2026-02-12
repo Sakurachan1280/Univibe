@@ -10,8 +10,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Song, searchSongs, getRandomSongs } from "../../API/songAPI";
 import { Playlist, getMyPlaylists } from "../../API/playlistAPI";
 import { BASE_URL } from "../../API/axiosClient";
+import { useAppNavigation } from "../../navigation/useAppNavigation";
 
 export default function SearchScreen() {
+  const navigation = useAppNavigation();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"songs" | "playlists">("songs");
@@ -220,10 +222,11 @@ export default function SearchScreen() {
                           key={song._id}
                           className="flex-row items-center py-3 active:bg-white/5 rounded-lg"
                           activeOpacity={0.7}
+                          onPress={() => navigation.navigate("MusicPlayer")}
                         >
-                          {song.coverUrl ? (
+                          {song.cover_image ? (
                             <Image
-                              source={{ uri: `${BASE_URL}${song.coverUrl}` }}
+                              source={{ uri: song.cover_image }}
                               className="w-14 h-14 rounded-lg mr-3"
                             />
                           ) : (
@@ -239,7 +242,9 @@ export default function SearchScreen() {
                               {song.artist}
                             </Text>
                           </View>
-                          <Text className="text-gray-400 text-sm mr-2">{song.duration || "0:00"}</Text>
+                          <TouchableOpacity className="p-2">
+                            <Ionicons name="add-circle-outline" size={24} color="#EC4899" />
+                          </TouchableOpacity>
                           <TouchableOpacity className="p-2">
                             <Ionicons name="ellipsis-vertical" size={18} color="#9CA3AF" />
                           </TouchableOpacity>

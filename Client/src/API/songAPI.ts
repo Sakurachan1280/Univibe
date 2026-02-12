@@ -4,10 +4,22 @@ export interface Song {
     _id: string;
     title: string;
     artist: string;
-    duration?: string;
+    duration?: string | number;
     genre?: string;
     audioUrl?: string;
     coverUrl?: string;
+    // API actual fields
+    cover_image?: string;
+    file_url?: string;
+    artist_ids?: Array<{
+        _id: string;
+        name: string;
+        avatar?: string;
+    }>;
+    stats?: {
+        play_count: number;
+        like_count: number;
+    };
 }
 
 export const getRandomSongs = async (limit: number = 20): Promise<Song[]> => {

@@ -54,6 +54,9 @@ router.delete('/songs/:id',
   musicController.deleteSong
 );
 
+// 3. Tìm kiếm bài hát (MUST be before /songs/:id)
+router.get('/songs/search', musicController.searchSongs);
+
 // 3a. Lấy danh sách bài hát ngẫu nhiên
 router.get('/songs/random', musicController.getRandomSongs);
 

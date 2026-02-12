@@ -147,6 +147,58 @@ const getRandomSongs = async (limit = 20) => {
   ]);
 };
 
+const searchSongs = async (query) => {
+  // Search by song title or artist name
+  return await Song.aggregate([
+    {
+      $lookup: {
+        from: 'artists',
+        localField: 'artist_ids',
+        foreignField: '_id',
+        as: 'artist_info'
+      }
+    },
+    {
+      $match: {
+        $or: [
+          { title: { $regex: query, $options: 'i' } },
+          { 'artist_info.name': { $regex: query, $options: 'i' } }
+        ]
+      }
+    },
+    {
+      $project: {
+        title: 1,
+        file_url: 1,
+        cover_image: 1,
+        duration: 1,
+        artist: {
+          $cond: {
+            if: { $gt: [{ $size: '$artist_info' }, 0] },
+            then: {
+              $reduce: {
+                input: '$artist_info',
+                initialValue: '',
+                in: {
+                  $concat: [
+                    '$$value',
+                    { $cond: [{ $eq: ['$$value', ''] }, '', ', '] },
+                    '$$this.name'
+                  ]
+                }
+              }
+            },
+            else: 'Unknown Artist'
+          }
+        },
+        artist_ids: '$artist_info',
+        stats: 1
+      }
+    },
+    { $limit: 50 }
+  ]);
+};
+
 const logListeningAction = async (userId, songId, actionType, duration, context) => {
 
   await ListeningHistory.create({
@@ -177,5 +229,6 @@ module.exports = {
   getSongDetail,
   getSongList,
   getRandomSongs,
+  searchSongs,
   logListeningAction
 };
