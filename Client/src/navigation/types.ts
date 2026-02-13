@@ -16,6 +16,7 @@ export type RootStackParamList = {
   NowPlaying: undefined;
   ChatDetail: { userId: string };
   MusicPlayer: { song?: any };
+
   CreateRoom: undefined;
   ListeningRoom: undefined;
   HomeMain: undefined;
