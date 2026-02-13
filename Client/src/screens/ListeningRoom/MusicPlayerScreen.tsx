@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useRoute } from "@react-navigation/native";
 import { View, Text, TouchableOpacity, Dimensions, Image, ActivityIndicator, Alert, StyleSheet, Modal, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
@@ -13,26 +14,36 @@ const { width, height } = Dimensions.get("window");
 export default function MusicPlayerScreen() {
   const navigation = useAppNavigation();
   const route = useRoute<any>();
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [song, setSong] = useState<Song | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [queue, setQueue] = useState<Song[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isLiked, setIsLiked] = useState(false);
-  const [isShuffle, setIsShuffle] = useState(false);
-  const [repeatMode, setRepeatMode] = useState<'off' | 'all' | 'one'>('off');
+  const {
+    isPlaying,
+    currentTime,
+    duration,
+    currentSong: song,
+    queue,
+    currentIndex,
+    loading,
+    isShuffle,
+    repeatMode,
+    playSong,
+    togglePlayPause,
+    handleNext,
+    handlePrevious,
+    handleSeek,
+    toggleShuffle,
+    toggleRepeat,
+    setMiniPlayerVisible,
+    setCurrentIndex,
+  } = useMusic();
+
   const [queueModalVisible, setQueueModalVisible] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
 
-  // Load songs on mount
+  // Load songs on mount if passed from route
   useEffect(() => {
     const initialSong = route.params?.song;
-    if (initialSong) {
-      setSong(initialSong);
+    if (initialSong && initialSong._id !== song?._id) {
       loadQueueWithInitial(initialSong);
-    } else {
+    } else if (!song) {
       loadQueue();
     }
 
@@ -45,31 +56,17 @@ export default function MusicPlayerScreen() {
     };
   }, [route.params?.song]);
 
-  // Load current song when queue or index changes
-  useEffect(() => {
-    if (queue.length > 0) {
-      loadSong(queue[currentIndex]);
-    }
-  }, [currentIndex, queue]);
-
   const loadQueueWithInitial = async (initialSong: Song) => {
     try {
-      setLoading(true);
       // Combine initial song with random songs for queue
-      const randomSongs = await musicAPI.getRandomSongs(19); // Get 19 random songs
-      // Filter out initial song if it happens to be in random list
+      const randomSongs = await musicAPI.getRandomSongs(19);
       const filteredRandom = randomSongs.filter(s => s._id !== initialSong._id);
-
       const newQueue = [initialSong, ...filteredRandom];
-      setQueue(newQueue);
-      setCurrentIndex(0); // Start at the initial song
+
+      await playSong(initialSong, newQueue);
     } catch (error) {
       console.error("Error loading queue with initial song:", error);
-      // Fallback to just the initial song
-      setQueue([initialSong]);
-      setCurrentIndex(0);
-    } finally {
-      setLoading(false);
+      await playSong(initialSong, [initialSong]);
     }
   };
 
