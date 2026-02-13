@@ -19,7 +19,7 @@ export default function SignIn() {
             resizeMode="contain"/>
         </View>
 
-        <Text className="text-white text-3xl font-bold text-center">Đăng nhập vào music Xco</Text>
+        <Text className="text-white text-3xl font-bold text-center">Đăng nhập vào Spotichat</Text>
       </View>
 
       <View className="mb-20 flex-1 justify-between max-h-80 gap-4">

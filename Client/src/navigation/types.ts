@@ -38,7 +38,9 @@ export type RootStackParamList = {
   CreatePlaylist: undefined;
   HelpScreen: undefined;
   SystemLogsScreen: undefined;
+
   AdminAccount: undefined;
+  History: undefined;
 };
 export type MainTabParamList = {
   Home: undefined;

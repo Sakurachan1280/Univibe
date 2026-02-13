@@ -12,6 +12,8 @@ import ListenModal from "../components/Listenmodal/ModalList";
 import JamInfoModal from "../components/Listenmodal/JamInfo";
 import { MainTabParamList } from "./types";
 import MiniPlayer from "../components/Music/MiniPlayer";
+import { useMusic } from "../context/MusicContext";
+import { useEffect } from "react";
 
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -20,6 +22,14 @@ export default function MainTabNavigator() {
   const [showCreate, setShowCreate] = useState(false);
   const [showListenModal, setShowListenModal] = useState(false);
   const [showJamInfo, setShowJamInfo] = useState(false);
+  const { loadLastPlayed, currentSong } = useMusic();
+
+  useEffect(() => {
+    // Only load if no song is currently loaded
+    if (!currentSong) {
+      loadLastPlayed();
+    }
+  }, []);
 
   return (
     <>

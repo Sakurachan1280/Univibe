@@ -23,6 +23,7 @@ interface MusicContextType {
     toggleRepeat: () => void;
     setMiniPlayerVisible: (visible: boolean) => void;
     setCurrentIndex: (index: number) => void;
+    loadLastPlayed: () => Promise<void>;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
@@ -72,7 +73,9 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
     };
 
-    const loadSong = async (songData: Song) => {
+
+
+    const loadSong = async (songData: Song, shouldPlay: boolean = true) => {
         try {
             setLoading(true);
             setCurrentSong(songData);
@@ -84,20 +87,22 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
             const { sound } = await Audio.Sound.createAsync(
                 { uri: songData.file_url },
-                { shouldPlay: true },
+                { shouldPlay: shouldPlay },
                 onPlaybackStatusUpdate
             );
 
             soundRef.current = sound;
             setLoading(false);
 
-            await musicAPI.logAction({
-                song_id: songData._id,
-                action_type: "play",
-            });
+            if (shouldPlay) {
+                await musicAPI.logAction({
+                    song_id: songData._id,
+                    action_type: "play",
+                });
+            }
         } catch (error) {
             console.error("Error loading song:", error);
-            Alert.alert("Lỗi", "Không thể phát bài hát này");
+            // Alert.alert("Lỗi", "Không thể phát bài hát này");
             setLoading(false);
         }
     };
@@ -248,6 +253,30 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const currentModeIndex = modes.indexOf(repeatMode);
         const nextMode = modes[(currentModeIndex + 1) % modes.length];
         setRepeatMode(nextMode);
+
+    };
+
+    const loadLastPlayed = async () => {
+        try {
+            // Import dynamically to avoid circular dependency if any
+            const { getListeningHistory } = require("../API/libraryAPI");
+            const history = await getListeningHistory();
+            if (history && history.length > 0 && history[0].song_id) {
+                const lastSong = history[0].song_id;
+                console.log("Loading last played:", lastSong.title);
+                // Create a generic queue based on history or just random songs?
+                // For now, let's just make a queue of 1 song to keep it simple, or maybe fetch random
+                // Fetch random songs for queue context
+                const randomSongs = await musicAPI.getRandomSongs(19);
+                const newQueue = [lastSong, ...randomSongs.filter(s => s._id !== lastSong._id)];
+                
+                setQueue(newQueue);
+                setCurrentIndex(0);
+                await loadSong(lastSong, false); // shouldPlay = false
+            }
+        } catch (error) {
+            console.log("Error loading last played:", error);
+        }
     };
 
     return (
@@ -271,7 +300,9 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 toggleShuffle,
                 toggleRepeat,
                 setMiniPlayerVisible,
+
                 setCurrentIndex,
+                loadLastPlayed,
             }}
         >
             {children}

@@ -14,7 +14,7 @@ export default function SignUp() {
               className="w-28 h-28"
               resizeMode="contain"/>
           </View>
-          <Text className="text-white text-3xl font-bold text-center">Đăng ký vào music Xco</Text>
+          <Text className="text-white text-3xl font-bold text-center">Đăng ký vào Spotichat</Text>
       </View>
 
       <View className="mb-20 gap-5">

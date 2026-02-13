@@ -7,9 +7,14 @@ import { PanResponder } from "react-native";
 import ProfileMenu from "../../components/ModalProfile/ProfileMenu";
 import UserAvatar from "../../components/ModalProfile/UserAvatar";
 import { LinearGradient } from 'expo-linear-gradient';
+
 import { Playlist, getMyPlaylists } from "../../API/playlistAPI";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../navigation/types";
 
 export default function LibraryScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
@@ -69,7 +74,9 @@ export default function LibraryScreen() {
 
         <View className="flex-row gap-4">
           <Ionicons name="notifications-outline" size={22} color="white" />
-          <Ionicons name="time-outline" size={22} color="white" />
+          <TouchableOpacity onPress={() => navigation.navigate("History")}>
+            <Ionicons name="time-outline" size={22} color="white" />
+          </TouchableOpacity>
           <Ionicons name="settings-outline" size={22} color="white" />
         </View>
       </View>
