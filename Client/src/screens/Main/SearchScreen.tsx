@@ -7,9 +7,8 @@ import { PanResponder } from "react-native";
 import ProfileMenu from "../../components/ModalProfile/ProfileMenu";
 import UserAvatar from "../../components/ModalProfile/UserAvatar";
 import { LinearGradient } from 'expo-linear-gradient';
-import { Song, searchSongs, getRandomSongs } from "../../API/songAPI";
+import { Song, searchSongs } from "../../API/songAPI";
 import { Playlist, getMyPlaylists } from "../../API/playlistAPI";
-import { BASE_URL } from "../../API/axiosClient";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
 
 export default function SearchScreen() {
@@ -60,11 +59,7 @@ export default function SearchScreen() {
 
   const loadInitialData = async () => {
     try {
-      const [songsData, playlistsData] = await Promise.all([
-        getRandomSongs(10),
-        getMyPlaylists()
-      ]);
-      setSongs(songsData);
+      const playlistsData = await getMyPlaylists();
       setPlaylists(playlistsData);
     } catch (error) {
       console.error('Error loading initial data:', error);
@@ -222,7 +217,7 @@ export default function SearchScreen() {
                           key={song._id}
                           className="flex-row items-center py-3 active:bg-white/5 rounded-lg"
                           activeOpacity={0.7}
-                          onPress={() => navigation.navigate("MusicPlayer")}
+                          onPress={() => navigation.navigate("MusicPlayer", { song })}
                         >
                           {song.cover_image ? (
                             <Image
