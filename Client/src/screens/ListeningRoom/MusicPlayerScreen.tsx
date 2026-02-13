@@ -4,13 +4,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
 import Slider from "@react-native-community/slider";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Audio } from "expo-av";
 import musicAPI, { Song } from "../../API/musicAPI";
 import { LinearGradient } from "expo-linear-gradient";
+import { useMusic } from "../../context/MusicContext";
 
 const { width, height } = Dimensions.get("window");
+
 export default function MusicPlayerScreen() {
   const navigation = useAppNavigation();
+  const route = useRoute<any>();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -22,32 +24,26 @@ export default function MusicPlayerScreen() {
   const [isShuffle, setIsShuffle] = useState(false);
   const [repeatMode, setRepeatMode] = useState<'off' | 'all' | 'one'>('off');
   const [queueModalVisible, setQueueModalVisible] = useState(false);
-  const soundRef = useRef<Audio.Sound | null>(null);
-  const isSeekingRef = useRef(false);
-  const repeatModeRef = useRef<'off' | 'all' | 'one'>('off');
+  const [isLiked, setIsLiked] = useState(false);
 
-  // Load random songs on mount or use passed params
+  // Load songs on mount
   useEffect(() => {
-    const params = navigation.getState().routes.find(r => r.name === 'MusicPlayer')?.params as { song?: Song; queue?: Song[] } | undefined;
-
-    if (params?.song) {
-      // If a specific song is passed, use it
-      const passedQueue = params.queue || [params.song];
-      setQueue(passedQueue);
-      setCurrentIndex(0);
-      setLoading(false);
+    const initialSong = route.params?.song;
+    if (initialSong) {
+      setSong(initialSong);
+      loadQueueWithInitial(initialSong);
     } else {
-      // Otherwise load random songs
       loadQueue();
     }
 
+    // Hide miniplayer when on this screen
+    setMiniPlayerVisible(false);
+
     return () => {
-      // Cleanup audio when component unmounts
-      if (soundRef.current) {
-        soundRef.current.unloadAsync();
-      }
+      // Show miniplayer when leaving this screen
+      setMiniPlayerVisible(true);
     };
-  }, []);
+  }, [route.params?.song]);
 
   // Load current song when queue or index changes
   useEffect(() => {
@@ -56,233 +52,43 @@ export default function MusicPlayerScreen() {
     }
   }, [currentIndex, queue]);
 
-  const loadQueue = async () => {
+  const loadQueueWithInitial = async (initialSong: Song) => {
     try {
       setLoading(true);
+      // Combine initial song with random songs for queue
+      const randomSongs = await musicAPI.getRandomSongs(19); // Get 19 random songs
+      // Filter out initial song if it happens to be in random list
+      const filteredRandom = randomSongs.filter(s => s._id !== initialSong._id);
+
+      const newQueue = [initialSong, ...filteredRandom];
+      setQueue(newQueue);
+      setCurrentIndex(0); // Start at the initial song
+    } catch (error) {
+      console.error("Error loading queue with initial song:", error);
+      // Fallback to just the initial song
+      setQueue([initialSong]);
+      setCurrentIndex(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadQueue = async () => {
+    try {
       const songs = await musicAPI.getRandomSongs(20);
       if (songs.length > 0) {
-        setQueue(songs);
-        setCurrentIndex(0);
+        await playSong(songs[0], songs);
       } else {
         Alert.alert("Lỗi", "Không có bài hát nào");
       }
     } catch (error) {
       console.error("Error loading queue:", error);
       Alert.alert("Lỗi", "Không thể tải danh sách bài hát");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadSong = async (songData: Song) => {
-    try {
-      setLoading(true);
-      setSong(songData);
-
-      // Unload previous sound
-      if (soundRef.current) {
-        await soundRef.current.unloadAsync();
-        soundRef.current = null;
-      }
-
-      // Load new sound and AUTO-PLAY
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: songData.file_url },
-        { shouldPlay: true }, // ✅ TỰ ĐỘNG PHÁT NHẠC
-        onPlaybackStatusUpdate
-      );
-
-      soundRef.current = sound;
-      setLoading(false);
-
-      // Log play action
-      await musicAPI.logAction({
-        song_id: songData._id,
-        action_type: "play",
-      });
-    } catch (error) {
-      console.error("Error loading song:", error);
-      Alert.alert("Lỗi", "Không thể phát bài hát này");
-      setLoading(false);
-    }
-  };
-
-  const onPlaybackStatusUpdate = (status: any) => {
-    if (status.isLoaded) {
-      setDuration(status.durationMillis / 1000);
-
-      if (!isSeekingRef.current) {
-        setCurrentTime(status.positionMillis / 1000);
-      }
-
-      setIsPlaying(status.isPlaying);
-
-      // ✅ TỰ ĐỘNG CHUYỂN BÀI khi phát hết
-      if (status.didJustFinish) {
-        handleSongFinish();
-      }
-    }
-  };
-
-  const togglePlayPause = async () => {
-    if (!soundRef.current) return;
-
-    try {
-      if (isPlaying) {
-        await soundRef.current.pauseAsync();
-        if (song) {
-          await musicAPI.logAction({
-            song_id: song._id,
-            action_type: "pause",
-            duration_listened: currentTime,
-          });
-        }
-      } else {
-        await soundRef.current.playAsync();
-        if (song) {
-          await musicAPI.logAction({
-            song_id: song._id,
-            action_type: "play",
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error toggling play/pause:", error);
-    }
-  };
-
-  const handleSeek = async (value: number) => {
-    if (!soundRef.current) return;
-
-    try {
-      isSeekingRef.current = true;
-      setCurrentTime(value);
-      await soundRef.current.setPositionAsync(value * 1000);
-
-      if (song) {
-        await musicAPI.logAction({
-          song_id: song._id,
-          action_type: "seek",
-          duration_listened: value,
-        });
-      }
-    } catch (error) {
-      console.error("Error seeking:", error);
-    } finally {
-      isSeekingRef.current = false;
-    }
-  };
-
-  const handlePrevious = async () => {
-    // Nếu đang ở chế độ repeat one, phát lại bài hiện tại từ đầu
-    if (repeatMode === 'one') {
-      if (soundRef.current) {
-        await soundRef.current.setPositionAsync(0);
-        await soundRef.current.playAsync();
-      }
-      return;
-    }
-
-    // Các chế độ khác: chuyển về bài trước
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-      if (song) {
-        musicAPI.logAction({
-          song_id: song._id,
-          action_type: "skip",
-        });
-      }
-    }
-  };
-
-  // ✅ XỬ LÝ KHI BÀI HÁT KẾT THÚC (tự động)
-  const handleSongFinish = async () => {
-    // Sử dụng ref để tránh stale closure
-    const currentRepeatMode = repeatModeRef.current;
-
-    if (currentRepeatMode === 'one') {
-      // Lặp lại bài hiện tại
-      if (soundRef.current) {
-        await soundRef.current.setPositionAsync(0);
-        await soundRef.current.playAsync();
-      }
-    } else if (currentRepeatMode === 'all') {
-      // Chuyển bài tiếp theo, hoặc quay lại đầu queue
-      if (currentIndex < queue.length - 1) {
-        setCurrentIndex(currentIndex + 1);
-      } else {
-        setCurrentIndex(0); // Quay lại bài đầu
-      }
-    } else {
-      // Chế độ off: chỉ chuyển nếu chưa hết queue
-      if (currentIndex < queue.length - 1) {
-        setCurrentIndex(currentIndex + 1);
-      } else {
-        // Hết queue - dừng phát
-        setIsPlaying(false);
-      }
-    }
-
-    // Log complete action
-    if (song) {
-      await musicAPI.logAction({
-        song_id: song._id,
-        action_type: "complete",
-        duration_listened: duration,
-      });
-    }
-  };
-
-  // ✅ XỬ LÝ KHI NGƯỜI DÙNG BẤM NÚT NEXT (thủ công)
-  const handleNext = async () => {
-    // Nếu đang ở chế độ repeat one, phát lại bài hiện tại từ đầu
-    if (repeatMode === 'one') {
-      if (soundRef.current) {
-        await soundRef.current.setPositionAsync(0);
-        await soundRef.current.playAsync();
-      }
-      return;
-    }
-
-    // Các chế độ khác: chuyển bài tiếp theo
-    if (currentIndex < queue.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-      if (song) {
-        musicAPI.logAction({
-          song_id: song._id,
-          action_type: "skip",
-        });
-      }
-    } else if (repeatMode === 'all') {
-      // Nếu đang ở chế độ repeat all, quay lại đầu
-      setCurrentIndex(0);
-      if (song) {
-        musicAPI.logAction({
-          song_id: song._id,
-          action_type: "skip",
-        });
-      }
     }
   };
 
   const toggleLike = () => {
     setIsLiked(!isLiked);
-    // TODO: Implement API call to like/unlike song
-  };
-
-  const toggleShuffle = () => {
-    setIsShuffle(!isShuffle);
-    // TODO: Implement shuffle logic
-  };
-
-  // ✅ CHUYỂN ĐỔI CHẾ ĐỘ LẶP LẠI
-  const toggleRepeat = () => {
-    const modes: Array<'off' | 'all' | 'one'> = ['off', 'all', 'one'];
-    const currentModeIndex = modes.indexOf(repeatMode);
-    const nextMode = modes[(currentModeIndex + 1) % modes.length];
-    setRepeatMode(nextMode);
-    // Đồng bộ ref để tránh stale closure trong callback
-    repeatModeRef.current = nextMode;
   };
 
   const formatTime = (seconds: number) => {
@@ -337,7 +143,7 @@ export default function MusicPlayerScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* ALBUM ART WITH ENHANCED STYLING */}
+          {/* ALBUM ART */}
           <View className="items-center mt-8">
             <View style={styles.albumArtContainer}>
               {song?.cover_image ? (
@@ -384,7 +190,7 @@ export default function MusicPlayerScreen() {
               minimumValue={0}
               maximumValue={duration || 1}
               value={currentTime}
-              onValueChange={setCurrentTime}
+              onValueChange={() => { }} // Could add logic for smooth dragging if needed
               onSlidingComplete={handleSeek}
               minimumTrackTintColor="#ec4899"
               maximumTrackTintColor="rgba(255,255,255,0.2)"
@@ -418,13 +224,12 @@ export default function MusicPlayerScreen() {
 
               <TouchableOpacity
                 onPress={handlePrevious}
-                disabled={currentIndex === 0}
                 style={styles.skipButton}
               >
                 <Ionicons
                   name="play-skip-back"
                   size={36}
-                  color={currentIndex === 0 ? "rgba(255,255,255,0.3)" : "white"}
+                  color="white"
                 />
               </TouchableOpacity>
 
@@ -452,13 +257,12 @@ export default function MusicPlayerScreen() {
 
               <TouchableOpacity
                 onPress={handleNext}
-                disabled={currentIndex === queue.length - 1}
                 style={styles.skipButton}
               >
                 <Ionicons
                   name="play-skip-forward"
                   size={36}
-                  color={currentIndex === queue.length - 1 ? "rgba(255,255,255,0.3)" : "white"}
+                  color="white"
                 />
               </TouchableOpacity>
 

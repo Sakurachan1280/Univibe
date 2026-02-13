@@ -11,6 +11,7 @@ import CreateModal from "../components/CreatePopUp/CreateModal";
 import ListenModal from "../components/Listenmodal/ModalList";
 import JamInfoModal from "../components/Listenmodal/JamInfo";
 import { MainTabParamList } from "./types";
+import MiniPlayer from "../components/Music/MiniPlayer";
 
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -88,6 +89,9 @@ export default function MainTabNavigator() {
           }}
         />
       </Tab.Navigator>
+
+      {/* Persistent MiniPlayer */}
+      <MiniPlayer />
 
       <CreateModal
         visible={showCreate}
