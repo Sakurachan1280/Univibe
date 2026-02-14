@@ -87,3 +87,54 @@ export const updateSong = async (id: string, formData: FormData): Promise<Song> 
 export const deleteSong = async (id: string): Promise<void> => {
     await axiosClient.delete(`/music/songs/${id}`);
 };
+
+/**
+ * Kiểm tra xem bài hát đã tồn tại chưa (dựa trên title và artist_ids)
+ * So sánh title (case-insensitive, trim spaces) và artist IDs
+ * @param title - Tên bài hát cần kiểm tra
+ * @param artistIds - Mảng ID của các ca sĩ
+ * @returns Object chứa isDuplicate (true nếu trùng) và existingSong (bài hát trùng nếu có)
+ */
+export const checkDuplicateSong = async (
+    title: string,
+    artistIds: string[]
+): Promise<{ isDuplicate: boolean; existingSong?: Song }> => {
+    try {
+        // Lấy tất cả bài hát từ server
+        const allSongs = await getAllSongs();
+
+        // Chuẩn hóa title để so sánh (lowercase, trim spaces)
+        const normalizedTitle = title.trim().toLowerCase();
+
+        // Sắp xếp artistIds để so sánh chính xác
+        const sortedArtistIds = [...artistIds].sort();
+
+        // Tìm bài hát trùng
+        const duplicateSong = allSongs.find((song) => {
+            // So sánh title (case-insensitive)
+            const songTitleMatch = song.title.trim().toLowerCase() === normalizedTitle;
+
+            if (!songTitleMatch) return false;
+
+            // Lấy artist IDs từ song
+            const songArtistIds = song.artist_ids?.map(a => a._id) || [];
+            const sortedSongArtistIds = [...songArtistIds].sort();
+
+            // So sánh artist IDs (phải giống hệt)
+            const artistsMatch =
+                sortedArtistIds.length === sortedSongArtistIds.length &&
+                sortedArtistIds.every((id, index) => id === sortedSongArtistIds[index]);
+
+            return artistsMatch;
+        });
+
+        return {
+            isDuplicate: !!duplicateSong,
+            existingSong: duplicateSong,
+        };
+    } catch (error) {
+        console.error('Error checking duplicate song:', error);
+        // Nếu có lỗi khi check, cho phép tạo bài hát (fail-safe)
+        return { isDuplicate: false };
+    }
+};

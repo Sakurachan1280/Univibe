@@ -14,6 +14,9 @@ interface MusicContextType {
     isShuffle: boolean;
     repeatMode: 'off' | 'all' | 'one';
     miniPlayerVisible: boolean;
+    sleepTimer: number | null; // minutes
+    startSleepTimer: (minutes: number) => void;
+    cancelSleepTimer: () => void;
     playSong: (song: Song, newQueue?: Song[]) => Promise<void>;
     togglePlayPause: () => Promise<void>;
     handleNext: () => Promise<void>;
@@ -40,6 +43,10 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const [repeatMode, setRepeatMode] = useState<'off' | 'all' | 'one'>('off');
     const [miniPlayerVisible, setMiniPlayerVisible] = useState(false);
 
+    // Sleep Timer State
+    const [sleepTimer, setSleepTimer] = useState<number | null>(null); // Time in minutes
+    const sleepTimerRef = useRef<NodeJS.Timeout | null>(null);
+
     const soundRef = useRef<Audio.Sound | null>(null);
     const isSeekingRef = useRef(false);
     const repeatModeRef = useRef<'off' | 'all' | 'one'>('off');
@@ -52,6 +59,9 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return () => {
             if (soundRef.current) {
                 soundRef.current.unloadAsync();
+            }
+            if (sleepTimerRef.current) {
+                clearTimeout(sleepTimerRef.current);
             }
         };
     }, []);
@@ -95,6 +105,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             setLoading(false);
 
             if (shouldPlay) {
+                setMiniPlayerVisible(true); // Ensure Mini Player is visible
                 await musicAPI.logAction({
                     song_id: songData._id,
                     action_type: "play",
@@ -269,7 +280,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 // Fetch random songs for queue context
                 const randomSongs = await musicAPI.getRandomSongs(19);
                 const newQueue = [lastSong, ...randomSongs.filter(s => s._id !== lastSong._id)];
-                
+
                 setQueue(newQueue);
                 setCurrentIndex(0);
                 await loadSong(lastSong, false); // shouldPlay = false
@@ -277,6 +288,28 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         } catch (error) {
             console.log("Error loading last played:", error);
         }
+    };
+
+    const startSleepTimer = (minutes: number) => {
+        if (sleepTimerRef.current) clearTimeout(sleepTimerRef.current);
+
+        setSleepTimer(minutes);
+
+        sleepTimerRef.current = setTimeout(() => {
+            if (soundRef.current) {
+                soundRef.current.pauseAsync();
+                setIsPlaying(false);
+                setSleepTimer(null);
+            }
+        }, minutes * 60 * 1000);
+    };
+
+    const cancelSleepTimer = () => {
+        if (sleepTimerRef.current) {
+            clearTimeout(sleepTimerRef.current);
+            sleepTimerRef.current = null;
+        }
+        setSleepTimer(null);
     };
 
     return (
@@ -292,6 +325,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 isShuffle,
                 repeatMode,
                 miniPlayerVisible,
+                sleepTimer,
                 playSong,
                 togglePlayPause,
                 handleNext,
@@ -303,6 +337,8 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
                 setCurrentIndex,
                 loadLastPlayed,
+                startSleepTimer,
+                cancelSleepTimer,
             }}
         >
             {children}

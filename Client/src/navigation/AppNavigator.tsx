@@ -10,7 +10,6 @@ import LogInNoEmail from '../screens/Auth/LogInNoEmail';
 import ConfirmEmail from '../screens/Auth/ComfirmEmail';
 import { RootStackParamList } from "./types";
 import MainTabNavigator from './MainTabs';
-
 import ChatDetailScreen from '../screens/ChatRoom/ChatDetailScreen';
 import ChatScreen from '../screens/ChatRoom/ChatScreen';
 import MusicPlayerScreen from '../screens/ListeningRoom/MusicPlayerScreen';
@@ -24,6 +23,8 @@ import RegisterScreen from '../screens/Auth/Register';
 import EditProfileScreen from '../screens/Profile/EditProfile';
 import NotificationScreen from '../screens/Setting/NotificationScreen';
 import HistoryScreen from '../screens/Main/HistoryScreen';
+import SettingsScreen from '../screens/Profile/Setting';
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -40,6 +41,7 @@ export default function AppNavigator() {
         <Stack.Screen name="LogInNoEmail" component={LogInNoEmail} />
         <Stack.Screen name="ConfirmEmail" component={ConfirmEmail} />
         <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
         <Stack.Screen name="Welcone" component={Welcone} />
         <Stack.Screen name="ChatScreen" component={ChatScreen} />
         <Stack.Screen name="ChatDetail" component={ChatDetailScreen} />
@@ -52,11 +54,6 @@ export default function AppNavigator() {
         <Stack.Screen name="NotificationScreen" component={NotificationScreen} />
         <Stack.Screen name="AdminNavigator" component={AdminNavigator} />
         <Stack.Screen name="History" component={HistoryScreen} />
-        {/* <Stack.Screen name="AIRecommend" component={AIRecommendScreen} />
-          <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} />
-          <Stack.Screen name="PlaylistDetail" component={PlaylistDetailScreen} />
-          <Stack.Screen name="Playlists" component={PlaylistsScreen} />
-          <Stack.Screen name="NowPlaying" component={NowPlayingScreen} /> */}
       </Stack.Navigator>
     </NavigationContainer>
   );

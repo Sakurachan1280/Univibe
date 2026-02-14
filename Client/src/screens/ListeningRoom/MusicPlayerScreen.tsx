@@ -8,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import musicAPI, { Song } from "../../API/musicAPI";
 import { LinearGradient } from "expo-linear-gradient";
 import { useMusic } from "../../context/MusicContext";
+import { toggleLikeSong, getLikedSongs } from "../../API/libraryAPI";
 
 const { width, height } = Dimensions.get("window");
 
@@ -56,6 +57,24 @@ export default function MusicPlayerScreen() {
     };
   }, [route.params?.song]);
 
+  // Load liked state when song changes
+  useEffect(() => {
+    if (song?._id) {
+      checkIfLiked();
+    }
+  }, [song?._id]);
+
+  const checkIfLiked = async () => {
+    try {
+      const likedSongs = await getLikedSongs();
+      const isCurrentSongLiked = likedSongs.some(s => s._id === song?._id);
+      setIsLiked(isCurrentSongLiked);
+    } catch (error) {
+      console.error('Error checking if song is liked:', error);
+      // Không hiện alert để không làm phiền user
+    }
+  };
+
   const loadQueueWithInitial = async (initialSong: Song) => {
     try {
       // Combine initial song with random songs for queue
@@ -84,8 +103,30 @@ export default function MusicPlayerScreen() {
     }
   };
 
-  const toggleLike = () => {
-    setIsLiked(!isLiked);
+  const toggleLike = async () => {
+    if (!song?._id) return;
+
+    try {
+      // Optimistic update - cập nhật UI ngay lập tức
+      const newLikedState = !isLiked;
+      setIsLiked(newLikedState);
+
+      // Gọi API
+      const result = await toggleLikeSong(song._id);
+
+      // Hiển thị thông báo ngắn
+      if (result.liked) {
+        // Có thể thêm toast notification ở đây nếu muốn
+        console.log('Added to liked songs');
+      } else {
+        console.log('Removed from liked songs');
+      }
+    } catch (error: any) {
+      console.error('Error toggling like:', error);
+      // Revert optimistic update nếu có lỗi
+      setIsLiked(!isLiked);
+      Alert.alert('Lỗi', 'Không thể cập nhật trạng thái yêu thích. Vui lòng thử lại.');
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -175,7 +216,7 @@ export default function MusicPlayerScreen() {
                 <Ionicons
                   name={isLiked ? "heart" : "heart-outline"}
                   size={32}
-                  color={isLiked ? "#ef4444" : "white"}
+                  color={isLiked ? "#ec4899" : "white"}
                 />
               </TouchableOpacity>
             </View>

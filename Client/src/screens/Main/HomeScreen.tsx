@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import React, { useState, useRef } from "react";
+import { View, Text, ScrollView, TouchableOpacity, Modal, TouchableWithoutFeedback } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -8,12 +8,14 @@ import { RootStackParamList } from "../../navigation/types";
 import { QUICK_PLAY } from "../../constants/quickPlay";
 import ProfileMenu from "../../components/ModalProfile/ProfileMenu";
 import UserAvatar from "../../components/ModalProfile/UserAvatar";
-import { useRef } from "react";
 import { PanResponder, PanResponderInstance } from "react-native";
+import { useMusic } from "../../context/MusicContext";
 
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showSleepTimer, setShowSleepTimer] = useState(false);
+  const { startSleepTimer, cancelSleepTimer, sleepTimer } = useMusic();
 
   const panResponder = useRef<PanResponderInstance>(
     PanResponder.create({
@@ -32,6 +34,23 @@ export default function HomeScreen() {
     })
   ).current;
 
+  const handleSleepTimerOption = (minutes: number | null) => {
+    if (minutes === null) {
+      cancelSleepTimer();
+    } else {
+      startSleepTimer(minutes);
+    }
+    setShowSleepTimer(false);
+  };
+
+  const sleepTimerOptions = [
+    { label: "Tắt hẹn giờ", value: null },
+    { label: "15 phút", value: 15 },
+    { label: "30 phút", value: 30 },
+    { label: "45 phút", value: 45 },
+    { label: "60 phút", value: 60 },
+  ];
+
   return (
     <SafeAreaView className="flex-1 bg-black" edges={["top"]}>
       <View {...panResponder.panHandlers} style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 20, zIndex: 50, }} />
@@ -44,7 +63,13 @@ export default function HomeScreen() {
 
         <View className="flex-row gap-4">
           <Ionicons name="notifications-outline" size={22} color="white" />
-          <Ionicons name="time-outline" size={22} color="white" />
+          <TouchableOpacity onPress={() => setShowSleepTimer(true)}>
+            <Ionicons
+              name={sleepTimer ? "time" : "time-outline"}
+              size={22}
+              color={sleepTimer ? "#EC4899" : "white"}
+            />
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate("Settings")}>
             <Ionicons name="settings-outline" size={22} color="white" />
           </TouchableOpacity>
@@ -131,6 +156,50 @@ export default function HomeScreen() {
 
       {/* PROFILE MENU (CUSTOM – KHÔNG DRAWER) */}
       <ProfileMenu isVisible={showProfileMenu} onClose={() => setShowProfileMenu(false)} />
+
+      {/* SLEEP TIMER MODAL */}
+      <Modal
+        visible={showSleepTimer}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowSleepTimer(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setShowSleepTimer(false)}>
+          <View className="flex-1 bg-black/50 justify-center items-center">
+            <TouchableWithoutFeedback>
+              <View className="bg-neutral-900 w-4/5 rounded-2xl p-6 border border-white/10">
+                <Text className="text-white text-xl font-bold mb-4 text-center">Hẹn giờ tắt nhạc</Text>
+
+                {sleepTimerOptions.map((option, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    className="py-3 border-b border-white/5 last:border-0 flex-row justify-between items-center"
+                    onPress={() => handleSleepTimerOption(option.value)}
+                  >
+                    <Text className={`text-base ${(option.value === null && sleepTimer === null) || option.value === sleepTimer
+                        ? "text-pink-500 font-bold"
+                        : "text-white"
+                      }`}>
+                      {option.label}
+                    </Text>
+                    {((option.value === null && sleepTimer === null) || option.value === sleepTimer) && (
+                      <Ionicons name="checkmark" size={20} color="#EC4899" />
+                    )}
+                  </TouchableOpacity>
+                ))}
+
+                <TouchableOpacity
+                  className="mt-4 py-3 bg-neutral-800 rounded-xl items-center"
+                  onPress={() => setShowSleepTimer(false)}
+                >
+                  <Text className="text-white font-semibold">Đóng</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
     </SafeAreaView>
   );
 }

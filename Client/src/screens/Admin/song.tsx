@@ -16,7 +16,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { useNavigation } from '@react-navigation/native';
 import { BASE_URL } from '../../API/axiosClient';
 import { getAllArtists, Artist as ArtistType } from '../../API/artistAPI';
-import { createSong } from '../../API/songAPI';
+import { createSong, checkDuplicateSong } from '../../API/songAPI';
 
 // Using Artist type from artistAPI
 
@@ -109,6 +109,23 @@ export default function CreateSongScreen() {
         if (!audioFile) {
             Alert.alert('Error', 'Please select an audio file.');
             return;
+        }
+
+        // Kiểm tra bài hát trùng lặp (cả title và artist)
+        try {
+            const duplicateCheck = await checkDuplicateSong(title.trim(), selectedArtists);
+            if (duplicateCheck.isDuplicate) {
+                const artistNames = duplicateCheck.existingSong?.artist_ids?.map(a => a.name).join(', ') || 'các ca sĩ đã chọn';
+                Alert.alert(
+                    'Bài hát đã tồn tại',
+                    `Bài hát "${title.trim()}" với ${artistNames} đã có trong hệ thống. Vui lòng kiểm tra lại.`,
+                    [{ text: 'OK' }]
+                );
+                return;
+            }
+        } catch (error) {
+            console.error('Error checking duplicate:', error);
+            // Tiếp tục tạo bài hát nếu có lỗi khi check duplicate
         }
 
         setIsLoading(true);
@@ -262,7 +279,12 @@ export default function CreateSongScreen() {
 
                 {/* Artists Selection */}
                 <View className="mb-8">
-                    <Text className="text-gray-400 text-sm mb-2 font-medium">Select Artists *</Text>
+                    <View className="flex-row items-center justify-between mb-2">
+                        <Text className="text-gray-400 text-sm font-medium">Select Artists *</Text>
+                        {artists.length > 7 && (
+                            <Text className="text-gray-500 text-xs">({artists.length} ca sĩ - scroll để xem thêm)</Text>
+                        )}
+                    </View>
                     {isLoadingArtists ? (
                         <ActivityIndicator color="#EC4899" />
                     ) : (
@@ -270,33 +292,39 @@ export default function CreateSongScreen() {
                             {artists.length === 0 ? (
                                 <Text className="text-gray-500 text-center p-4">No artists available. Please create an artist first.</Text>
                             ) : (
-                                artists.map((artist) => (
-                                    <TouchableOpacity
-                                        key={artist._id}
-                                        onPress={() => toggleArtist(artist._id)}
-                                        className={`flex-row items-center p-3 rounded-lg mb-1 ${selectedArtists.includes(artist._id) ? 'bg-pink-600/30' : 'bg-transparent'
-                                            }`}
-                                    >
-                                        {artist.avatar ? (
-                                            <Image
-                                                source={{
-                                                    uri: artist.avatar.startsWith('http')
-                                                        ? artist.avatar
-                                                        : `${BASE_URL}${artist.avatar}`
-                                                }}
-                                                className="w-10 h-10 rounded-full"
-                                            />
-                                        ) : (
-                                            <View className="w-10 h-10 rounded-full bg-gray-700 items-center justify-center">
-                                                <Ionicons name="person" size={20} color="gray" />
-                                            </View>
-                                        )}
-                                        <Text className="text-white ml-3 flex-1">{artist.name}</Text>
-                                        {selectedArtists.includes(artist._id) && (
-                                            <Ionicons name="checkmark-circle" size={24} color="#EC4899" />
-                                        )}
-                                    </TouchableOpacity>
-                                ))
+                                <ScrollView
+                                    style={{ maxHeight: 280 }}
+                                    showsVerticalScrollIndicator={true}
+                                    nestedScrollEnabled={true}
+                                >
+                                    {artists.map((artist) => (
+                                        <TouchableOpacity
+                                            key={artist._id}
+                                            onPress={() => toggleArtist(artist._id)}
+                                            className={`flex-row items-center p-3 rounded-lg mb-1 ${selectedArtists.includes(artist._id) ? 'bg-pink-600/30' : 'bg-transparent'
+                                                }`}
+                                        >
+                                            {artist.avatar ? (
+                                                <Image
+                                                    source={{
+                                                        uri: artist.avatar.startsWith('http')
+                                                            ? artist.avatar
+                                                            : `${BASE_URL}${artist.avatar}`
+                                                    }}
+                                                    className="w-10 h-10 rounded-full"
+                                                />
+                                            ) : (
+                                                <View className="w-10 h-10 rounded-full bg-gray-700 items-center justify-center">
+                                                    <Ionicons name="person" size={20} color="gray" />
+                                                </View>
+                                            )}
+                                            <Text className="text-white ml-3 flex-1">{artist.name}</Text>
+                                            {selectedArtists.includes(artist._id) && (
+                                                <Ionicons name="checkmark-circle" size={24} color="#EC4899" />
+                                            )}
+                                        </TouchableOpacity>
+                                    ))}
+                                </ScrollView>
                             )}
                         </View>
                     )}

@@ -111,7 +111,9 @@ export default function SearchScreen() {
           <View className="flex-row gap-4">
             <Ionicons name="notifications-outline" size={22} color="white" />
             <Ionicons name="time-outline" size={22} color="white" />
-            <Ionicons name="settings-outline" size={22} color="white" />
+            <TouchableOpacity onPress={() => navigation.navigate("Settings")}>
+              <Ionicons name="settings-outline" size={22} color="white" />
+            </TouchableOpacity>
           </View>
         </View>
 
