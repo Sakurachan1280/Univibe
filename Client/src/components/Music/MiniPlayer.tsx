@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMusic } from '../../context/MusicContext';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 
+import { LinearGradient } from 'expo-linear-gradient';
+
 const { width } = Dimensions.get('window');
 
 const MiniPlayer = () => {
@@ -30,42 +32,49 @@ const MiniPlayer = () => {
             onPress={() => navigation.navigate("MusicPlayer" as any)}
             style={styles.container}
         >
-            <View style={styles.contentWrapper}>
-                <View style={styles.content}>
-                    <View style={styles.leftSection}>
-                        {currentSong.cover_image ? (
-                            <Image source={{ uri: currentSong.cover_image }} style={styles.albumArt} />
-                        ) : (
-                            <View style={[styles.albumArt, styles.placeholderArt]}>
-                                <Ionicons name="musical-notes" size={20} color="#ec4899" />
+            <LinearGradient
+                colors={['#000000', '#500724', '#000000']} // Black to Dark Pink to Black
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={styles.gradient}
+            >
+                <View style={styles.contentWrapper}>
+                    <View style={styles.content}>
+                        <View style={styles.leftSection}>
+                            {currentSong.cover_image ? (
+                                <Image source={{ uri: currentSong.cover_image }} style={styles.albumArt} />
+                            ) : (
+                                <View style={[styles.albumArt, styles.placeholderArt]}>
+                                    <Ionicons name="musical-notes" size={20} color="#ec4899" />
+                                </View>
+                            )}
+                            <View style={styles.info}>
+                                <Text style={styles.title} numberOfLines={1}>{currentSong.title}</Text>
+                                <Text style={styles.artist} numberOfLines={1}>{artistNames}</Text>
                             </View>
-                        )}
-                        <View style={styles.info}>
-                            <Text style={styles.title} numberOfLines={1}>{currentSong.title}</Text>
-                            <Text style={styles.artist} numberOfLines={1}>{artistNames}</Text>
+                        </View>
+
+                        <View style={styles.controls}>
+                            <TouchableOpacity onPress={handlePrevious} style={styles.controlButton}>
+                                <Ionicons name="play-back" size={24} color="white" />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity onPress={togglePlayPause} style={styles.playButton}>
+                                <Ionicons name={isPlaying ? "pause" : "play"} size={28} color="white" />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity onPress={handleNext} style={styles.controlButton}>
+                                <Ionicons name="play-forward" size={24} color="white" />
+                            </TouchableOpacity>
                         </View>
                     </View>
 
-                    <View style={styles.controls}>
-                        <TouchableOpacity onPress={handlePrevious} style={styles.controlButton}>
-                            <Ionicons name="play-back" size={24} color="white" />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity onPress={togglePlayPause} style={styles.playButton}>
-                            <Ionicons name={isPlaying ? "pause" : "play"} size={28} color="white" />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity onPress={handleNext} style={styles.controlButton}>
-                            <Ionicons name="play-forward" size={24} color="white" />
-                        </TouchableOpacity>
+                    {/* Progress Bar at the bottom */}
+                    <View style={styles.progressContainer}>
+                        <View style={[styles.progressBar, { width: `${progress * 100}%` }]} />
                     </View>
                 </View>
-
-                {/* Progress Bar at the bottom */}
-                <View style={styles.progressContainer}>
-                    <View style={[styles.progressBar, { width: `${progress * 100}%` }]} />
-                </View>
-            </View>
+            </LinearGradient>
         </TouchableOpacity>
     );
 };
@@ -79,13 +88,17 @@ const styles = StyleSheet.create({
         height: 65,
         borderRadius: 12,
         overflow: 'hidden',
-        backgroundColor: '#1a0a2e',
+        borderWidth: 1,
+        borderColor: '#1a1a1a', // Subtle border
         zIndex: 1000,
         elevation: 5,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
+    },
+    gradient: {
+        flex: 1,
     },
     contentWrapper: {
         flex: 1,

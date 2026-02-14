@@ -101,7 +101,7 @@ export default function MainTabNavigator() {
       </Tab.Navigator>
 
       {/* Persistent MiniPlayer */}
-      <MiniPlayer />
+      {!showCreate && !showListenModal && !showJamInfo && <MiniPlayer />}
 
       <CreateModal
         visible={showCreate}

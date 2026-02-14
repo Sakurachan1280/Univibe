@@ -190,7 +190,7 @@ export default function ListSongScreen() {
             >
                 {/* Hero / Header Section Gradient */}
                 <LinearGradient
-                    colors={['#4c1d95', '#1a0b2e', '#000000']}
+                    colors={['#831843', '#1a060f', '#000000']} // Pink/Deep Pink to Black
                     start={{ x: 0, y: 0 }}
                     end={{ x: 0, y: 1 }}
                     className="w-full pb-6"
