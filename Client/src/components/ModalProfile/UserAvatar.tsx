@@ -29,10 +29,11 @@ export default function UserAvatar({ size = 40, onPress }: UserAvatarProps) {
 
     const getAvatarSource = () => {
         if (userData?.profile?.avatar_url) {
-            if (userData.profile.avatar_url.startsWith('http')) {
-                return { uri: userData.profile.avatar_url };
+            const url = userData.profile.avatar_url;
+            if (url.startsWith('http') || url.includes('spoti_images')) {
+                return { uri: url };
             }
-            return { uri: `${BASE_URL}${userData.profile.avatar_url}` };
+            return { uri: `${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}` };
         }
         return require("../../../assets/Icon/ava.jpg");
     };

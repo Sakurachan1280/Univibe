@@ -38,14 +38,28 @@ export default function ProfileScreen() {
 
   const getAvatarSource = () => {
     if (userData?.profile?.avatar_url) {
-      // If avatar_url starts with http, use it directly, otherwise prepend base URL
       if (userData.profile.avatar_url.startsWith('http')) {
         return { uri: userData.profile.avatar_url };
+      } else if (userData.profile.avatar_url.includes('spoti_images')) {
+        return { uri: userData.profile.avatar_url };
       } else {
-        return { uri: `${BASE_URL}${userData.profile.avatar_url}` };
+        return { uri: `${BASE_URL}${userData.profile.avatar_url.startsWith('/') ? '' : '/'}${userData.profile.avatar_url}` };
       }
     }
     return require("../../../assets/Icon/ava.jpg");
+  };
+
+  const getCoverSource = () => {
+    if (userData?.profile?.cover_url) {
+      if (userData.profile.cover_url.startsWith('http')) {
+        return { uri: userData.profile.cover_url };
+      } else if (userData.profile.cover_url.includes('spoti_images')) {
+        return { uri: userData.profile.cover_url };
+      } else {
+        return { uri: `${BASE_URL}${userData.profile.cover_url.startsWith('/') ? '' : '/'}${userData.profile.cover_url}` };
+      }
+    }
+    return null;
   };
 
   const getDisplayName = () => {
@@ -60,7 +74,18 @@ export default function ProfileScreen() {
         {/* Header with Background */}
         <View className="relative">
           {/* Background */}
-          <View className="absolute inset-0 bg-gray-800/60 h-68" />
+          <View className="absolute inset-0 bg-gray-900 h-64">
+            {userData?.profile?.cover_url ? (
+              <Image
+                source={getCoverSource()!}
+                className="w-full h-full"
+                resizeMode="cover"
+              />
+            ) : (
+              <View className="w-full h-full bg-gray-800/60" />
+            )}
+            <View className="absolute inset-0 bg-black/30" />
+          </View>
 
           {/* Back Button */}
           <TouchableOpacity className="absolute top-4 left-5 w-10 h-10 items-center justify-center z-10" onPress={() => { navigation.goBack(); }}>

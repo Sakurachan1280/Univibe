@@ -4,14 +4,17 @@ const User = require('../models/User');
 
 const updateProfile = async (req, res) => {
   try {
+    console.log('>> [UPDATE PROFILE] Request received for user:', req.user.id);
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     if (req.files && req.files.avatar) {
-      user.profile.avatar_url = `/uploads/${req.files.avatar[0].filename}`;
+      console.log('>> [AVATAR UPLOAD]', req.files.avatar[0]);
+      user.profile.avatar_url = req.files.avatar[0].path || req.files.avatar[0].secure_url || req.files.avatar[0].url;
     }
     if (req.files && req.files.cover) {
-      user.profile.cover_url = `/uploads/${req.files.cover[0].filename}`;
+      console.log('>> [COVER UPLOAD]', req.files.cover[0]);
+      user.profile.cover_url = req.files.cover[0].path || req.files.cover[0].secure_url || req.files.cover[0].url;
     }
 
     const { display_name, bio, dob } = req.body;
@@ -30,7 +33,7 @@ const updateProfile = async (req, res) => {
     if (req.body.social_spotify) user.profile.social_links.spotify = req.body.social_spotify;
 
     await user.save();
-  
+
     const updatedUser = await User.findById(req.user.id).select('-password');
     res.json(updatedUser);
 
@@ -40,7 +43,8 @@ const updateProfile = async (req, res) => {
 };
 
 const getMe = async (req, res) => {
-    res.json(req.user);
+  console.log('>> [GET ME] Request received for user:', req.user.id);
+  res.json(req.user);
 }
 
 module.exports = { updateProfile, getMe };

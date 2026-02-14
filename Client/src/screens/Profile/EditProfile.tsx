@@ -161,7 +161,15 @@ export default function EditProfileScreen() {
                 >
                     {newCover || coverUrl ? (
                         <Image
-                            source={{ uri: newCover || `${BASE_URL}${coverUrl}` }}
+                            source={{
+                                uri: newCover || (
+                                    coverUrl?.startsWith('http')
+                                        ? coverUrl
+                                        : coverUrl?.includes('spoti_images')
+                                            ? coverUrl // Nếu đã là path của Cloudinary nhưng thiếu Domain
+                                            : `${BASE_URL}${coverUrl?.startsWith('/uploads/') ? '' : '/uploads/'}${coverUrl?.replace(/^\/uploads\//, '')}`
+                                )
+                            }}
                             className="w-full h-full"
                         />
                     ) : (
@@ -186,7 +194,15 @@ export default function EditProfileScreen() {
                         <View className="w-32 h-32 rounded-full border-4 border-black overflow-hidden bg-gray-800">
                             {newAvatar || avatarUrl ? (
                                 <Image
-                                    source={{ uri: newAvatar || `${BASE_URL}${avatarUrl}` }}
+                                    source={{
+                                        uri: newAvatar || (
+                                            avatarUrl?.startsWith('http')
+                                                ? avatarUrl
+                                                : avatarUrl?.includes('spoti_images')
+                                                    ? avatarUrl
+                                                    : `${BASE_URL}${avatarUrl?.startsWith('/uploads/') ? '' : '/uploads/'}${avatarUrl?.replace(/^\/uploads\//, '')}`
+                                        )
+                                    }}
                                     className="w-full h-full"
                                 />
                             ) : (
