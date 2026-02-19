@@ -8,6 +8,12 @@ const upload = require('../middlewares/uploadMiddleware');
 // 0. Lấy danh sách Nghệ sĩ
 router.get('/artists', musicController.getArtists);
 
+// 0a. Lấy nghệ sĩ theo ID
+router.get('/artists/:id', musicController.getArtistById);
+
+// 0b. Lấy bài hát theo nghệ sĩ
+router.get('/artists/:id/songs', musicController.getSongsByArtist);
+
 // 1. Tạo Nghệ sĩ
 router.post('/artists',
   protect, // Yêu cầu đăng nhập

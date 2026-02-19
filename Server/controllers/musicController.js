@@ -27,6 +27,25 @@ const getArtists = async (req, res) => {
   }
 };
 
+const getArtistById = async (req, res) => {
+  try {
+    const artist = await musicService.getArtistById(req.params.id);
+    if (!artist) return res.status(404).json({ message: 'Artist not found' });
+    res.json(artist);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const getSongsByArtist = async (req, res) => {
+  try {
+    const songs = await musicService.getSongsByArtist(req.params.id);
+    res.json(songs);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 const updateArtist = async (req, res) => {
   try {
     console.log('UPDATE artist request for ID:', req.params.id);
@@ -210,6 +229,8 @@ const searchSongs = async (req, res) => {
 module.exports = {
   createArtist,
   getArtists,
+  getArtistById,
+  getSongsByArtist,
   updateArtist,
   deleteArtist,
   createSong,

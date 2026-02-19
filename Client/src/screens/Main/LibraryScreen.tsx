@@ -170,10 +170,10 @@ export default function LibraryScreen() {
                       {playlist.name}
                     </Text>
                     <Text className="text-gray-400 text-sm mt-1">
-                      {playlist.songs.length} bài hát
+                      {playlist.tracks.length} bài hát
                     </Text>
                     <Text className="text-gray-500 text-xs mt-1">
-                      {playlist.isPublic ? "Công khai" : "Riêng tư"}
+                      {playlist.is_public ? "Công khai" : "Riêng tư"}
                     </Text>
                   </View>
 

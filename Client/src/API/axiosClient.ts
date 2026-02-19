@@ -23,10 +23,10 @@ import * as SecureStore from "expo-secure-store";
  */
 
 // ✅ ĐANG SỬ DỤNG: NGROK URL (Truy cập từ mọi nơi)
-export const BASE_URL = "https://jena-unmistrustful-yael.ngrok-free.dev";
+//export const BASE_URL = "https://jena-unmistrustful-yael.ngrok-free.dev";
 
 // 🔄 TÙY CHỌN KHÁC (Uncomment để sử dụng):
-//export const BASE_URL = "http://192.168.1.32:5000"; // Local IP
+export const BASE_URL = "http://192.168.1.32:5000"; // Local IP
 // export const BASE_URL = "http://10.0.2.2:5000"; // Android Emulator
 
 /**

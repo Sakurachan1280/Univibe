@@ -24,6 +24,7 @@ import EditProfileScreen from '../screens/Profile/EditProfile';
 import NotificationScreen from '../screens/Setting/NotificationScreen';
 import HistoryScreen from '../screens/Main/HistoryScreen';
 import SettingsScreen from '../screens/Profile/Setting';
+import PlaylistsScreen from '../screens/Main/PlaylistsScreen';
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -54,6 +55,7 @@ export default function AppNavigator() {
         <Stack.Screen name="NotificationScreen" component={NotificationScreen} />
         <Stack.Screen name="AdminNavigator" component={AdminNavigator} />
         <Stack.Screen name="History" component={HistoryScreen} />
+        <Stack.Screen name="Playlists" component={PlaylistsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

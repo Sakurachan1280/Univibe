@@ -87,7 +87,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               key={index}
               activeOpacity={0.7}
-              onPress={() => navigation.navigate(item.screen as any, { title: item.title })}
+              onPress={() => navigation.navigate(item.screen as any, { title: item.title, playlistId: item.playlistId })}
               className="w-[48%] bg-neutral-800 rounded-md flex-row items-center"
             >
               <View className="w-14 h-14 bg-pink-500 rounded-l-md" />
@@ -177,8 +177,8 @@ export default function HomeScreen() {
                     onPress={() => handleSleepTimerOption(option.value)}
                   >
                     <Text className={`text-base ${(option.value === null && sleepTimer === null) || option.value === sleepTimer
-                        ? "text-pink-500 font-bold"
-                        : "text-white"
+                      ? "text-pink-500 font-bold"
+                      : "text-white"
                       }`}>
                       {option.label}
                     </Text>
