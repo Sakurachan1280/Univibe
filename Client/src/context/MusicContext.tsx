@@ -1,12 +1,11 @@
-import React, { createContext, useContext, useState, useRef, useEffect } from "react";
+import React, { createContext, useContext, useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { Audio, AVPlaybackStatus, AVPlaybackStatusSuccess } from "expo-av";
 import musicAPI, { Song } from "../API/musicAPI";
 import { Alert } from "react-native";
+import { usePlaybackProgress } from "./PlaybackProgressContext";
 
 interface MusicContextType {
     isPlaying: boolean;
-    currentTime: number;
-    duration: number;
     currentSong: Song | null;
     queue: Song[];
     currentIndex: number;
@@ -33,9 +32,8 @@ const MusicContext = createContext<MusicContextType | undefined>(undefined);
 
 export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [isPlaying, setIsPlaying] = useState(false);
-    const [currentTime, setCurrentTime] = useState(0);
-    const [duration, setDuration] = useState(0);
     const [currentSong, setCurrentSong] = useState<Song | null>(null);
+    const { currentTime, setCurrentTime, duration, setDuration } = usePlaybackProgress();
     const [queue, setQueue] = useState<Song[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loading, setLoading] = useState(false);
@@ -66,7 +64,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         };
     }, []);
 
-    const onPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
+    const onPlaybackStatusUpdate = useCallback((status: AVPlaybackStatus) => {
         if (status.isLoaded) {
             const s = status as AVPlaybackStatusSuccess;
             setDuration(s.durationMillis ? s.durationMillis / 1000 : 0);
@@ -81,11 +79,12 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 handleSongFinish();
             }
         }
-    };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
 
 
-    const loadSong = async (songData: Song, shouldPlay: boolean = true) => {
+    const loadSong = useCallback(async (songData: Song, shouldPlay: boolean = true) => {
         try {
             setLoading(true);
             setCurrentSong(songData);
@@ -116,9 +115,10 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             // Alert.alert("Lỗi", "Không thể phát bài hát này");
             setLoading(false);
         }
-    };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [onPlaybackStatusUpdate]);
 
-    const playSong = async (song: Song, newQueue?: Song[]) => {
+    const playSong = useCallback(async (song: Song, newQueue?: Song[]) => {
         if (newQueue) {
             setQueue(newQueue);
             const index = newQueue.findIndex(s => s._id === song._id);
@@ -134,7 +134,8 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             }
         }
         await loadSong(song);
-    };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [loadSong]);
 
     useEffect(() => {
         if (queue.length > 0 && queue[currentIndex] && queue[currentIndex]._id !== currentSong?._id) {
@@ -312,35 +313,38 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setSleepTimer(null);
     };
 
-    return (
-        <MusicContext.Provider
-            value={{
-                isPlaying,
-                currentTime,
-                duration,
-                currentSong,
-                queue,
-                currentIndex,
-                loading,
-                isShuffle,
-                repeatMode,
-                miniPlayerVisible,
-                sleepTimer,
-                playSong,
-                togglePlayPause,
-                handleNext,
-                handlePrevious,
-                handleSeek,
-                toggleShuffle,
-                toggleRepeat,
-                setMiniPlayerVisible,
+    const contextValue = useMemo(() => ({
+        isPlaying,
+        currentSong,
+        queue,
+        currentIndex,
+        loading,
+        isShuffle,
+        repeatMode,
+        miniPlayerVisible,
+        sleepTimer,
+        playSong,
+        togglePlayPause,
+        handleNext,
+        handlePrevious,
+        handleSeek,
+        toggleShuffle,
+        toggleRepeat,
+        setMiniPlayerVisible,
+        setCurrentIndex,
+        loadLastPlayed,
+        startSleepTimer,
+        cancelSleepTimer,
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }), [
+        isPlaying, currentSong, queue, currentIndex,
+        loading, isShuffle, repeatMode, miniPlayerVisible, sleepTimer,
+        playSong, togglePlayPause, handleNext, handlePrevious, handleSeek,
+        toggleShuffle, toggleRepeat, loadLastPlayed, startSleepTimer, cancelSleepTimer,
+    ]);
 
-                setCurrentIndex,
-                loadLastPlayed,
-                startSleepTimer,
-                cancelSleepTimer,
-            }}
-        >
+    return (
+        <MusicContext.Provider value={contextValue}>
             {children}
         </MusicContext.Provider>
     );

@@ -10,6 +10,19 @@ const getArtists = async () => {
   return await Artist.find().select('name avatar bio').sort({ name: 1 });
 };
 
+const getArtistById = async (id) => {
+  return await Artist.findById(id).select('name avatar bio');
+};
+
+const getSongsByArtist = async (artistId) => {
+  const mongoose = require('mongoose');
+  if (!mongoose.Types.ObjectId.isValid(artistId)) return [];
+
+  return await Song.find({ artist_ids: artistId })
+    .populate('artist_ids', 'name avatar')
+    .sort({ created_at: -1 });
+};
+
 const updateArtist = async (id, data) => {
   console.log('Service: updateArtist called with ID:', id);
   console.log('Service: update data:', data);
@@ -221,6 +234,8 @@ const logListeningAction = async (userId, songId, actionType, duration, context)
 module.exports = {
   createArtist,
   getArtists,
+  getArtistById,
+  getSongsByArtist,
   updateArtist,
   deleteArtist,
   createSong,

@@ -1,8 +1,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/Main/HomeScreen';
-import ListSongScreen from '../screens/ItemsMainMusic/ListSong';
 import LikeSongScreen from '../screens/ItemsMainMusic/LikeSongScreen';
+import PlaylistsScreen from '../screens/Main/PlaylistsScreen';
 import SettingsScreen from '../screens/Profile/Setting';
 import { RootStackParamList } from './types';
 import NewsScreen from '../screens/Profile/News';
@@ -26,7 +26,7 @@ export default function HomeStack() {
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="HomeMain" component={HomeScreen} />
-            <Stack.Screen name="Playlists" component={ListSongScreen} />
+            <Stack.Screen name="Playlists" component={PlaylistsScreen} />
             <Stack.Screen name="Liked" component={LikeSongScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="NewsScreen" component={NewsScreen} />

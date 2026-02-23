@@ -1,4 +1,5 @@
 import axiosClient from "./axiosClient";
+import { Song } from "./musicAPI";
 
 export interface Artist {
     _id: string;
@@ -14,6 +15,22 @@ export interface Artist {
  */
 export const getAllArtists = async (): Promise<Artist[]> => {
     const response = await axiosClient.get('/music/artists');
+    return response.data;
+};
+
+/**
+ * Lấy thông tin một artist theo ID
+ */
+export const getArtistById = async (artistId: string): Promise<Artist> => {
+    const response = await axiosClient.get(`/music/artists/${artistId}`);
+    return response.data;
+};
+
+/**
+ * Lấy danh sách bài hát theo artist ID
+ */
+export const getSongsByArtist = async (artistId: string): Promise<Song[]> => {
+    const response = await axiosClient.get(`/music/artists/${artistId}/songs`);
     return response.data;
 };
 

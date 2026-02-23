@@ -1,48 +1,68 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import React, { memo } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useMusic } from '../../context/MusicContext';
+import { usePlaybackProgress } from '../../context/PlaybackProgressContext';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
-
 import { LinearGradient } from 'expo-linear-gradient';
+import { Song } from '../../API/musicAPI';
 
 const { width } = Dimensions.get('window');
 
-const MiniPlayer = () => {
-    const {
-        currentSong,
-        isPlaying,
-        togglePlayPause,
-        handleNext,
-        handlePrevious,
-        currentTime,
-        duration,
-        miniPlayerVisible
-    } = useMusic();
-    const navigation = useAppNavigation();
+// ─── Progress bar tách riêng: chỉ re-render khi currentTime/duration thay đổi ───
+const MiniPlayerProgress = memo(() => {
+    const { currentTime, duration } = usePlaybackProgress();
+    const progress = duration > 0 ? currentTime / duration : 0;
+    return (
+        <View style={styles.progressContainer}>
+            <View style={[styles.progressBar, { width: `${progress * 100}%` }]} />
+        </View>
+    );
+});
 
-    if (!currentSong || !miniPlayerVisible) return null;
+// ─── Phần thông tin bài hát + controls: không subscribe currentTime ───
+interface ContentProps {
+    currentSong: Song;
+    isPlaying: boolean;
+    togglePlayPause: () => void;
+    handleNext: () => void;
+    handlePrevious: () => void;
+    onPress: () => void;
+}
 
-    const artistNames = currentSong.artist_ids?.map(a => a.name).join(", ") || "Unknown Artist";
-    const progress = duration > 0 ? (currentTime / duration) : 0;
+const MiniPlayerContent = memo(({
+    currentSong,
+    isPlaying,
+    togglePlayPause,
+    handleNext,
+    handlePrevious,
+    onPress,
+}: ContentProps) => {
+    const artistNames = currentSong.artist_ids?.map(a => a.name).join(', ') || 'Unknown Artist';
 
     return (
         <TouchableOpacity
             activeOpacity={0.9}
-            onPress={() => navigation.navigate("MusicPlayer" as any)}
+            onPress={onPress}
             style={styles.container}
         >
             <LinearGradient
-                colors={['#000000', '#500724', '#000000']} // Black to Dark Pink to Black
+                colors={['#000000', '#500724', '#000000']}
                 start={{ x: 0, y: 0.5 }}
                 end={{ x: 1, y: 0.5 }}
                 style={styles.gradient}
             >
                 <View style={styles.contentWrapper}>
                     <View style={styles.content}>
+                        {/* Song info */}
                         <View style={styles.leftSection}>
                             {currentSong.cover_image ? (
-                                <Image source={{ uri: currentSong.cover_image }} style={styles.albumArt} />
+                                <Image
+                                    source={currentSong.cover_image}
+                                    style={styles.albumArt}
+                                    cachePolicy="memory-disk"
+                                />
                             ) : (
                                 <View style={[styles.albumArt, styles.placeholderArt]}>
                                     <Ionicons name="musical-notes" size={20} color="#ec4899" />
@@ -54,13 +74,14 @@ const MiniPlayer = () => {
                             </View>
                         </View>
 
+                        {/* Controls */}
                         <View style={styles.controls}>
                             <TouchableOpacity onPress={handlePrevious} style={styles.controlButton}>
                                 <Ionicons name="play-back" size={24} color="white" />
                             </TouchableOpacity>
 
                             <TouchableOpacity onPress={togglePlayPause} style={styles.playButton}>
-                                <Ionicons name={isPlaying ? "pause" : "play"} size={28} color="white" />
+                                <Ionicons name={isPlaying ? 'pause' : 'play'} size={28} color="white" />
                             </TouchableOpacity>
 
                             <TouchableOpacity onPress={handleNext} style={styles.controlButton}>
@@ -69,27 +90,51 @@ const MiniPlayer = () => {
                         </View>
                     </View>
 
-                    {/* Progress Bar at the bottom */}
-                    <View style={styles.progressContainer}>
-                        <View style={[styles.progressBar, { width: `${progress * 100}%` }]} />
-                    </View>
+                    {/* Progress bar — tách riêng để không kéo content re-render */}
+                    <MiniPlayerProgress />
                 </View>
             </LinearGradient>
         </TouchableOpacity>
+    );
+});
+
+// ─── Root component: chỉ kiểm tra visible, pass stable props xuống ───
+const MiniPlayer = () => {
+    const {
+        currentSong,
+        isPlaying,
+        togglePlayPause,
+        handleNext,
+        handlePrevious,
+        miniPlayerVisible,
+    } = useMusic();
+    const navigation = useAppNavigation();
+
+    if (!currentSong || !miniPlayerVisible) return null;
+
+    return (
+        <MiniPlayerContent
+            currentSong={currentSong}
+            isPlaying={isPlaying}
+            togglePlayPause={togglePlayPause}
+            handleNext={handleNext}
+            handlePrevious={handlePrevious}
+            onPress={() => navigation.navigate('MusicPlayer' as any)}
+        />
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         position: 'absolute',
-        bottom: 90, // Above the tab bar
+        bottom: 90,
         left: 10,
         right: 10,
         height: 65,
         borderRadius: 12,
         overflow: 'hidden',
         borderWidth: 1,
-        borderColor: '#1a1a1a', // Subtle border
+        borderColor: '#1a1a1a',
         zIndex: 1000,
         elevation: 5,
         shadowColor: '#000',

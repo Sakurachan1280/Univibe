@@ -12,7 +12,7 @@ export type RootStackParamList = {
   AIRecommend: undefined;
   ArtistDetail: undefined;
   PlaylistDetail: undefined;
-  Playlists: undefined;
+  Playlists: { title: string; playlistId?: string; artistId?: string };
   NowPlaying: undefined;
   ChatDetail: { userId: string };
   MusicPlayer: { song?: any }; // TODO: Replace 'any' with proper Song interface
