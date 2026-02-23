@@ -149,7 +149,7 @@ export default function CustomProfileMenu({
                   color="white"
                 />
                 <Text className="text-white ml-4 text-[15px]">
-                  Gói Premium của bạn
+                  Gói Spotichat của bạn
                 </Text>
               </View>
               <View className="bg-[#D8B4FE] px-2.5 py-1 rounded">

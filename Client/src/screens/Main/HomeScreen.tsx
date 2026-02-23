@@ -10,6 +10,7 @@ import ProfileMenu from "../../components/ModalProfile/ProfileMenu";
 import UserAvatar from "../../components/ModalProfile/UserAvatar";
 import { PanResponder, PanResponderInstance } from "react-native";
 import { useMusic } from "../../context/MusicContext";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -82,20 +83,42 @@ export default function HomeScreen() {
         contentContainerStyle={{ paddingBottom: 120 }}
       >
         {/* QUICK PLAY */}
-        <View className="flex-row flex-wrap px-4 gap-3 justify-between">
-          {QUICK_PLAY.map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate(item.screen as any, { title: item.title, playlistId: item.playlistId })}
-              className="w-[48%] bg-neutral-800 rounded-md flex-row items-center"
-            >
-              <View className="w-14 h-14 bg-pink-500 rounded-l-md" />
-              <Text className="text-white ml-3 font-semibold">
-                {item.title}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        <View className="px-4 mt-2">
+          <View className="flex-row flex-wrap gap-y-3" style={{ justifyContent: "space-between" }}>
+            {QUICK_PLAY.map((item, index) => (
+              <TouchableOpacity
+                key={index}
+                activeOpacity={0.75}
+                onPress={() => navigation.navigate(item.screen as any, { title: item.title, playlistId: item.playlistId })}
+                style={{
+                  width: "48.5%",
+                  borderRadius: 10,
+                  overflow: "hidden",
+                  backgroundColor: "#1c1c1e",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  borderWidth: 1,
+                  borderColor: "rgba(255,255,255,0.06)",
+                }}
+              >
+                <LinearGradient
+                  colors={item.colors}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{ width: 52, height: 52, alignItems: "center", justifyContent: "center" }}
+                >
+                  <Ionicons name={item.icon as any} size={22} color="white" />
+                </LinearGradient>
+                <Text
+                  className="text-white font-semibold flex-1 px-2"
+                  numberOfLines={1}
+                  style={{ fontSize: 13 }}
+                >
+                  {item.title}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
         {/* SECTIONS */}

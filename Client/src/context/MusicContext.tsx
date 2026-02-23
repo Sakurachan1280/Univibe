@@ -102,9 +102,9 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
             soundRef.current = sound;
             setLoading(false);
+            setMiniPlayerVisible(true); // Always show mini player when a song is loaded
 
             if (shouldPlay) {
-                setMiniPlayerVisible(true); // Ensure Mini Player is visible
                 await musicAPI.logAction({
                     song_id: songData._id,
                     action_type: "play",

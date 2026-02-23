@@ -271,7 +271,7 @@ export default function SearchScreen() {
                               {playlist.name}
                             </Text>
                             <Text className="text-gray-400 text-sm">
-                              {playlist.songs.length} bài hát
+                              {playlist.tracks.length} bài hát
                             </Text>
                           </View>
                           <TouchableOpacity className="p-2">
