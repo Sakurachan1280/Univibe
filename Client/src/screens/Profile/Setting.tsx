@@ -14,9 +14,11 @@ import { CommonActions } from "@react-navigation/native";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
 import { getMeAPI, User } from '../../API/userAPI';
 import { BASE_URL } from '../../API/axiosClient';
+import { useMusic } from '../../context/MusicContext';
 
 export default function SettingsScreen() {
   const navigation = useAppNavigation();
+  const { stopMusic } = useMusic();
   const [isLoading, setIsLoading] = useState(true);
   const [userData, setUserData] = useState<User | null>(null);
 
@@ -161,7 +163,10 @@ export default function SettingsScreen() {
         <View className="mx-4 mb-8">
           <TouchableOpacity
             className="bg-white rounded-full py-4 px-8 items-center active:bg-gray-200"
-            onPress={() => navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: "Welcone" }] }))}
+            onPress={async () => {
+              await stopMusic();
+              navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: "Welcone" }] }));
+            }}
           >
             <Text className="text-black text-base font-semibold">Đăng xuất</Text>
           </TouchableOpacity>

@@ -26,6 +26,7 @@ interface MusicContextType {
     setMiniPlayerVisible: (visible: boolean) => void;
     setCurrentIndex: (index: number) => void;
     loadLastPlayed: () => Promise<void>;
+    stopMusic: () => Promise<void>;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
@@ -313,6 +314,22 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setSleepTimer(null);
     };
 
+    const stopMusic = async () => {
+        try {
+            if (soundRef.current) {
+                await soundRef.current.stopAsync();
+                await soundRef.current.unloadAsync();
+                soundRef.current = null;
+            }
+            setIsPlaying(false);
+            setCurrentSong(null);
+            setMiniPlayerVisible(false);
+            setCurrentTime(0);
+        } catch (error) {
+            console.error("Error stopping music:", error);
+        }
+    };
+
     const contextValue = useMemo(() => ({
         isPlaying,
         currentSong,
@@ -335,12 +352,14 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         loadLastPlayed,
         startSleepTimer,
         cancelSleepTimer,
+        stopMusic,
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }), [
         isPlaying, currentSong, queue, currentIndex,
         loading, isShuffle, repeatMode, miniPlayerVisible, sleepTimer,
         playSong, togglePlayPause, handleNext, handlePrevious, handleSeek,
         toggleShuffle, toggleRepeat, loadLastPlayed, startSleepTimer, cancelSleepTimer,
+        stopMusic,
     ]);
 
     return (
