@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, memo } from "react";
 import { useRoute } from "@react-navigation/native";
-import { View, Text, TouchableOpacity, Dimensions, Image, ActivityIndicator, Alert, StyleSheet, Modal, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, Dimensions, ActivityIndicator, Alert, StyleSheet, Modal, ScrollView } from "react-native";
+import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
 import Slider from "@react-native-community/slider";
@@ -49,7 +50,12 @@ const AlbumArt = memo(({ coverImage }: { coverImage?: string }) => (
   <View className="items-center mt-8">
     <View style={styles.albumArtContainer}>
       {coverImage ? (
-        <Image source={{ uri: coverImage }} style={styles.albumArt} resizeMode="cover" />
+        <Image
+          source={coverImage}
+          style={styles.albumArt}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+        />
       ) : (
         <View style={[styles.albumArt, styles.placeholderAlbumArt]}>
           <Ionicons name="musical-notes" size={100} color="#ec4899" />

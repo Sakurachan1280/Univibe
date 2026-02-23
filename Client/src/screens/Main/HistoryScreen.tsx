@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator, Alert } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -61,8 +62,9 @@ export default function HistoryScreen() {
         onPress={() => handlePlaySong(item)}
       >
         <Image
-          source={{ uri: song.cover_image || "https://via.placeholder.com/50" }}
-          className="w-14 h-14 rounded-lg"
+          source={song.cover_image || "https://via.placeholder.com/50"}
+          style={{ width: 56, height: 56, borderRadius: 8 }}
+          cachePolicy="memory-disk"
         />
         <View className="flex-1 ml-3">
             <Text className="text-white font-semibold text-base" numberOfLines={1}>

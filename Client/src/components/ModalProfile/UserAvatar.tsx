@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Image, View, ActivityIndicator, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, memo } from 'react';
+import { View, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
 import { getMeAPI, User } from '../../API/userAPI';
 import { BASE_URL } from '../../API/axiosClient';
 
@@ -8,8 +9,42 @@ interface UserAvatarProps {
     onPress?: () => void;
 }
 
+// ─── AvatarImage: outside parent to avoid remount on every render ─────────────
+interface AvatarImageProps {
+    size: number;
+    loading: boolean;
+    avatarUri: string | null;  // null = use local asset
+}
+
+const AvatarImage = memo(({ size, loading, avatarUri }: AvatarImageProps) => {
+    if (loading) {
+        return (
+            <View
+                style={{
+                    width: size,
+                    height: size,
+                    borderRadius: size / 2,
+                    backgroundColor: '#1f2937',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+            >
+                <ActivityIndicator size="small" color="#EC4899" />
+            </View>
+        );
+    }
+
+    return (
+        <Image
+            source={avatarUri ?? require('../../../assets/Icon/ava.jpg')}
+            style={{ width: size, height: size, borderRadius: size / 2 }}
+            cachePolicy="memory-disk"
+        />
+    );
+});
+
 export default function UserAvatar({ size = 40, onPress }: UserAvatarProps) {
-    const [userData, setUserData] = useState<User | null>(null);
+    const [avatarUri, setAvatarUri] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -18,50 +53,32 @@ export default function UserAvatar({ size = 40, onPress }: UserAvatarProps) {
 
     const fetchUserData = async () => {
         try {
-            const data = await getMeAPI();
-            setUserData(data);
+            const data: User = await getMeAPI();
+            const url = data?.profile?.avatar_url;
+            if (url) {
+                if (url.startsWith('http') || url.includes('spoti_images')) {
+                    setAvatarUri(url);
+                } else {
+                    setAvatarUri(`${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`);
+                }
+            } else {
+                setAvatarUri(null);
+            }
         } catch (error) {
-            console.error("Error fetching user data:", error);
+            console.error('Error fetching user data:', error);
+            setAvatarUri(null);
         } finally {
             setLoading(false);
         }
     };
 
-    const getAvatarSource = () => {
-        if (userData?.profile?.avatar_url) {
-            const url = userData.profile.avatar_url;
-            if (url.startsWith('http') || url.includes('spoti_images')) {
-                return { uri: url };
-            }
-            return { uri: `${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}` };
-        }
-        return require("../../../assets/Icon/ava.jpg");
-    };
-
-    const AvatarContent = () => (
-        loading ? (
-            <View
-                className="rounded-full bg-gray-800 items-center justify-center"
-                style={{ width: size, height: size }}
-            >
-                <ActivityIndicator size="small" color="#EC4899" />
-            </View>
-        ) : (
-            <Image
-                source={getAvatarSource()}
-                className="rounded-full"
-                style={{ width: size, height: size }}
-            />
-        )
-    );
-
     if (onPress) {
         return (
             <TouchableOpacity onPress={onPress}>
-                <AvatarContent />
+                <AvatarImage size={size} loading={loading} avatarUri={avatarUri} />
             </TouchableOpacity>
         );
     }
 
-    return <AvatarContent />;
+    return <AvatarImage size={size} loading={loading} avatarUri={avatarUri} />;
 }

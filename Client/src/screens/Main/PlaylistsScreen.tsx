@@ -5,10 +5,10 @@ import {
     TouchableOpacity,
     ScrollView,
     ActivityIndicator,
-    Image,
     StatusBar,
     RefreshControl,
 } from "react-native";
+import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -197,9 +197,10 @@ export default function PlaylistsScreen() {
                 >
                     {coverImage ? (
                         <Image
-                            source={{ uri: coverImage }}
+                            source={coverImage}
                             style={{ width: "100%", height: "100%" }}
-                            resizeMode="cover"
+                            contentFit="cover"
+                            cachePolicy="memory-disk"
                         />
                     ) : (
                         <LinearGradient
@@ -382,13 +383,14 @@ export default function PlaylistsScreen() {
                                 {/* Cover Image */}
                                 {song.cover_image ? (
                                     <Image
-                                        source={{ uri: song.cover_image }}
+                                        source={song.cover_image}
                                         style={{
                                             width: 50,
                                             height: 50,
                                             borderRadius: 8,
                                             marginRight: 12,
                                         }}
+                                        cachePolicy="memory-disk"
                                     />
                                 ) : (
                                     <LinearGradient

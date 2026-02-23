@@ -5,13 +5,13 @@ import {
     TextInput,
     TouchableOpacity,
     ScrollView,
-    Image,
     ActivityIndicator,
     RefreshControl,
     StatusBar,
     Animated,
     Dimensions,
 } from "react-native";
+import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
@@ -204,7 +204,7 @@ export default function LikeSongScreen() {
                                     {likedSongs.filter(s => s.cover_image).length >= 4 ? (
                                         <View style={{ flex: 1, width: "100%", flexDirection: "row", flexWrap: "wrap" }}>
                                             {likedSongs.filter(s => s.cover_image).slice(0, 4).map((s, i) => (
-                                                <Image key={i} source={{ uri: s.cover_image }} style={{ width: "50%", height: "50%" }} resizeMode="cover" />
+                                                <Image key={i} source={s.cover_image} style={{ width: "50%", height: "50%" }} contentFit="cover" cachePolicy="memory-disk" />
                                             ))}
                                         </View>
                                     ) : (
@@ -361,8 +361,9 @@ export default function LikeSongScreen() {
                                         {song.cover_image ? (
                                             <View style={{ position: "relative" }}>
                                                 <Image
-                                                    source={{ uri: song.cover_image }}
+                                                    source={song.cover_image}
                                                     style={{ width: 52, height: 52, borderRadius: 10 }}
+                                                    cachePolicy="memory-disk"
                                                 />
                                                 {isActive && (
                                                     <View style={{

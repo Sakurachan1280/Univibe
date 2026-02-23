@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useMemo } from "react";
 
 interface PlaybackProgressContextType {
     currentTime: number;
@@ -13,8 +13,10 @@ export const PlaybackProgressProvider: React.FC<{ children: React.ReactNode }> =
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
 
+    const value = useMemo(() => ({ currentTime, duration, setCurrentTime, setDuration }), [currentTime, duration]);
+
     return (
-        <PlaybackProgressContext.Provider value={{ currentTime, duration, setCurrentTime, setDuration }}>
+        <PlaybackProgressContext.Provider value={value}>
             {children}
         </PlaybackProgressContext.Provider>
     );

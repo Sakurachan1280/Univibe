@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useMusic } from '../../context/MusicContext';
 import { usePlaybackProgress } from '../../context/PlaybackProgressContext';
@@ -58,8 +59,9 @@ const MiniPlayerContent = memo(({
                         <View style={styles.leftSection}>
                             {currentSong.cover_image ? (
                                 <Image
-                                    source={{ uri: currentSong.cover_image }}
+                                    source={currentSong.cover_image}
                                     style={styles.albumArt}
+                                    cachePolicy="memory-disk"
                                 />
                             ) : (
                                 <View style={[styles.albumArt, styles.placeholderArt]}>
