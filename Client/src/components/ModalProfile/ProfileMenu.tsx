@@ -149,7 +149,7 @@ export default function CustomProfileMenu({
                   color="white"
                 />
                 <Text className="text-white ml-4 text-[15px]">
-                  Gói Spotichat của bạn
+                  Gói UniVibe của bạn
                 </Text>
               </View>
               <View className="bg-[#D8B4FE] px-2.5 py-1 rounded">

@@ -24,7 +24,7 @@ export default function HelpScreen() {
     },
     {
       question: 'Tôi có thể nghe nhạc offline không?',
-      answer: 'Hiện tại Spotichat chỉ hỗ trợ streaming online. Tính năng offline sẽ được cập nhật trong phiên bản tới.',
+      answer: 'Hiện tại UniVibe chỉ hỗ trợ streaming online. Tính năng offline sẽ được cập nhật trong phiên bản tới.',
     },
     {
       question: 'Làm sao để tạo playlist?',
@@ -42,9 +42,9 @@ export default function HelpScreen() {
 
   const supportOptions = [
     { icon: 'chatbubbles', title: 'Chat trực tiếp', desc: 'Trò chuyện với đội hỗ trợ', color: '#EC4899' },
-    { icon: 'mail', title: 'Email hỗ trợ', desc: 'support@spotichat.com', color: '#06B6D4' },
+    { icon: 'mail', title: 'Email hỗ trợ', desc: 'support@univibe.com', color: '#06B6D4' },
     { icon: 'call', title: 'Hotline', desc: '1900-xxxx (8:00 - 22:00)', color: '#8B5CF6' },
-    { icon: 'logo-facebook', title: 'Facebook', desc: 'fb.com/spotichat', color: '#3B82F6' },
+    { icon: 'logo-facebook', title: 'Facebook', desc: 'fb.com/univibe', color: '#3B82F6' },
   ];
 
   const handleSendFeedback = () => {

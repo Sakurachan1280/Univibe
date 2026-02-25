@@ -40,7 +40,7 @@ export default function ShareProfileModal({
     };
 
     const handleShare = async (platform?: string) => {
-        const shareMessage = `Xem hồ sơ của ${getDisplayName()} trên SpotiChat! 🎵`;
+        const shareMessage = `Xem hồ sơ của ${getDisplayName()} trên UniVibe! 🎵`;
 
         try {
             if (platform === 'whatsapp') {
@@ -123,7 +123,7 @@ export default function ShareProfileModal({
 
                                 {/* Bio */}
                                 <Text className="text-gray-400 text-sm text-center mb-6">
-                                    {userData?.profile?.bio || 'Hồ sơ trên SpotiChat'}
+                                    {userData?.profile?.bio || 'Hồ sơ trên UniVibe'}
                                 </Text>
 
                                 {/* Stats */}
@@ -147,7 +147,7 @@ export default function ShareProfileModal({
                                 {/* SpotiChat Badge */}
                                 <View className="items-center">
                                     <View className="bg-gradient-to-r from-pink-500 to-cyan-500 rounded-full px-6 py-2.5">
-                                        <Text className="text-white text-sm font-bold">SpotiChat Premium</Text>
+                                        <Text className="text-white text-sm font-bold">UniVibe Premium</Text>
                                     </View>
                                 </View>
                             </View>

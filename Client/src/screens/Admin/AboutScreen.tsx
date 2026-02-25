@@ -30,7 +30,7 @@ export default function AboutScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4">
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
-        <Text className="text-white text-2xl font-bold">Về Spotichat</Text>
+        <Text className="text-white text-2xl font-bold">Về UniVibe</Text>
       </View>
 
       {/* Content */}
@@ -40,7 +40,7 @@ export default function AboutScreen() {
           <View className="w-24 h-24 rounded-3xl bg-gradient-to-br from-pink-500 to-cyan-500 items-center justify-center mb-4" style={{ backgroundColor: '#EC4899' }}>
             <Ionicons name="musical-notes" size={48} color="white" />
           </View>
-          <Text className="text-white text-3xl font-bold">Spotichat</Text>
+          <Text className="text-white text-3xl font-bold">UniVibe</Text>
           <Text className="text-gray-400 text-sm mt-2">Phiên bản 1.0.0</Text>
         </View>
 
@@ -48,7 +48,7 @@ export default function AboutScreen() {
         <View className="bg-white/5 rounded-2xl p-6 mb-6 border border-white/10">
           <Text className="text-white text-lg font-bold mb-3">Giới Thiệu</Text>
           <Text className="text-gray-300 leading-6">
-            Spotichat là nền tảng nghe nhạc và kết nối xã hội, nơi bạn có thể khám phá âm nhạc, 
+            UniVibe là nền tảng nghe nhạc và kết nối xã hội, nơi bạn có thể khám phá âm nhạc, 
             tạo phòng nghe nhạc cùng bạn bè, và trò chuyện trong khi thưởng thức những giai điệu yêu thích.
           </Text>
         </View>
@@ -89,21 +89,21 @@ export default function AboutScreen() {
           <Text className="text-white text-lg font-bold mb-3">Liên Hệ</Text>
           <TouchableOpacity className="flex-row items-center mb-3">
             <Ionicons name="mail" size={20} color="#EC4899" />
-            <Text className="text-gray-300 ml-3">support@spotichat.com</Text>
+            <Text className="text-gray-300 ml-3">support@univibe.com</Text>
           </TouchableOpacity>
           <TouchableOpacity className="flex-row items-center mb-3">
             <Ionicons name="globe" size={20} color="#EC4899" />
-            <Text className="text-gray-300 ml-3">www.spotichat.com</Text>
+            <Text className="text-gray-300 ml-3">www.univibe.com</Text>
           </TouchableOpacity>
           <TouchableOpacity className="flex-row items-center">
             <Ionicons name="logo-github" size={20} color="#EC4899" />
-            <Text className="text-gray-300 ml-3">github.com/spotichat</Text>
+            <Text className="text-gray-300 ml-3">github.com/univibe</Text>
           </TouchableOpacity>
         </View>
 
         {/* Copyright */}
         <Text className="text-gray-500 text-center text-sm mb-8">
-          © 2026 Spotichat. All rights reserved.
+          © 2026 UniVibe. All rights reserved.
         </Text>
       </ScrollView>
     </SafeAreaView>

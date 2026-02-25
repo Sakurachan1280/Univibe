@@ -10,10 +10,10 @@ const sendEmail = async (options) => {
   });
 
   const mailOptions = {
-    from: `"Spotichat Support" <${process.env.EMAIL_HOST_USER}>`, 
-    to: options.email, 
-    subject: options.subject, 
-    text: options.message, 
+    from: `"UniVibe Support" <${process.env.EMAIL_HOST_USER}>`,
+    to: options.email,
+    subject: options.subject,
+    text: options.message,
     html: options.html
   };
 

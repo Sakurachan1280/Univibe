@@ -48,7 +48,7 @@ export default function AdminAccount() {
     {
       title: 'Ứng Dụng',
       items: [
-        { id: 'about', label: 'Về Spotichat', icon: 'information-circle-outline', color: '#EC4899', screen: 'AboutScreen' },
+        { id: 'about', label: 'Về UniVibe', icon: 'information-circle-outline', color: '#EC4899', screen: 'AboutScreen' },
         { id: 'logs', label: 'Nhật ký hệ thống', icon: 'document-text-outline', color: '#06B6D4', screen: 'SystemLogsScreen' },
         { id: 'version', label: 'Phiên bản 1.0.0', icon: 'code-outline', color: '#666', screen: null },
       ],

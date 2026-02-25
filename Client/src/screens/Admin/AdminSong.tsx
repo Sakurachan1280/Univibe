@@ -77,7 +77,7 @@ export default function AdminSong() {
 
       {/* Header */}
       <View className="px-6 py-4 border-b border-white/10">
-        <Text className="text-white text-3xl font-bold">Spotichat</Text>
+        <Text className="text-white text-3xl font-bold">UniVibe</Text>
         <Text className="text-gray-400 text-sm mt-1">Admin Panel</Text>
       </View>
 

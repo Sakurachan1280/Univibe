@@ -49,11 +49,20 @@ const googleAuthCallback = (req, res) => {
   if (!req.user) {
     return res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
   }
-
   const token = authService.generateToken(req.user._id);
-
   res.redirect(`${frontendUrl}/login-success?token=${token}`);
-
 };
 
-module.exports = { register, login, forgotPassword, resetPassword, googleAuthCallback };
+const googleMobileAuth = async (req, res) => {
+  try {
+    const { idToken } = req.body;
+    if (!idToken) return res.status(400).json({ message: 'idToken is required' });
+    const result = await authService.googleMobileLogin(idToken);
+    res.json(result);
+  } catch (err) {
+    console.error('Google Mobile Auth Error:', err.message);
+    res.status(401).json({ message: 'Google authentication failed: ' + err.message });
+  }
+};
+
+module.exports = { register, login, forgotPassword, resetPassword, googleAuthCallback, googleMobileAuth };

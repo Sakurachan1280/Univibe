@@ -70,7 +70,7 @@ const DEMO_NOTIFICATIONS = [
         id: '7',
         type: 'system',
         title: 'Cập nhật hệ thống',
-        message: 'SpotiChat đã có tính năng mới: Chia sẻ hồ sơ! Hãy thử ngay.',
+        message: 'UniVibe đã có tính năng mới: Chia sẻ hồ sơ! Hãy thử ngay.',
         avatar: null,
         time: '2 ngày trước',
         unread: false,

@@ -1,13 +1,48 @@
-import React from "react";
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import { View, Text, Image, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
 import { Ionicons } from "@expo/vector-icons";
-
-
+import * as SecureStore from "expo-secure-store";
+import { CommonActions } from "@react-navigation/native";
+import { googleLoginAPI } from "../../API/authAPI";
+import { useGoogleAuth } from "../../hooks/useGoogleAuth";
 
 export default function SignIn() {
   const navigation = useAppNavigation();
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  // Xử lý sau khi Google OAuth thành công → nhận idToken
+  const handleGoogleSuccess = async (idToken: string) => {
+    setGoogleLoading(true);
+    try {
+      const result = await googleLoginAPI({ idToken });
+
+      // Lưu token vào SecureStore
+      await SecureStore.setItemAsync("accessToken", result.token);
+
+      // Navigate theo role (giống email login)
+      if (result.role === "admin") {
+        navigation.dispatch(
+          CommonActions.reset({ index: 0, routes: [{ name: "AdminNavigator" }] })
+        );
+      } else {
+        navigation.dispatch(
+          CommonActions.reset({ index: 0, routes: [{ name: "MainTabs" }] })
+        );
+      }
+    } catch (error: any) {
+      Alert.alert(
+        "Đăng nhập Google thất bại",
+        error.response?.data?.message || "Đã xảy ra lỗi, vui lòng thử lại"
+      );
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const { promptAsync, requestReady } = useGoogleAuth(handleGoogleSuccess);
+
   return (
     <SafeAreaView className="flex-1 bg-black px-6">
 
@@ -19,7 +54,7 @@ export default function SignIn() {
             resizeMode="contain"/>
         </View>
 
-        <Text className="text-white text-3xl font-bold text-center">Đăng nhập vào Spotichat</Text>
+        <Text className="text-white text-3xl font-bold text-center">Đăng nhập vào UniVibe</Text>
       </View>
 
       <View className="mb-20 flex-1 justify-between max-h-80 gap-4">
@@ -39,10 +74,27 @@ export default function SignIn() {
           <View className="w-6" />
         </TouchableOpacity>
 
-        <TouchableOpacity activeOpacity={0.5} onPress={() => navigation.navigate("")}>
-          <View className="flex-row items-center border border-white rounded-full py-4 px-5">
-            <Ionicons name="logo-google" size={24} color="white"/>
-            <View className="flex-1 items-center"><Text className="text-white text-xl font-bold">Tiếp tục bằng Google</Text></View>
+        {/* NÚT GOOGLE */}
+        <TouchableOpacity
+          activeOpacity={0.5}
+          disabled={!requestReady || googleLoading}
+          onPress={() => promptAsync()}
+        >
+          <View className={`flex-row items-center border rounded-full py-4 px-5 ${
+            (!requestReady || googleLoading) ? "border-white/40" : "border-white"
+          }`}>
+            {googleLoading ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Ionicons name="logo-google" size={24} color="white"/>
+            )}
+            <View className="flex-1 items-center">
+              <Text className={`text-xl font-bold ${
+                (!requestReady || googleLoading) ? "text-white/50" : "text-white"
+              }`}>
+                {googleLoading ? "Đang xử lý..." : "Tiếp tục bằng Google"}
+              </Text>
+            </View>
           </View>
           <View className="w-6" />
         </TouchableOpacity>
@@ -53,7 +105,7 @@ export default function SignIn() {
         <TouchableOpacity className="self-center" activeOpacity={0.5} onPress={() => navigation.navigate("SignUp")}>
             <Text className="text-white">Đăng ký</Text>
         </TouchableOpacity>
-      </View> 
+      </View>
     </SafeAreaView>
   );
 }

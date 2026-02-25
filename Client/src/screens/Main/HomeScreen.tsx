@@ -125,23 +125,23 @@ export default function HomeScreen() {
         {[
           {
             title: "Nghe lại",
-            desc: "Spotichat AI chọn nhạc theo gu của bạn",
+            desc: "UniVibe AI chọn nhạc theo gu của bạn",
           },
           {
             title: "Đề xuất cho bạn",
-            desc: "Spotichat AI tạo playlist theo gu của bạn",
+            desc: "UniVibe AI tạo playlist theo gu của bạn",
           },
           {
             title: "AI gợi ý nhạc cho bạn",
-            desc: "Spotichat AI chọn nhạc theo năm",
+            desc: "UniVibe AI chọn nhạc theo năm",
           },
           {
             title: "AI tạo playlist cho bạn",
-            desc: "Spotichat AI chọn nhạc theo gu của bạn",
+            desc: "UniVibe AI chọn nhạc theo gu của bạn",
           },
           {
             title: "Playlist thịnh hành trong năm",
-            desc: "Spotichat AI chọn nhạc theo gu của bạn",
+            desc: "UniVibe AI chọn nhạc theo gu của bạn",
           },
         ].map((section, idx) => (
           <View key={idx} className="mt-6">

@@ -25,6 +25,10 @@ export interface LoginResponse {
   token: string;
 }
 
+export interface GoogleLoginPayload {
+  idToken: string;
+}
+
 export const registerAPI = async (
   data: RegisterPayload
 ): Promise<RegisterResponse> => {
@@ -36,5 +40,12 @@ export const loginAPI = async (
   data: LoginPayload
 ): Promise<LoginResponse> => {
   const res = await axiosClient.post("/auth/login", data);
+  return res.data;
+};
+
+export const googleLoginAPI = async (
+  data: GoogleLoginPayload
+): Promise<LoginResponse> => {
+  const res = await axiosClient.post("/auth/google-mobile", data);
   return res.data;
 };
