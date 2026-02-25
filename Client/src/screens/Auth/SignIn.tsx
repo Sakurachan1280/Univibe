@@ -3,25 +3,26 @@ import { View, Text, Image, TouchableOpacity, Alert, ActivityIndicator } from "r
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
 import { Ionicons } from "@expo/vector-icons";
-import * as SecureStore from "expo-secure-store";
+
 import { CommonActions } from "@react-navigation/native";
 import { googleLoginAPI } from "../../API/authAPI";
 import { useGoogleAuth } from "../../hooks/useGoogleAuth";
+import * as SecureStore from "expo-secure-store";
 
 export default function SignIn() {
   const navigation = useAppNavigation();
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  // Xử lý sau khi Google OAuth thành công → nhận idToken
-  const handleGoogleSuccess = async (idToken: string) => {
+  // Xử lý sau khi Google OAuth thành công → nhận code + redirectUri
+  const handleGoogleSuccess = async (code: string, redirectUri: string) => {
     setGoogleLoading(true);
     try {
-      const result = await googleLoginAPI({ idToken });
+      const result = await googleLoginAPI({ code, redirectUri });
 
       // Lưu token vào SecureStore
       await SecureStore.setItemAsync("accessToken", result.token);
 
-      // Navigate theo role (giống email login)
+      // Navigate theo role
       if (result.role === "admin") {
         navigation.dispatch(
           CommonActions.reset({ index: 0, routes: [{ name: "AdminNavigator" }] })
@@ -51,7 +52,7 @@ export default function SignIn() {
           <Image
             source={require("../../../assets/Logo/logoDark.png")}
             className="w-28 h-28"
-            resizeMode="contain"/>
+            resizeMode="contain" />
         </View>
 
         <Text className="text-white text-3xl font-bold text-center">Đăng nhập vào UniVibe</Text>
@@ -68,7 +69,7 @@ export default function SignIn() {
 
         <TouchableOpacity activeOpacity={0.5} onPress={() => navigation.navigate("LogInSDT")} >
           <View className="flex-row items-center border border-white rounded-full py-4 px-5">
-            <Ionicons name="call-outline" size={24} color="white"/>
+            <Ionicons name="call-outline" size={24} color="white" />
             <View className="flex-1 items-center"><Text className="text-white text-xl font-bold">Tiếp tục bằng Số điện thoại</Text></View>
           </View>
           <View className="w-6" />
@@ -80,18 +81,16 @@ export default function SignIn() {
           disabled={!requestReady || googleLoading}
           onPress={() => promptAsync()}
         >
-          <View className={`flex-row items-center border rounded-full py-4 px-5 ${
-            (!requestReady || googleLoading) ? "border-white/40" : "border-white"
-          }`}>
+          <View className={`flex-row items-center border rounded-full py-4 px-5 ${(!requestReady || googleLoading) ? "border-white/40" : "border-white"
+            }`}>
             {googleLoading ? (
               <ActivityIndicator size="small" color="white" />
             ) : (
-              <Ionicons name="logo-google" size={24} color="white"/>
+              <Ionicons name="logo-google" size={24} color="white" />
             )}
             <View className="flex-1 items-center">
-              <Text className={`text-xl font-bold ${
-                (!requestReady || googleLoading) ? "text-white/50" : "text-white"
-              }`}>
+              <Text className={`text-xl font-bold ${(!requestReady || googleLoading) ? "text-white/50" : "text-white"
+                }`}>
                 {googleLoading ? "Đang xử lý..." : "Tiếp tục bằng Google"}
               </Text>
             </View>
@@ -103,7 +102,7 @@ export default function SignIn() {
           Bạn chưa có tài khoản?
         </Text>
         <TouchableOpacity className="self-center" activeOpacity={0.5} onPress={() => navigation.navigate("SignUp")}>
-            <Text className="text-white">Đăng ký</Text>
+          <Text className="text-white">Đăng ký</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

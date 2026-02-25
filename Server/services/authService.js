@@ -119,8 +119,18 @@ const resetPassword = async (email, otp, newPassword) => {
   return { message: 'Password updated successfully' };
 };
 
-const googleMobileLogin = async (idToken) => {
-  // 1) Verify token với Google
+const googleMobileLogin = async (code, redirectUri) => {
+  // 1) Exchange authorization code → lấy id_token từ Google
+  googleOAuth2Client.redirectUri = redirectUri;
+  const { tokens } = await googleOAuth2Client.getToken({
+    code,
+    redirect_uri: redirectUri,
+  });
+
+  const idToken = tokens.id_token;
+  if (!idToken) throw new Error('Không nhận được id_token từ Google');
+
+  // 2) Verify id_token
   const ticket = await googleOAuth2Client.verifyIdToken({
     idToken,
     audience: process.env.GOOGLE_CLIENT_ID,
@@ -130,18 +140,17 @@ const googleMobileLogin = async (idToken) => {
 
   const { email, name, picture, sub: googleId } = payload;
 
-  // 2) Kiểm tra ADMIN_EMAILS
+  // 3) Kiểm tra ADMIN_EMAILS
   const adminEmails = (process.env.ADMIN_EMAILS || '')
     .split(',')
     .map(e => e.trim())
     .filter(Boolean);
   const isAdmin = adminEmails.includes(email);
 
-  // 3) Tìm hoặc tạo user
+  // 4) Tìm hoặc tạo user
   let user = await User.findOne({ email });
 
   if (user) {
-    // Cập nhật provider nếu cần
     if (user.auth_provider === 'local') {
       user.auth_provider = 'google';
     }

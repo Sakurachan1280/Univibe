@@ -41,7 +41,7 @@ export default function SignUp() {
 
           <Text className="text-white text-xl text-center mt-5 font-bold">Bạn đã có tài khoản?</Text>
             <TouchableOpacity className="self-center" activeOpacity={0.5} onPress={() => navigation.navigate("SignIn")}>
-              <Text className="text-white mt-4">Đăng nhập</Text>
+              <View><Text className="text-white mt-4">Đăng nhập</Text></View>  
           </TouchableOpacity>
       </View>
     </SafeAreaView>
