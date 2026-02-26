@@ -10,7 +10,7 @@ export type RootStackParamList = {
   MainTabs: undefined;
   Liked: undefined;
   AIRecommend: undefined;
-  ArtistDetail: undefined;
+  ArtistDetail: { artistId: string; artistName: string };
   PlaylistDetail: undefined;
   Playlists: { title: string; playlistId?: string; artistId?: string };
   NowPlaying: undefined;

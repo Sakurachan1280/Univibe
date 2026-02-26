@@ -166,6 +166,10 @@ export default function MusicPlayerScreen() {
 
   const artistNames = song?.artist_ids?.map(a => a.name).join(", ") || "Unknown Artist";
 
+  const handleArtistPress = (artistId: string, artistName: string) => {
+    navigation.navigate("ArtistDetail", { artistId, artistName });
+  };
+
   return (
     <LinearGradient colors={["#1a0520", "#2d1b3d", "#4a1942", "#000000"]} style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
@@ -192,7 +196,22 @@ export default function MusicPlayerScreen() {
             <View className="flex-row justify-between items-start">
               <View className="flex-1 mr-4">
                 <Text className="text-white text-3xl font-bold" numberOfLines={2}>{song?.title || "Loading..."}</Text>
-                <Text className="text-white/70 text-lg mt-2" numberOfLines={1}>{artistNames}</Text>
+                <View className="flex-row flex-wrap mt-2">
+                  {song?.artist_ids && song.artist_ids.length > 0 ? (
+                    song.artist_ids.map((artist, idx) => (
+                      <View key={artist._id} className="flex-row items-center">
+                        <TouchableOpacity activeOpacity={0.7} onPress={() => handleArtistPress(artist._id, artist.name)}>
+                          <Text className="text-white/70 text-lg underline">{artist.name}</Text>
+                        </TouchableOpacity>
+                        {idx < song.artist_ids!.length - 1 && (
+                          <Text className="text-white/70 text-lg">{', '}</Text>
+                        )}
+                      </View>
+                    ))
+                  ) : (
+                    <Text className="text-white/70 text-lg">Unknown Artist</Text>
+                  )}
+                </View>
               </View>
               <TouchableOpacity onPress={toggleLike} style={styles.likeButton}>
                 <Ionicons name={isLiked ? "heart" : "heart-outline"} size={32} color={isLiked ? "#ec4899" : "white"} />

@@ -214,13 +214,27 @@ const searchSongs = async (query) => {
 
 const logListeningAction = async (userId, songId, actionType, duration, context) => {
 
-  await ListeningHistory.create({
-    user_id: userId,
-    song_id: songId,
-    action_type: actionType,
-    duration_listened: duration,
-    context: context
-  });
+  // Kiểm tra bài hát cuối cùng trong lịch sử của user
+  const lastEntry = await ListeningHistory.findOne({ user_id: userId })
+    .sort({ timestamp: -1 })
+    .select('song_id');
+
+  // Nếu bài cuối cùng trùng bài đang phát → chỉ cập nhật timestamp, không tạo thêm bản ghi
+  if (lastEntry && lastEntry.song_id.toString() === songId.toString()) {
+    await ListeningHistory.findByIdAndUpdate(lastEntry._id, {
+      timestamp: new Date(),
+      action_type: actionType,
+      duration_listened: duration,
+    });
+  } else {
+    await ListeningHistory.create({
+      user_id: userId,
+      song_id: songId,
+      action_type: actionType,
+      duration_listened: duration,
+      context: context
+    });
+  }
 
   if (actionType === 'listen' || actionType === 'complete') {
     await Song.findByIdAndUpdate(songId, {
@@ -230,6 +244,7 @@ const logListeningAction = async (userId, songId, actionType, duration, context)
 
   return { message: 'Action logged' };
 };
+
 
 module.exports = {
   createArtist,

@@ -17,6 +17,7 @@ import CreateRoomScreen from '../screens/ListeningRoom/CreateListenRoom';
 import ListeningRoomScreen from '../screens/ListeningRoom/ListeningRoom';
 import Welcone from '../screens/Auth/Welcone';
 import artist from '../screens/Admin/artist';
+import ArtistDetailScreen from '../screens/ListeningRoom/ArtistDetailScreen';
 import AccountScreen from '../screens/Setting/AccountScreen';
 import AdminNavigator from './AdminNavigator';
 import RegisterScreen from '../screens/Auth/Register';
@@ -50,6 +51,7 @@ export default function AppNavigator() {
         <Stack.Screen name="CreateRoom" component={CreateRoomScreen} />
         <Stack.Screen name="ListeningRoom" component={ListeningRoomScreen} />
         <Stack.Screen name="artist" component={artist} />
+        <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="EditProfile" component={EditProfileScreen} />
         <Stack.Screen name="NotificationScreen" component={NotificationScreen} />
