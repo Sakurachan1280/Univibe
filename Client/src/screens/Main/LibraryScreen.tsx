@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Modal, TouchableWithoutFeedback } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useState, useRef, useEffect } from "react";
@@ -7,8 +7,9 @@ import { PanResponder } from "react-native";
 import ProfileMenu from "../../components/ModalProfile/ProfileMenu";
 import UserAvatar from "../../components/ModalProfile/UserAvatar";
 import { LinearGradient } from 'expo-linear-gradient';
+import CreatePlaylistModal from "../../components/Playlist/CreatePlaylistModal";
 
-import { Playlist, getMyPlaylists } from "../../API/playlistAPI";
+import { Playlist, getMyPlaylists, deletePlaylist } from "../../API/playlistAPI";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../navigation/types";
@@ -20,6 +21,8 @@ export default function LibraryScreen() {
   const [sortBy, setSortBy] = useState("recent");
   const [isLoading, setIsLoading] = useState(true);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [menuPlaylist, setMenuPlaylist] = useState<Playlist | null>(null);
 
   const panResponder = useRef<PanResponderInstance>(
     PanResponder.create({
@@ -54,6 +57,28 @@ export default function LibraryScreen() {
     }
   };
 
+  const handleDeletePlaylist = async (playlist: Playlist) => {
+    Alert.alert(
+      "Xóa playlist",
+      `Bạn có chắc muốn xóa "${playlist.name}"?`,
+      [
+        { text: "Hủy", style: "cancel" },
+        {
+          text: "Xóa",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deletePlaylist(playlist._id);
+              setPlaylists(prev => prev.filter(p => p._id !== playlist._id));
+            } catch {
+              Alert.alert("Lỗi", "Không thể xóa playlist. Vui lòng thử lại.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const filters = [
     { id: "all", label: "Tất cả" },
     { id: "albums", label: "Album" },
@@ -75,7 +100,7 @@ export default function LibraryScreen() {
         <View className="flex-row gap-4">
           <Ionicons name="notifications-outline" size={22} color="white" />
           <TouchableOpacity onPress={() => navigation.navigate("History")}>
-            <Ionicons name="time-outline" size={22} color="white" />
+            <Ionicons name="timer-outline" size={22} color="white" />
           </TouchableOpacity>
           <Ionicons name="settings-outline" size={22} color="white" />
         </View>
@@ -123,11 +148,12 @@ export default function LibraryScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* CREATE NEW ALBUM BUTTON */}
+        {/* CREATE NEW PLAYLIST BUTTON */}
         <View className="px-4 mt-6">
           <TouchableOpacity
             activeOpacity={0.8}
             className="rounded-2xl overflow-hidden"
+            onPress={() => setShowCreateModal(true)}
           >
             <LinearGradient
               colors={["#EC4899", "#06B6D4"] as const}
@@ -157,12 +183,23 @@ export default function LibraryScreen() {
                 <TouchableOpacity
                   key={playlist._id}
                   activeOpacity={0.8}
+                  onPress={() =>
+                    navigation.navigate("Playlists", {
+                      title: playlist.name,
+                      playlistId: playlist._id,
+                    })
+                  }
                   className="w-[48%] mb-4 bg-neutral-900/50 rounded-xl overflow-hidden border border-white/5"
                 >
                   {/* Album Cover */}
-                  <View className="w-full aspect-square bg-gradient-to-br from-pink-500 to-cyan-500 items-center justify-center">
+                  <LinearGradient
+                    colors={["#EC4899", "#06B6D4"] as const}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={{ width: "100%", aspectRatio: 1, alignItems: "center", justifyContent: "center" }}
+                  >
                     <Ionicons name="musical-notes" size={48} color="rgba(255,255,255,0.8)" />
-                  </View>
+                  </LinearGradient>
 
                   {/* Album Info */}
                   <View className="p-3">
@@ -170,7 +207,7 @@ export default function LibraryScreen() {
                       {playlist.name}
                     </Text>
                     <Text className="text-gray-400 text-sm mt-1">
-                      {playlist.tracks.length} bài hát
+                      {playlist.tracks?.length ?? 0} bài hát
                     </Text>
                     <Text className="text-gray-500 text-xs mt-1">
                       {playlist.is_public ? "Công khai" : "Riêng tư"}
@@ -182,7 +219,7 @@ export default function LibraryScreen() {
                     className="absolute top-2 right-2 bg-black/50 rounded-full p-1.5"
                     onPress={(e) => {
                       e.stopPropagation();
-                      // Handle more options
+                      setMenuPlaylist(playlist);
                     }}
                   >
                     <Ionicons name="ellipsis-horizontal" size={16} color="white" />
@@ -195,18 +232,19 @@ export default function LibraryScreen() {
           /* EMPTY STATE */
           <View className="px-4 mt-12">
             <View className="bg-neutral-900/50 rounded-2xl p-8 items-center border border-white/5">
-              <View className="w-24 h-24 rounded-full bg-gradient-to-br from-pink-500/20 to-cyan-500/20 items-center justify-center mb-4">
+              <View className="w-24 h-24 rounded-full items-center justify-center mb-4" style={{ backgroundColor: "rgba(236,72,153,0.15)" }}>
                 <Ionicons name="albums-outline" size={48} color="#EC4899" />
               </View>
               <Text className="text-white text-xl font-bold mb-2">
-                Chưa có album nào
+                Chưa có playlist nào
               </Text>
               <Text className="text-gray-400 text-center mb-6">
-                Tạo album đầu tiên để bắt đầu{"\n"}sưu tập nhạc của bạn
+                Tạo playlist đầu tiên để bắt đầu{"\n"}sưu tập nhạc của bạn
               </Text>
               <TouchableOpacity
                 activeOpacity={0.8}
                 className="rounded-full overflow-hidden"
+                onPress={() => setShowCreateModal(true)}
               >
                 <LinearGradient
                   colors={["#EC4899", "#06B6D4"] as const}
@@ -214,7 +252,7 @@ export default function LibraryScreen() {
                   end={{ x: 1, y: 0 }}
                   className="px-6 py-3"
                 >
-                  <Text className="text-white font-bold">Tạo Album Ngay</Text>
+                  <Text className="text-white font-bold">Tạo Playlist Ngay</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -224,7 +262,83 @@ export default function LibraryScreen() {
 
       {/* PROFILE MENU */}
       <ProfileMenu isVisible={showProfileMenu} onClose={() => setShowProfileMenu(false)} />
+
+      {/* CREATE PLAYLIST MODAL */}
+      <CreatePlaylistModal
+        visible={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreated={(newPlaylist) => {
+          setPlaylists(prev => [newPlaylist, ...prev]);
+        }}
+      />
+
+      {/* PLAYLIST OPTIONS MENU */}
+      <Modal
+        visible={!!menuPlaylist}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuPlaylist(null)}
+      >
+        <TouchableWithoutFeedback onPress={() => setMenuPlaylist(null)}>
+          <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center" }}>
+            <TouchableWithoutFeedback>
+              <View
+                style={{
+                  backgroundColor: "#1a1a1a",
+                  borderRadius: 20,
+                  width: "80%",
+                  padding: 8,
+                  borderWidth: 1,
+                  borderColor: "rgba(255,255,255,0.08)",
+                }}
+              >
+                {/* Playlist name header */}
+                <View style={{ paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.06)" }}>
+                  <Text style={{ color: "rgba(255,255,255,0.5)", fontSize: 12 }}>Playlist</Text>
+                  <Text style={{ color: "white", fontSize: 16, fontWeight: "700", marginTop: 2 }} numberOfLines={1}>
+                    {menuPlaylist?.name}
+                  </Text>
+                </View>
+
+                {/* Open option */}
+                <TouchableOpacity
+                  style={{ flexDirection: "row", alignItems: "center", padding: 16, gap: 14 }}
+                  onPress={() => {
+                    if (menuPlaylist) {
+                      setMenuPlaylist(null);
+                      navigation.navigate("Playlists", { title: menuPlaylist.name, playlistId: menuPlaylist._id });
+                    }
+                  }}
+                >
+                  <Ionicons name="musical-notes-outline" size={20} color="white" />
+                  <Text style={{ color: "white", fontSize: 16 }}>Mở playlist</Text>
+                </TouchableOpacity>
+
+                {/* Delete option */}
+                <TouchableOpacity
+                  style={{ flexDirection: "row", alignItems: "center", padding: 16, gap: 14 }}
+                  onPress={() => {
+                    const p = menuPlaylist;
+                    setMenuPlaylist(null);
+                    if (p) handleDeletePlaylist(p);
+                  }}
+                >
+                  <Ionicons name="trash-outline" size={20} color="#EC4899" />
+                  <Text style={{ color: "#EC4899", fontSize: 16 }}>Xóa playlist</Text>
+                </TouchableOpacity>
+
+                {/* Cancel */}
+                <TouchableOpacity
+                  style={{ padding: 14, alignItems: "center", marginTop: 4, borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.06)" }}
+                  onPress={() => setMenuPlaylist(null)}
+                >
+                  <Text style={{ color: "rgba(255,255,255,0.5)", fontSize: 15 }}>Hủy</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </SafeAreaView>
   );
 }
-

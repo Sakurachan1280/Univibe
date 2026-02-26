@@ -8,7 +8,7 @@ WebBrowser.maybeCompleteAuthSession();
 const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID ?? "";
 
 // Expo proxy redirect URI cho Expo Go (Google chấp nhận https://)
-const EXPO_PROXY_REDIRECT = "https://auth.expo.io/@Minh11_01/univibe";
+const EXPO_PROXY_REDIRECT = "https://auth.expo.io/@minh11_01/univibe";
 
 // Hardcode Google discovery endpoints (không dùng useAutoDiscovery để tránh hook ngoài component)
 const discovery = {

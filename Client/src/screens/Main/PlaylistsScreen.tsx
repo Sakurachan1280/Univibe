@@ -18,6 +18,7 @@ import { getPlaylistDetail, getMyPlaylists } from "../../API/playlistAPI";
 import musicAPI, { Song } from "../../API/musicAPI";
 import { getAllArtists, getSongsByArtist } from "../../API/artistAPI";
 import { useMusic } from "../../context/MusicContext";
+import AddToPlaylistModal from "../../components/Playlist/AddToPlaylistModal";
 
 type PlaylistsRouteProp = RouteProp<RootStackParamList, "Playlists">;
 
@@ -56,6 +57,7 @@ export default function PlaylistsScreen() {
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [currentPlayingId, setCurrentPlayingId] = useState<string | null>(null);
+    const [addToPlaylistSong, setAddToPlaylistSong] = useState<Song | null>(null);
 
     const colors: [string, string] = PLAYLIST_COLORS[title] ?? ["#EC4899", "#8B5CF6"];
 
@@ -154,6 +156,12 @@ export default function PlaylistsScreen() {
 
     return (
         <View style={{ flex: 1, backgroundColor: "#0a0a0a" }}>
+            <AddToPlaylistModal
+                visible={addToPlaylistSong !== null}
+                songId={addToPlaylistSong?._id ?? null}
+                songTitle={addToPlaylistSong?.title}
+                onClose={() => setAddToPlaylistSong(null)}
+            />
             <StatusBar barStyle="light-content" />
 
             {/* ── HERO GRADIENT HEADER ── */}
@@ -439,7 +447,10 @@ export default function PlaylistsScreen() {
                                     {formatDuration(song.duration)}
                                 </Text>
 
-                                <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                                <TouchableOpacity
+                                    onPress={() => setAddToPlaylistSong(song)}
+                                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                >
                                     <Ionicons name="ellipsis-vertical" size={18} color="#4B5563" />
                                 </TouchableOpacity>
                             </TouchableOpacity>

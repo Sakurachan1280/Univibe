@@ -20,6 +20,7 @@ import { useState as useStateBlur } from "react";
 import { getLikedSongs, toggleLikeSong } from "../../API/libraryAPI";
 import { Song } from "../../API/musicAPI";
 import { useMusic } from "../../context/MusicContext";
+import AddToPlaylistModal from "../../components/Playlist/AddToPlaylistModal";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -41,6 +42,7 @@ export default function LikeSongScreen() {
     const [searchQuery, setSearchQuery] = useState("");
     const [searchFocused, setSearchFocused] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [addToPlaylistSong, setAddToPlaylistSong] = useState<Song | null>(null);
 
     const scrollY = useRef(new Animated.Value(0)).current;
 
@@ -115,6 +117,12 @@ export default function LikeSongScreen() {
 
     return (
         <View style={{ flex: 1, backgroundColor: "#050505" }}>
+            <AddToPlaylistModal
+                visible={addToPlaylistSong !== null}
+                songId={addToPlaylistSong?._id ?? null}
+                songTitle={addToPlaylistSong?.title}
+                onClose={() => setAddToPlaylistSong(null)}
+            />
             <StatusBar barStyle="light-content" />
 
             {/* ── ANIMATED STICKY HEADER ── */}
@@ -406,13 +414,20 @@ export default function LikeSongScreen() {
                                         </Text>
                                     ) : null}
 
-                                    {/* Unlike */}
+                                    {/* Unlike + three-dot */}
                                     <TouchableOpacity
                                         onPress={() => handleUnlike(song._id)}
                                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                                         style={{ padding: 4 }}
                                     >
                                         <Ionicons name="heart" size={20} color="#EC4899" />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        onPress={() => setAddToPlaylistSong(song)}
+                                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                        style={{ padding: 4, marginLeft: 4 }}
+                                    >
+                                        <Ionicons name="ellipsis-vertical" size={18} color="rgba(255,255,255,0.5)" />
                                     </TouchableOpacity>
                                 </TouchableOpacity>
                             );

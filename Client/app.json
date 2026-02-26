@@ -2,6 +2,7 @@
   "expo": {
     "name": "UniVibe",
     "slug": "univibe",
+    "owner": "minh11_01",
     "scheme": "univibe",
     "version": "1.0.0",
     "orientation": "portrait",

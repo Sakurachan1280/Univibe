@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import musicAPI, { Song } from "../../API/musicAPI";
 import { QUICK_PLAY } from '../../constants/quickPlay';
 import { useRoute, RouteProp } from '@react-navigation/native';
+import AddToPlaylistModal from '../../components/Playlist/AddToPlaylistModal';
 
 const { width } = Dimensions.get('window');
 
@@ -23,6 +24,7 @@ export default function ListSongScreen() {
     const [loading, setLoading] = useState(true);
     const [isLiked, setIsLiked] = useState(false);
     const [pageTitle, setPageTitle] = useState("Danh sách phát");
+    const [addToPlaylistSong, setAddToPlaylistSong] = useState<Song | null>(null);
 
     useEffect(() => {
         // Determine title: use param if available, otherwise random from QUICK_PLAY (matching 'Playlists' screen)
@@ -162,7 +164,7 @@ export default function ListSongScreen() {
                     </View>
                 </View>
 
-                <TouchableOpacity className="p-2">
+                <TouchableOpacity className="p-2" onPress={(e) => { e.stopPropagation?.(); setAddToPlaylistSong(item); }}>
                     <Ionicons name="ellipsis-horizontal" size={20} color="#b3b3b3" />
                 </TouchableOpacity>
             </TouchableOpacity>
@@ -171,6 +173,12 @@ export default function ListSongScreen() {
 
     return (
         <View className="flex-1 bg-black">
+            <AddToPlaylistModal
+                visible={addToPlaylistSong !== null}
+                songId={addToPlaylistSong?._id ?? null}
+                songTitle={addToPlaylistSong?.title}
+                onClose={() => setAddToPlaylistSong(null)}
+            />
             <StatusBar barStyle="light-content" />
 
             {/* Back Button Overlay - Fixed */}
