@@ -6,9 +6,10 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   onJamPress?: () => void;
+  onPlaylistPress?: () => void;
 }
 
-export default function CreateModal({ visible, onClose, onJamPress }: Props) {
+export default function CreateModal({ visible, onClose, onJamPress, onPlaylistPress }: Props) {
   const slideAnim = useRef(new Animated.Value(200)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -71,7 +72,13 @@ export default function CreateModal({ visible, onClose, onJamPress }: Props) {
         }}
         className="mx-auto w-[96%] bg-[#181818] rounded-3xl px-5 pt-5 pb-8 shadow-lg"
       >
-        <TouchableOpacity className="flex-row items-center mb-7">
+        <TouchableOpacity
+          className="flex-row items-center mb-7"
+          onPress={() => {
+            onClose();
+            onPlaylistPress?.();
+          }}
+        >
           <View className="w-14 h-14 rounded-full bg-neutral-700 items-center justify-center">
             <Ionicons name="musical-notes-outline" size={28} color="white" />
           </View>

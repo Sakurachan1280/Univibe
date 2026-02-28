@@ -2,12 +2,13 @@ const express = require('express');
 const router = express.Router();
 const playlistController = require('../controllers/playlistController');
 const { protect } = require('../middlewares/authMiddleware');
+const upload = require('../middlewares/uploadMiddleware');
 
 // Tất cả thao tác Playlist đều cần đăng nhập
 router.use(protect);
 
 // 1. Tạo & Lấy danh sách
-router.post('/', playlistController.create);
+router.post('/', upload.fields([{ name: 'cover_image', maxCount: 1 }]), playlistController.create);
 router.get('/', playlistController.getMyPlaylists);
 
 // 2. Thao tác trên Playlist cụ thể (Sửa, Xóa, Xem chi tiết)

@@ -38,13 +38,34 @@ export const getPlaylistDetail = async (id: string): Promise<Playlist> => {
     return response.data;
 };
 
+// Luôn gửi FormData (multer trên backend xử lý)
 export const createPlaylist = async (
     name: string,
     description?: string
 ): Promise<Playlist> => {
-    const response = await axiosClient.post("/playlists", { name, description });
+    return createPlaylistWithCover(name, description, undefined);
+};
+
+export const createPlaylistWithCover = async (
+    name: string,
+    description: string | undefined,
+    coverUri: string | undefined
+): Promise<Playlist> => {
+    const formData = new FormData();
+    formData.append("name", name);
+    if (description) formData.append("description", description);
+    if (coverUri) {
+        const filename = coverUri.split("/").pop() ?? "cover.jpg";
+        const ext = filename.split(".").pop()?.toLowerCase() ?? "jpg";
+        const type = `image/${ext === "jpg" ? "jpeg" : ext}`;
+        formData.append("cover_image", { uri: coverUri, name: filename, type } as any);
+    }
+    const response = await axiosClient.post("/playlists", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
     return response.data;
 };
+
 
 export const updatePlaylist = async (
     id: string,

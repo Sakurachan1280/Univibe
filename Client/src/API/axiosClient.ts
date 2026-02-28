@@ -48,9 +48,7 @@ export const getServerURL = () => BASE_URL;
 const axiosClient = axios.create({
   baseURL: `${BASE_URL}/api/v1`, // Tất cả API sẽ có prefix /api/v1
   timeout: 120000, // 2 phút cho các request thông thường
-  headers: {
-    'Content-Type': 'application/json', // Mặc định gửi JSON
-  },
+  // Không set Content-Type mặc định: để axios tự set đúng (json vs multipart)
 });
 
 /**

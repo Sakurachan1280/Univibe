@@ -28,10 +28,11 @@ export const getRandomSongs = async (limit: number = 20): Promise<Song[]> => {
 };
 
 export const getAllSongs = async (): Promise<Song[]> => {
-    // Server không có endpoint /songs, sử dụng /queue thay thế
-    const response = await axiosClient.get('/music/queue');
+    // /songs/all trả về toàn bộ bài hát không giới hạn (dùng cho admin)
+    const response = await axiosClient.get('/music/songs/all');
     return response.data;
 };
+
 
 export const searchSongs = async (query: string): Promise<Song[]> => {
     const response = await axiosClient.get(`/music/songs/search?q=${encodeURIComponent(query)}`);

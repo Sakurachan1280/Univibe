@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StatusBar,
   ScrollView,
+  DeviceEventEmitter,
 } from 'react-native';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { getQueueSongs } from '../../API/songAPI';
+import { useFocusEffect } from '@react-navigation/native';
+import { getAllSongs } from '../../API/songAPI';
+
 import { getAllArtists } from '../../API/artistAPI';
 
 export default function AdminSong() {
@@ -18,18 +22,13 @@ export default function AdminSong() {
   const [artistCount, setArtistCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       setIsLoading(true);
       const [songsResponse, artistsResponse] = await Promise.all([
-        getQueueSongs('new'),
+        getAllSongs(),
         getAllArtists(),
       ]);
-
       setSongCount(songsResponse?.length || 0);
       setArtistCount(artistsResponse?.length || 0);
     } catch (error) {
@@ -37,7 +36,14 @@ export default function AdminSong() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  // Tự động load lại mỗi khi quay về trang này
+  useFocusEffect(
+    useCallback(() => {
+      fetchStats();
+    }, [fetchStats])
+  );
 
   const adminFeatures = [
     {
@@ -58,12 +64,12 @@ export default function AdminSong() {
       route: 'CreateArtist',
     },
     {
-      id: 'manage-artists',
-      title: 'Thêm Playlist',
-      description: 'Xem, sửa và xóa Playlist',
+      id: 'manage-album',
+      title: 'Thêm Album',
+      description: 'Xem, sửa và xóa Album',
       icon: 'people',
       color: '#06B6D4',
-      route: 'ArtistManagement',
+      route: 'AlbumManagement',
     },
   ];
 
@@ -99,7 +105,7 @@ export default function AdminSong() {
                   {/* Icon Container */}
                   <View
                     className="w-16 h-16 rounded-full items-center justify-center mr-4"
-                    style={{ backgroundColor: `${feature.color}20` }}
+                    style={{ backgroundColor: `${feature.color} 20` }}
                   >
                     <Ionicons name={feature.icon as any} size={28} color={feature.color} />
                   </View>
@@ -153,7 +159,10 @@ export default function AdminSong() {
             style={{ backgroundColor: '#EC4899' }}
             className="rounded-xl p-4 mb-3"
             activeOpacity={0.8}
-            onPress={fetchStats}
+            onPress={() => {
+              fetchStats();
+              DeviceEventEmitter.emit('adminRefresh');
+            }}
           >
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center">

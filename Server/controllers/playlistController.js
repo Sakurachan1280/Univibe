@@ -6,12 +6,22 @@ const create = async (req, res) => {
     const { error } = createPlaylistSchema.validate(req.body);
     if (error) return res.status(400).json({ message: error.details[0].message });
 
-    const playlist = await playlistService.createPlaylist(req.user.id, req.body);
+    // Cloudinary upload: file.path chứa URL đầy đủ
+    const coverFile = req.files?.cover_image?.[0];
+    const coverImageUrl = coverFile?.path ?? undefined;
+
+    const playlist = await playlistService.createPlaylist(req.user.id, {
+      ...req.body,
+      ...(coverImageUrl && { cover_image: coverImageUrl }),
+    });
     res.status(201).json(playlist);
   } catch (err) {
+    console.error('[CREATE PLAYLIST ERROR]', err.message);
     res.status(500).json({ message: err.message });
   }
 };
+
+
 
 const getMyPlaylists = async (req, res) => {
   try {

@@ -15,7 +15,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { BASE_URL } from '../../API/axiosClient';
-import { getQueueSongs, deleteSong, updateSong } from '../../API/songAPI';
+import { getAllSongs, deleteSong, updateSong } from '../../API/songAPI';
+import { getAllArtists } from '../../API/artistAPI';
 
 // Local interface for admin song management - matches server response structure
 interface AdminSong {
@@ -38,16 +39,21 @@ export default function SongManagementScreen() {
     const [editDuration, setEditDuration] = useState('');
     const [editGenres, setEditGenres] = useState('');
     const [editCover, setEditCover] = useState<string | null>(null);
+    const [editArtistIds, setEditArtistIds] = useState<string[]>([]);
+    const [allArtists, setAllArtists] = useState<any[]>([]);
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         fetchSongs();
+        // Fetch danh sách ca sĩ một lần khi mount
+        getAllArtists().then(setAllArtists).catch(console.error);
     }, []);
+
 
     const fetchSongs = async () => {
         try {
             setIsLoading(true);
-            const songsData = await getQueueSongs('new');
+            const songsData = await getAllSongs(); // Lấy toàn bộ, không giới hạn
             setSongs(songsData as any);
         } catch (error) {
             console.error('Error fetching songs:', error);
@@ -57,14 +63,19 @@ export default function SongManagementScreen() {
         }
     };
 
+
     const handleEdit = (song: AdminSong) => {
         setSelectedSong(song);
         setEditTitle(song.title);
-        setEditDuration(song.duration?.toString() || '300');
+        setEditDuration(song.duration?.toString() || '200');
         setEditGenres(song.genres?.join(', ') || '');
         setEditCover(null);
+        // Pre-select ca sĩ hiện tại của bài hát
+        const currentArtistIds = song.artist_ids?.map((a: any) => a._id || a) || [];
+        setEditArtistIds(currentArtistIds);
         setEditModalVisible(true);
     };
+
 
     const handleDelete = (song: AdminSong) => {
         Alert.alert(
@@ -127,6 +138,9 @@ export default function SongManagementScreen() {
                     formData.append('genres[]', genre);
                 });
             }
+
+            // Gửi artist_ids
+            formData.append('artist_ids', editArtistIds.join(','));
 
             if (editCover) {
                 const filename = editCover.split('/').pop() || 'cover.jpg';
@@ -307,7 +321,7 @@ export default function SongManagementScreen() {
                             </View>
 
                             {/* Genres */}
-                            <View className="mb-6">
+                            <View className="mb-4">
                                 <Text className="text-gray-400 text-sm mb-2">Thể loại (phân cách bằng dấu phẩy)</Text>
                                 <TextInput
                                     value={editGenres}
@@ -316,6 +330,44 @@ export default function SongManagementScreen() {
                                     placeholderTextColor="#666"
                                     className="bg-white/10 text-white p-4 rounded-xl border border-white/10"
                                 />
+                            </View>
+
+                            {/* Artists */}
+                            <View className="mb-6">
+                                <Text className="text-gray-400 text-sm mb-2">Ca Sĩ *</Text>
+                                <View className="bg-white/10 rounded-xl border border-white/10 p-2" style={{ maxHeight: 220 }}>
+                                    <ScrollView nestedScrollEnabled showsVerticalScrollIndicator>
+                                        {allArtists.map((artist) => {
+                                            const selected = editArtistIds.includes(artist._id);
+                                            return (
+                                                <TouchableOpacity
+                                                    key={artist._id}
+                                                    onPress={() => {
+                                                        setEditArtistIds(prev =>
+                                                            selected
+                                                                ? prev.filter(id => id !== artist._id)
+                                                                : [...prev, artist._id]
+                                                        );
+                                                    }}
+                                                    className={`flex-row items-center p-3 rounded-lg mb-1 ${selected ? 'bg-pink-600/30' : 'bg-transparent'}`}
+                                                >
+                                                    {artist.avatar ? (
+                                                        <Image
+                                                            source={{ uri: artist.avatar.startsWith('http') ? artist.avatar : `${BASE_URL}${artist.avatar}` }}
+                                                            className="w-9 h-9 rounded-full"
+                                                        />
+                                                    ) : (
+                                                        <View className="w-9 h-9 rounded-full bg-gray-700 items-center justify-center">
+                                                            <Ionicons name="person" size={18} color="gray" />
+                                                        </View>
+                                                    )}
+                                                    <Text className="text-white ml-3 flex-1" numberOfLines={1}>{artist.name}</Text>
+                                                    {selected && <Ionicons name="checkmark-circle" size={22} color="#EC4899" />}
+                                                </TouchableOpacity>
+                                            );
+                                        })}
+                                    </ScrollView>
+                                </View>
                             </View>
 
                             {/* Buttons */}

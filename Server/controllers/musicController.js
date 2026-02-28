@@ -182,8 +182,17 @@ const playSong = async (req, res) => {
 const getQueue = async (req, res) => {
   try {
     const { type } = req.query;
+    const songs = await musicService.getSongList(type);
+    res.json(songs);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
-    const songs = await musicService.getSongList(20, type);
+// Lấy TẤT CẢ bài hát — dùng cho admin, không giới hạn
+const getAllSongs = async (req, res) => {
+  try {
+    const songs = await musicService.getAllSongs();
     res.json(songs);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -238,6 +247,7 @@ module.exports = {
   deleteSong,
   playSong,
   getQueue,
+  getAllSongs,
   getRandomSongs,
   searchSongs,
   logAction

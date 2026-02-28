@@ -14,6 +14,7 @@ import { MainTabParamList } from "./types";
 import MiniPlayer from "../components/Music/MiniPlayer";
 import { useMusic } from "../context/MusicContext";
 import { useEffect } from "react";
+import CreatePlaylistModal from "../components/Playlist/CreatePlaylistModal";
 
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -22,6 +23,7 @@ export default function MainTabNavigator() {
   const [showCreate, setShowCreate] = useState(false);
   const [showListenModal, setShowListenModal] = useState(false);
   const [showJamInfo, setShowJamInfo] = useState(false);
+  const [showCreatePlaylist, setShowCreatePlaylist] = useState(false);
   const { loadLastPlayed, currentSong } = useMusic();
 
   useEffect(() => {
@@ -106,10 +108,17 @@ export default function MainTabNavigator() {
       <CreateModal
         visible={showCreate}
         onClose={() => setShowCreate(false)}
+        onPlaylistPress={() => setShowCreatePlaylist(true)}
         onJamPress={() => {
           setShowCreate(false);
           setShowListenModal(true);
         }}
+      />
+
+      <CreatePlaylistModal
+        visible={showCreatePlaylist}
+        onClose={() => setShowCreatePlaylist(false)}
+        onCreated={() => setShowCreatePlaylist(false)}
       />
 
       <ListenModal

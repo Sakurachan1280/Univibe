@@ -169,13 +169,11 @@ export default function CreateSongScreen() {
 
             await createSong(formData);
 
-            Alert.alert('Success', 'Song created successfully!', [
-                { text: 'OK', onPress: () => navigation.goBack() }
-            ]);
+            Alert.alert('Thành công', 'Đã thêm bài hát!');
 
-            // Reset form
+            // Reset form để thêm bài tiếp
             setTitle('');
-            setDuration('');
+            setDuration('300');
             setGenres('');
             setCoverImage(null);
             setAudioFile(null);

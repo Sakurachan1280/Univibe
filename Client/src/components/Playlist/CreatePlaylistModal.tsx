@@ -11,10 +11,13 @@ import {
     KeyboardAvoidingView,
     Platform,
     ScrollView,
+    Image,
+    Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { createPlaylist, Playlist } from "../../API/playlistAPI";
+import * as ImagePicker from "expo-image-picker";
+import { createPlaylistWithCover, Playlist } from "../../API/playlistAPI";
 
 interface CreatePlaylistModalProps {
     visible: boolean;
@@ -32,6 +35,7 @@ export default function CreatePlaylistModal({
     const [isPublic, setIsPublic] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [coverUri, setCoverUri] = useState<string | null>(null);
 
     const handleClose = () => {
         if (loading) return;
@@ -39,7 +43,25 @@ export default function CreatePlaylistModal({
         setDescription("");
         setIsPublic(false);
         setError(null);
+        setCoverUri(null);
         onClose();
+    };
+
+    const pickImage = async () => {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== "granted") {
+            Alert.alert("Cần quyền truy cập", "Vui lòng cấp quyền truy cập thư viện ảnh để chọn ảnh bìa.");
+            return;
+        }
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.85,
+        });
+        if (!result.canceled && result.assets.length > 0) {
+            setCoverUri(result.assets[0].uri);
+        }
     };
 
     const handleCreate = async () => {
@@ -50,10 +72,15 @@ export default function CreatePlaylistModal({
         try {
             setLoading(true);
             setError(null);
-            const playlist = await createPlaylist(name.trim(), description.trim() || undefined);
+            const playlist = await createPlaylistWithCover(
+                name.trim(),
+                description.trim() || undefined,
+                coverUri ?? undefined
+            );
             setName("");
             setDescription("");
             setIsPublic(false);
+            setCoverUri(null);
             onCreated(playlist);
             onClose();
         } catch (err: any) {
@@ -107,22 +134,51 @@ export default function CreatePlaylistModal({
                             </TouchableOpacity>
                         </View>
 
-                        {/* Cover placeholder */}
+                        {/* Cover Picker */}
                         <View style={{ alignItems: "center", marginBottom: 24 }}>
-                            <LinearGradient
-                                colors={["#EC4899", "#06B6D4"]}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 1 }}
-                                style={{
-                                    width: 100,
-                                    height: 100,
-                                    borderRadius: 14,
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                }}
-                            >
-                                <Ionicons name="musical-notes" size={44} color="rgba(255,255,255,0.9)" />
-                            </LinearGradient>
+                            <TouchableOpacity onPress={pickImage} activeOpacity={0.8}>
+                                {coverUri ? (
+                                    <View style={{ position: "relative" }}>
+                                        <Image
+                                            source={{ uri: coverUri }}
+                                            style={{ width: 120, height: 120, borderRadius: 16 }}
+                                        />
+                                        {/* Edit overlay */}
+                                        <View style={{
+                                            position: "absolute",
+                                            bottom: 0,
+                                            right: 0,
+                                            backgroundColor: "#EC4899",
+                                            borderRadius: 20,
+                                            padding: 6,
+                                            margin: 4,
+                                        }}>
+                                            <Ionicons name="camera" size={16} color="white" />
+                                        </View>
+                                    </View>
+                                ) : (
+                                    <LinearGradient
+                                        colors={["#EC4899", "#06B6D4"]}
+                                        start={{ x: 0, y: 0 }}
+                                        end={{ x: 1, y: 1 }}
+                                        style={{
+                                            width: 120,
+                                            height: 120,
+                                            borderRadius: 16,
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                        }}
+                                    >
+                                        <Ionicons name="camera-outline" size={36} color="rgba(255,255,255,0.9)" />
+                                        <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 11, marginTop: 6, fontWeight: "600" }}>
+                                            Chọn ảnh bìa
+                                        </Text>
+                                    </LinearGradient>
+                                )}
+                            </TouchableOpacity>
+                            <Text style={{ color: "rgba(255,255,255,0.35)", fontSize: 12, marginTop: 8 }}>
+                                Bấm vào ảnh để thay đổi
+                            </Text>
                         </View>
 
                         {/* Name Input */}

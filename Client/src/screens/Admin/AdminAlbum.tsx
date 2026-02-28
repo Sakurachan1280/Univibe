@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,11 +7,14 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  DeviceEventEmitter,
 } from 'react-native';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { getQueueSongs } from '../../API/songAPI';
+import { useFocusEffect } from '@react-navigation/native';
+import { getAllSongs } from '../../API/songAPI';
 import { getAllArtists } from '../../API/artistAPI';
 import { getMyPlaylists } from '../../API/playlistAPI';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -26,30 +29,18 @@ export default function AdminAlbum() {
     totalArtists: 0,
   });
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       setIsLoading(true);
-
-      // Fetch songs count
-      const songsResponse = await getQueueSongs('new');
-      const totalSongs = songsResponse?.length || 0;
-
-      // Fetch playlists count
-      const playlistsResponse = await getMyPlaylists();
-      const totalPlaylists = playlistsResponse?.length || 0;
-
-      // Fetch artists count
-      const artistsResponse = await getAllArtists();
-      const totalArtists = artistsResponse?.length || 0;
-
+      const [songsResponse, playlistsResponse, artistsResponse] = await Promise.all([
+        getAllSongs(),
+        getMyPlaylists(),
+        getAllArtists(),
+      ]);
       setStats({
-        totalSongs,
-        totalPlaylists,
-        totalArtists,
+        totalSongs: songsResponse?.length || 0,
+        totalPlaylists: playlistsResponse?.length || 0,
+        totalArtists: artistsResponse?.length || 0,
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -57,7 +48,23 @@ export default function AdminAlbum() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  // Tự động load lại mỗi khi tab này được focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchStats();
+    }, [fetchStats])
+  );
+
+  // Lắng nghe sự kiện 'adminRefresh' từ AdminSong
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('adminRefresh', () => {
+      fetchStats();
+    });
+    return () => sub.remove();
+  }, [fetchStats]);
+
 
   const libraryFeatures = [
     {
@@ -79,9 +86,9 @@ export default function AdminAlbum() {
       screen: 'SongManagement',
     },
     {
-      id: 'playlists',
-      title: 'Playlists',
-      description: 'Quản lý danh sách phát',
+      id: 'Album',
+      title: 'Album',
+      description: 'Quản lý danh sách Album',
       icon: 'list',
       color: '#06B6D4',
       count: stats.totalPlaylists,
@@ -142,7 +149,7 @@ export default function AdminAlbum() {
                 <View className="bg-white/5 rounded-2xl p-5 flex-1 ml-2 border border-white/10">
                   <Ionicons name="list" size={24} color="#06B6D4" />
                   <Text className="text-white text-2xl font-bold mt-3">{stats.totalPlaylists}</Text>
-                  <Text className="text-gray-400 text-sm mt-1">Playlists</Text>
+                  <Text className="text-gray-400 text-sm mt-1">Album</Text>
                 </View>
               </View>
             </View>

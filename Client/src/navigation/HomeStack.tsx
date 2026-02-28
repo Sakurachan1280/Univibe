@@ -12,6 +12,7 @@ import AccountScreen from '../screens/Setting/AccountScreen';
 import App from '../../App';
 import AppDeviceScreen from '../screens/Setting/AppDeviceScreen';
 import AboutScreen from '../screens/Setting/AboutScreen';
+import ArtistDetailScreen from '../screens/ListeningRoom/ArtistDetailScreen';
 
 // We combine RootStackParamList with a local definition for Home to satisfy usage.
 // Note: recursive navigation lookups allow navigating to 'Playlists' even if it's nested here.
@@ -35,6 +36,7 @@ export default function HomeStack() {
             <Stack.Screen name="AccountScreen" component={AccountScreen} />
             <Stack.Screen name="AppDeviceScreen" component={AppDeviceScreen} />
             <Stack.Screen name="AboutScreen" component={AboutScreen} />
+            <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} />
         </Stack.Navigator>
     );
 }

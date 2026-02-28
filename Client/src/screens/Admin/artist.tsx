@@ -72,11 +72,9 @@ export default function CreateArtistScreen() {
 
             await createArtist(formData);
 
-            Alert.alert('Success', 'Artist created successfully!', [
-                { text: 'OK', onPress: () => navigation.goBack() }
-            ]);
+            Alert.alert('Thành công', 'Đã thêm nghệ sĩ!');
 
-            // Reset form
+            // Reset form để thêm tiếp
             setName('');
             setBio('');
             setAvatar(null);

@@ -86,11 +86,19 @@ const getSongDetail = async (id) => {
   return await Song.findById(id).populate('artist_ids', 'name avatar');
 };
 
-const getSongList = async (limit = 20, type = 'new') => {
-  if (type === 'shuffle') {
+// Lấy TẤT CẢ bài hát (dùng cho admin, không giới hạn)
+const getAllSongs = async () => {
+  return await Song.find()
+    .populate('artist_ids', 'name avatar')
+    .sort({ created_at: -1 });
+};
 
+// Lấy queue bài hát (dùng khi phát nhạc)
+const getSongList = async (type = 'new') => {
+  if (type === 'shuffle') {
+    // Shuffle: lấy ngẫu nhiên tối đa 200 bài
     return await Song.aggregate([
-      { $sample: { size: Number(limit) } },
+      { $sample: { size: 500 } },
       {
         $lookup: {
           from: 'artists',
@@ -107,13 +115,11 @@ const getSongList = async (limit = 20, type = 'new') => {
         }
       }
     ]);
-  }
-
-  else {
+  } else {
+    // Không giới hạn số bài, lấy tất cả sort mới nhất
     return await Song.find()
       .populate('artist_ids', 'name avatar')
-      .sort({ created_at: -1 })
-      .limit(Number(limit));
+      .sort({ created_at: -1 });
   }
 };
 
@@ -257,6 +263,7 @@ module.exports = {
   updateSong,
   deleteSong,
   getSongDetail,
+  getAllSongs,
   getSongList,
   getRandomSongs,
   searchSongs,

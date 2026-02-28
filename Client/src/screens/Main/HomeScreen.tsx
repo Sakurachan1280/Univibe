@@ -1,22 +1,46 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Modal, TouchableWithoutFeedback } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../navigation/types";
-import { QUICK_PLAY } from "../../constants/quickPlay";
+import { QUICK_PLAY, QuickPlayItem } from "../../constants/quickPlay";
 import ProfileMenu from "../../components/ModalProfile/ProfileMenu";
 import UserAvatar from "../../components/ModalProfile/UserAvatar";
 import { PanResponder, PanResponderInstance } from "react-native";
 import { useMusic } from "../../context/MusicContext";
 import { LinearGradient } from "expo-linear-gradient";
+import { getAllArtists, Artist } from "../../API/artistAPI";
 
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showSleepTimer, setShowSleepTimer] = useState(false);
   const { startSleepTimer, cancelSleepTimer, sleepTimer } = useMusic();
+  const [quickPlayItems, setQuickPlayItems] = useState<QuickPlayItem[]>(QUICK_PLAY);
+
+  // Fetch artists và chọn ngẫu nhiên 1 artist để thay slot "Chipu"
+  useEffect(() => {
+    const loadRandomArtist = async () => {
+      try {
+        const artists: Artist[] = await getAllArtists();
+        if (artists && artists.length > 0) {
+          const randomArtist = artists[Math.floor(Math.random() * artists.length)];
+          setQuickPlayItems(prev =>
+            prev.map(item =>
+              item.type === 'artist'
+                ? { ...item, title: randomArtist.name, artistId: randomArtist._id }
+                : item
+            )
+          );
+        }
+      } catch (err) {
+        // Giữ nguyên placeholder nếu lỗi
+      }
+    };
+    loadRandomArtist();
+  }, []);
 
   const panResponder = useRef<PanResponderInstance>(
     PanResponder.create({
@@ -85,11 +109,17 @@ export default function HomeScreen() {
         {/* QUICK PLAY */}
         <View className="px-4 mt-2">
           <View className="flex-row flex-wrap gap-y-3" style={{ justifyContent: "space-between" }}>
-            {QUICK_PLAY.map((item, index) => (
+            {quickPlayItems.map((item, index) => (
               <TouchableOpacity
                 key={index}
                 activeOpacity={0.75}
-                onPress={() => navigation.navigate(item.screen as any, { title: item.title, playlistId: item.playlistId })}
+                onPress={() => {
+                  if (item.type === 'artist' && item.artistId) {
+                    navigation.navigate('ArtistDetail', { artistId: item.artistId, artistName: item.title });
+                  } else {
+                    navigation.navigate(item.screen as any, { title: item.title, playlistId: item.playlistId });
+                  }
+                }}
                 style={{
                   width: "48.5%",
                   borderRadius: 10,

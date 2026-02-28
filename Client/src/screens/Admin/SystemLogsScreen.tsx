@@ -118,7 +118,7 @@ export default function SystemLogsScreen() {
   };
 
   const getActionText = (action: string, entityType: string) => {
-    return `Đã thêm ${entityType === 'song' ? 'bài hát' : entityType === 'artist' ? 'nghệ sĩ' : 'playlist'}`;
+    return `Đã thêm ${entityType === 'song' ? 'bài hát' : entityType === 'artist' ? 'nghệ sĩ' : 'album'}`;
   };
 
   const formatDate = (dateString: string) => {
