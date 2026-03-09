@@ -13,24 +13,27 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 import { getAllSongs } from '../../API/songAPI';
-
 import { getAllArtists } from '../../API/artistAPI';
+import { getAdminAlbums } from '../../API/playlistAPI';
 
 export default function AdminSong() {
   const navigation = useNavigation();
   const [songCount, setSongCount] = useState(0);
   const [artistCount, setArtistCount] = useState(0);
+  const [albumCount, setAlbumCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchStats = useCallback(async () => {
     try {
       setIsLoading(true);
-      const [songsResponse, artistsResponse] = await Promise.all([
+      const [songsResponse, artistsResponse, albumsResponse] = await Promise.all([
         getAllSongs(),
         getAllArtists(),
+        getAdminAlbums(),
       ]);
       setSongCount(songsResponse?.length || 0);
       setArtistCount(artistsResponse?.length || 0);
+      setAlbumCount(albumsResponse?.length || 0);
     } catch (error) {
       console.error('Error fetching stats:', error);
     } finally {
@@ -64,12 +67,12 @@ export default function AdminSong() {
       route: 'CreateArtist',
     },
     {
-      id: 'manage-album',
+      id: 'add-album',
       title: 'Thêm Album',
-      description: 'Xem, sửa và xóa Album',
-      icon: 'people',
-      color: '#06B6D4',
-      route: 'AlbumManagement',
+      description: 'Thêm, sửa, xóa album hệ thống',
+      icon: 'albums',
+      color: '#8B5CF6',
+      route: 'CreateAlbum',
     },
   ];
 
@@ -141,12 +144,20 @@ export default function AdminSong() {
               <Text className="text-gray-400 text-sm mt-1">Bài hát</Text>
             </View>
 
-            <View className="bg-white/5 rounded-2xl p-5 flex-1 ml-2 border border-white/10">
+            <View className="bg-white/5 rounded-2xl p-5 flex-1 mx-1 border border-white/10">
               <Ionicons name="people" size={24} color="#06B6D4" />
               <Text className="text-white text-2xl font-bold mt-3">
                 {isLoading ? '...' : artistCount}
               </Text>
               <Text className="text-gray-400 text-sm mt-1">Nghệ sĩ</Text>
+            </View>
+
+            <View className="bg-white/5 rounded-2xl p-5 flex-1 ml-1 border border-white/10">
+              <Ionicons name="albums" size={24} color="#8B5CF6" />
+              <Text className="text-white text-2xl font-bold mt-3">
+                {isLoading ? '...' : albumCount}
+              </Text>
+              <Text className="text-gray-400 text-sm mt-1">Album</Text>
             </View>
           </View>
         </View>

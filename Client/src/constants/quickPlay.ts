@@ -7,9 +7,10 @@ export interface QuickPlayItem {
   screen: ScreenName;
   playlistId?: string;
   artistId?: string;
+  albumId?: string;
   icon: string;
   colors: readonly [string, string];
-  type?: 'artist'; // dùng để đánh dấu slot dynamic artist
+  type?: 'artist' | 'album'; // dùng để đánh dấu slot dynamic
 }
 
 export const QUICK_PLAY: QuickPlayItem[] = [
@@ -17,6 +18,6 @@ export const QUICK_PLAY: QuickPlayItem[] = [
   { title: "Nghe Gì Hôm Nay", screen: "Playlists", icon: "sunny", colors: ["#F59E0B", "#EF4444"] },
   { title: "Đang tải...", screen: "ArtistDetail", icon: "person", colors: ["#06B6D4", "#3B82F6"], type: "artist" },
   { title: "Chill", screen: "Playlists", icon: "moon", colors: ["#10B981", "#06B6D4"] },
-  { title: "Playlists", screen: "Playlists", icon: "musical-notes", colors: ["#EC4899", "#F97316"] },
-  { title: "Đang nghe", screen: "Playlists", icon: "radio", colors: ["#6366F1", "#8B5CF6"] },
+  { title: "Đang tải...", screen: "AlbumDetail", icon: "disc", colors: ["#EC4899", "#F97316"], type: "album" },
+  { title: "Vừa nghe", screen: "RecentPlayed", icon: "radio", colors: ["#6366F1", "#8B5CF6"] },
 ];
