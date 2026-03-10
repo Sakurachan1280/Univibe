@@ -5,12 +5,14 @@ import { Ionicons } from "@expo/vector-icons";
 
 // Screens
 import MusicListScreen from "../screens/Admin/AdminSong";
-import AlbumListScreen from "../screens/Admin/AdminAlbum";
+import LibraryScreen from "../screens/Admin/AdminLibrary";
 import AccountScreen from "../screens/Admin/AdminSetting";
 import CreateSongScreen from "../screens/Admin/song";
 import CreateArtistScreen from "../screens/Admin/artist";
 import ArtistManagementScreen from "../screens/Admin/ArtistManagement";
 import SongManagementScreen from "../screens/Admin/SongManagement";
+import AdminAlbumManagementScreen from "../screens/Admin/AdminAlbumManagement";
+import CreateAlbumScreen from "../screens/Admin/CreateAlbum";
 import AboutScreen from "../screens/Admin/AboutScreen";
 import HelpScreen from "../screens/Setting/HelpScreen";
 import SystemLogsScreen from "../screens/Admin/SystemLogsScreen";
@@ -45,14 +47,24 @@ const SongStack = () => (
       component={SongManagementScreen}
       options={{ headerShown: false }}
     />
+    <Stack.Screen
+      name="AlbumManagement"
+      component={AdminAlbumManagementScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="CreateAlbum"
+      component={CreateAlbumScreen}
+      options={{ headerShown: false }}
+    />
   </Stack.Navigator>
 );
 
-const PlaylistStack = () => (
+const LibraryStack = () => (
   <Stack.Navigator>
     <Stack.Screen
-      name="AlbumList"
-      component={AlbumListScreen}
+      name="LibraryList"
+      component={LibraryScreen}
       options={{ headerShown: false }}
     />
     <Stack.Screen
@@ -73,6 +85,16 @@ const PlaylistStack = () => (
     <Stack.Screen
       name="CreateSong"
       component={CreateSongScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="AlbumManagement"
+      component={AdminAlbumManagementScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="CreateAlbum"
+      component={CreateAlbumScreen}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>
@@ -144,7 +166,7 @@ export default function AdminNavigator() {
       />
       <Tab.Screen
         name="Library"
-        component={PlaylistStack}
+        component={LibraryStack}
         options={{
           tabBarLabel: 'Thư viện',
         }}

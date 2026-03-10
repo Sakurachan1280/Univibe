@@ -98,3 +98,99 @@ export const removeSongFromPlaylist = async (
     );
     return response.data;
 };
+
+// ─── Admin Album helpers (uses playlist infrastructure) ──────────────────────
+
+/**
+ * Lấy tất cả album do admin tạo (type = 'system_mix') của user hiện tại
+ * Admin phải đăng nhập bằng tài khoản admin để xem.
+ */
+export const getAdminAlbums = async (): Promise<Playlist[]> => {
+    const response = await axiosClient.get("/playlists/system");
+    return response.data as Playlist[];
+};
+
+/**
+ * Tạo album mới (playlist type system_mix) kèm ảnh bìa
+ */
+export const createAdminAlbum = async (
+    name: string,
+    description: string | undefined,
+    tags: string[],
+    coverUri: string | undefined
+): Promise<Playlist> => {
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("type", "system_mix");
+    formData.append("is_public", "true");
+    if (description) formData.append("description", description);
+    tags.forEach(tag => formData.append("tags[]", tag));
+    if (coverUri) {
+        const filename = coverUri.split("/").pop() ?? "cover.jpg";
+        const ext = filename.split(".").pop()?.toLowerCase() ?? "jpg";
+        const type = `image/${ext === "jpg" ? "jpeg" : ext}`;
+        formData.append("cover_image", { uri: coverUri, name: filename, type } as any);
+    }
+    const response = await axiosClient.post("/playlists", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+};
+
+/**
+ * Cập nhật thông tin album (tên, mô tả, tags)
+ */
+export const updateAdminAlbum = async (
+    id: string,
+    data: { name?: string; description?: string; tags?: string[] }
+): Promise<Playlist> => {
+    const response = await axiosClient.put(`/playlists/${id}`, data);
+    return response.data;
+};
+
+/**
+ * Xóa album
+ */
+export const deleteAdminAlbum = async (id: string): Promise<void> => {
+    await axiosClient.delete(`/playlists/${id}`);
+};
+
+/**
+ * Thêm bài hát vào album
+ */
+export const addSongToAlbum = async (albumId: string, songId: string): Promise<Playlist> => {
+    return addSongToPlaylist(albumId, songId);
+};
+
+/**
+ * Xóa bài hát khỏi album
+ */
+export const removeSongFromAlbum = async (albumId: string, songId: string): Promise<Playlist> => {
+    return removeSongFromPlaylist(albumId, songId);
+};
+
+/**
+ * Cập nhật ảnh bìa album (gửi file multipart)
+ */
+export const updateAdminAlbumCover = async (albumId: string, coverUri: string): Promise<Playlist> => {
+    const formData = new FormData();
+    const filename = coverUri.split("/").pop() ?? "cover.jpg";
+    const ext = filename.split(".").pop()?.toLowerCase() ?? "jpg";
+    const type = `image/${ext === "jpg" ? "jpeg" : ext}`;
+    formData.append("cover_image", { uri: coverUri, name: filename, type } as any);
+    const response = await axiosClient.put(`/playlists/${albumId}/cover`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+};
+
+/**
+ * Sắp xếp lại thứ tự bài hát trong album
+ * @param albumId - ID của album
+ * @param orderedSongIds - Mảng song IDs theo thứ tự mới
+ */
+export const reorderAlbumTracks = async (albumId: string, orderedSongIds: string[]): Promise<Playlist> => {
+    const response = await axiosClient.put(`/playlists/${albumId}/reorder`, { orderedSongIds });
+    return response.data;
+};
+

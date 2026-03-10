@@ -12,6 +12,8 @@ import { PanResponder, PanResponderInstance } from "react-native";
 import { useMusic } from "../../context/MusicContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { getAllArtists, Artist } from "../../API/artistAPI";
+import { getAdminAlbums } from "../../API/playlistAPI";
+
 
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -40,6 +42,40 @@ export default function HomeScreen() {
       }
     };
     loadRandomArtist();
+  }, []);
+
+  // Fetch admin albums và chọn ngẫu nhiên 1 album để thay slot "album"
+  useEffect(() => {
+    const loadRandomAlbum = async () => {
+      try {
+        console.log("[Home] Fetching admin albums...");
+        const albums = await getAdminAlbums();
+        console.log("[Home] Received albums count:", albums?.length);
+        if (albums && albums.length > 0) {
+          const randomAlbum = albums[Math.floor(Math.random() * albums.length)];
+          setQuickPlayItems(prev =>
+            prev.map(item =>
+              item.type === 'album'
+                ? { ...item, title: randomAlbum.name, albumId: randomAlbum._id }
+                : item
+            )
+          );
+        } else {
+          // Nếu không có album nào, đổi title để user biết
+          setQuickPlayItems(prev =>
+            prev.map(item =>
+              item.type === 'album'
+                ? { ...item, title: "Khám phá Album" }
+                : item
+            )
+          );
+        }
+      } catch (err) {
+        console.error("[Home] Error loading random album:", err);
+        // Giữ nguyên placeholder nếu lỗi
+      }
+    };
+    loadRandomAlbum();
   }, []);
 
   const panResponder = useRef<PanResponderInstance>(
@@ -116,6 +152,13 @@ export default function HomeScreen() {
                 onPress={() => {
                   if (item.type === 'artist' && item.artistId) {
                     navigation.navigate('ArtistDetail', { artistId: item.artistId, artistName: item.title });
+                  } else if (item.type === 'album') {
+                    if (item.albumId) {
+                      navigation.navigate('AlbumDetail', { albumId: item.albumId });
+                    } else {
+                      // Nếu chưa load được album, có thể dẫn tới trang Playlists chung hoặc không làm gì
+                      navigation.navigate('Playlists', { title: item.title });
+                    }
                   } else {
                     navigation.navigate(item.screen as any, { title: item.title, playlistId: item.playlistId });
                   }

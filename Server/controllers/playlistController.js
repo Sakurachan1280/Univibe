@@ -32,6 +32,15 @@ const getMyPlaylists = async (req, res) => {
   }
 };
 
+const getSystemAlbums = async (req, res) => {
+  try {
+    const albums = await playlistService.getSystemAlbums();
+    res.json(albums);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 const getDetail = async (req, res) => {
   try {
     const playlist = await playlistService.getPlaylistById(req.params.id, req.user.id);
@@ -83,12 +92,40 @@ const removeSong = async (req, res) => {
   }
 };
 
+const updateCover = async (req, res) => {
+  try {
+    const coverFile = req.files?.cover_image?.[0];
+    if (!coverFile) return res.status(400).json({ message: 'cover_image file is required' });
+    const coverUrl = coverFile.path; // Cloudinary returns full URL in path
+    const playlist = await playlistService.updatePlaylistCover(req.user.id, req.params.id, coverUrl);
+    res.json(playlist);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+const reorderTracks = async (req, res) => {
+  try {
+    const { orderedSongIds } = req.body;
+    if (!Array.isArray(orderedSongIds)) {
+      return res.status(400).json({ message: 'orderedSongIds must be an array' });
+    }
+    const result = await playlistService.reorderPlaylistTracks(req.user.id, req.params.id, orderedSongIds);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
 module.exports = {
   create,
   getMyPlaylists,
+  getSystemAlbums,
   getDetail,
   update,
   remove,
   addSong,
-  removeSong
+  removeSong,
+  updateCover,
+  reorderTracks
 };

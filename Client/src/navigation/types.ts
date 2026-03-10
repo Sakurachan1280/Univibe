@@ -41,6 +41,8 @@ export type RootStackParamList = {
 
   AdminAccount: undefined;
   History: undefined;
+  AlbumDetail: { albumId: string };
+  RecentPlayed: undefined;
 };
 export type MainTabParamList = {
   Home: undefined;

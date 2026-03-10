@@ -16,6 +16,13 @@ const getUserPlaylists = async (userId) => {
     .select('-tracks');
 };
 
+// Lấy tất cả album hệ thống (system_mix, public) do admin tạo - mọi user đều xem được
+const getSystemAlbums = async () => {
+  return await Playlist.find({ type: 'system_mix', is_public: true })
+    .sort({ created_at: -1 })
+    .select('-tracks');
+};
+
 const getPlaylistById = async (playlistId, userId) => {
   const playlist = await Playlist.findById(playlistId)
     .populate('owner_id', 'username profile.display_name profile.avatar_url')
@@ -73,7 +80,30 @@ const removeSongFromPlaylist = async (userId, playlistId, songId) => {
   if (!playlist) throw new Error('Playlist not found or you are not the owner');
 
   playlist.tracks = playlist.tracks.filter(track => track.song_id.toString() !== songId);
-  
+
+  await playlist.save();
+  return playlist;
+};
+
+const updatePlaylistCover = async (userId, playlistId, coverImageUrl) => {
+  const playlist = await Playlist.findOne({ _id: playlistId, owner_id: userId });
+  if (!playlist) throw new Error('Playlist not found or you are not the owner');
+  playlist.cover_image = coverImageUrl;
+  await playlist.save();
+  return playlist;
+};
+
+const reorderPlaylistTracks = async (userId, playlistId, orderedSongIds) => {
+  const playlist = await Playlist.findOne({ _id: playlistId, owner_id: userId });
+  if (!playlist) throw new Error('Playlist not found or you are not the owner');
+
+  // Rebuild tracks array in the new order (keep original added_at)
+  const trackMap = new Map(playlist.tracks.map(t => [t.song_id.toString(), t]));
+  const reordered = orderedSongIds
+    .map(id => trackMap.get(id))
+    .filter(Boolean);
+
+  playlist.tracks = reordered;
   await playlist.save();
   return playlist;
 };
@@ -81,8 +111,11 @@ const removeSongFromPlaylist = async (userId, playlistId, songId) => {
 module.exports = {
   createPlaylist,
   getUserPlaylists,
+  getSystemAlbums,
   getPlaylistById,
   updatePlaylist,
+  updatePlaylistCover,
+  reorderPlaylistTracks,
   deletePlaylist,
   addSongToPlaylist,
   removeSongFromPlaylist

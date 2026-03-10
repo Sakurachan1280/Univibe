@@ -92,7 +92,7 @@ export default function AdminAlbum() {
       icon: 'list',
       color: '#06B6D4',
       count: stats.totalPlaylists,
-      screen: null, // TODO: Add playlist management screen
+      screen: 'AlbumManagement', // TODO: Add playlist management screen
     },
   ];
 
