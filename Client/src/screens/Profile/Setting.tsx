@@ -15,6 +15,7 @@ import { useAppNavigation } from "../../navigation/useAppNavigation";
 import { getMeAPI, User } from '../../API/userAPI';
 import { BASE_URL } from '../../API/axiosClient';
 import { useMusic } from '../../context/MusicContext';
+import * as SecureStore from 'expo-secure-store';
 
 export default function SettingsScreen() {
   const navigation = useAppNavigation();
@@ -165,6 +166,7 @@ export default function SettingsScreen() {
             className="bg-white rounded-full py-4 px-8 items-center active:bg-gray-200"
             onPress={async () => {
               await stopMusic();
+              await SecureStore.deleteItemAsync("accessToken");
               navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: "Welcone" }] }));
             }}
           >
