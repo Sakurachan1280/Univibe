@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
     View,
     Text,
@@ -11,6 +11,7 @@ import {
     TextInput,
     KeyboardAvoidingView,
     Platform,
+    Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -60,6 +61,82 @@ const formatCover = (url: string | null | undefined): string | null => {
     return url.startsWith('http') ? url : `${BASE_URL}${url}`;
 };
 
+// ─── Animated bottom sheet wrapper ───────────────────────────────────────────
+function BottomSheet({
+    visible,
+    onClose,
+    children,
+    maxHeight = '90%',
+}: {
+    visible: boolean;
+    onClose: () => void;
+    children: React.ReactNode;
+    maxHeight?: string | number;
+}) {
+    const slideAnim = useRef(new Animated.Value(600)).current;
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const [rendered, setRendered] = useState(false);
+
+    React.useEffect(() => {
+        if (visible) {
+            setRendered(true);
+            Animated.parallel([
+                Animated.spring(slideAnim, {
+                    toValue: 0,
+                    useNativeDriver: true,
+                    damping: 20,
+                    stiffness: 200,
+                }),
+                Animated.timing(fadeAnim, {
+                    toValue: 1,
+                    duration: 200,
+                    useNativeDriver: true,
+                }),
+            ]).start();
+        } else {
+            Animated.parallel([
+                Animated.timing(slideAnim, {
+                    toValue: 600,
+                    duration: 220,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(fadeAnim, {
+                    toValue: 0,
+                    duration: 180,
+                    useNativeDriver: true,
+                }),
+            ]).start(() => setRendered(false));
+        }
+    }, [visible]);
+
+    if (!rendered && !visible) return null;
+
+    return (
+        <Modal visible transparent animationType="none" statusBarTranslucent onRequestClose={onClose}>
+            {/* Backdrop */}
+            <Animated.View
+                style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', opacity: fadeAnim }}
+            >
+                <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={onClose} />
+            </Animated.View>
+
+            {/* Sheet */}
+            <Animated.View
+                style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    maxHeight: maxHeight as any,
+                    transform: [{ translateY: slideAnim }],
+                }}
+            >
+                {children}
+            </Animated.View>
+        </Modal>
+    );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function AdminAlbumManagementScreen() {
@@ -68,7 +145,7 @@ export default function AdminAlbumManagementScreen() {
     const [albums, setAlbums] = useState<Playlist[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // ── Edit album modal (info + cover) ──
+    // ── Edit album modal ──
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [selectedAlbum, setSelectedAlbum] = useState<Playlist | null>(null);
     const [editName, setEditName] = useState('');
@@ -90,6 +167,9 @@ export default function AdminAlbumManagementScreen() {
     const [searchText, setSearchText] = useState('');
     const [pickedIds, setPickedIds] = useState<string[]>([]);
     const [isAddingSongs, setIsAddingSongs] = useState(false);
+
+    // target album for direct "add songs" from card (without opening songs modal first)
+    const [addSongsTarget, setAddSongsTarget] = useState<Playlist | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -132,9 +212,7 @@ export default function AdminAlbumManagementScreen() {
             aspect: [1, 1],
             quality: 0.85,
         });
-        if (!result.canceled) {
-            setEditCoverUri(result.assets[0].uri);
-        }
+        if (!result.canceled) setEditCoverUri(result.assets[0].uri);
     };
 
     const handleSaveEdit = async () => {
@@ -145,19 +223,12 @@ export default function AdminAlbumManagementScreen() {
         setIsSaving(true);
         try {
             const tagsArr = editTags.split(',').map(t => t.trim()).filter(Boolean);
-
-            // 1. Cập nhật thông tin
             await updateAdminAlbum(selectedAlbum!._id, {
                 name: editName.trim(),
                 description: editDesc.trim(),
                 tags: tagsArr,
             });
-
-            // 2. Nếu chọn ảnh bìa mới → upload riêng
-            if (editCoverUri) {
-                await updateAdminAlbumCover(selectedAlbum!._id, editCoverUri);
-            }
-
+            if (editCoverUri) await updateAdminAlbumCover(selectedAlbum!._id, editCoverUri);
             Alert.alert('Thành công', 'Đã cập nhật album');
             setEditModalVisible(false);
             fetchAlbums();
@@ -240,10 +311,7 @@ export default function AdminAlbumManagementScreen() {
         const tracks = [...albumDetail.tracks];
         const [moved] = tracks.splice(fromIdx, 1);
         tracks.splice(toIdx, 0, moved);
-
-        // Optimistic update
         setAlbumDetail({ ...albumDetail, tracks });
-
         setIsReordering(true);
         try {
             const orderedIds = tracks.map(t => getSongId(t));
@@ -257,22 +325,34 @@ export default function AdminAlbumManagementScreen() {
     };
 
     // ── Add songs ────────────────────────────────────────────────────────────
+    // Can be called from:
+    //   A) Songs modal  → target = albumDetail
+    //   B) Direct card  → target = specific album (sets addSongsTarget)
 
-    const openAddSongs = async () => {
+    const openAddSongsForAlbum = async (album: Playlist) => {
+        setAddSongsTarget(album);
         setPickedIds([]);
         setSearchText('');
+        // Always fresh load to reflect latest state
+        setAllSongs([]);
         setAddSongsModalVisible(true);
-        if (allSongs.length === 0) {
-            setIsFetchingSongs(true);
-            try {
-                const songs = await getAllSongs();
-                setAllSongs(songs);
-            } catch {
-                Alert.alert('Lỗi', 'Không thể tải danh sách bài hát');
-            } finally {
-                setIsFetchingSongs(false);
-            }
+        setIsFetchingSongs(true);
+        try {
+            const songs = await getAllSongs();
+            // Pre-fetch detail to know which songs are already in album
+            const detail = await getPlaylistDetail(album._id);
+            const inAlbum = new Set(detail.tracks.map(t => getSongId(t)));
+            setAllSongs(songs.filter(s => !inAlbum.has(s._id)));
+        } catch {
+            Alert.alert('Lỗi', 'Không thể tải danh sách bài hát');
+        } finally {
+            setIsFetchingSongs(false);
         }
+    };
+
+    const openAddSongsFromSongsModal = () => {
+        if (!albumDetail) return;
+        openAddSongsForAlbum(albumDetail);
     };
 
     const togglePick = (id: string) => {
@@ -284,18 +364,25 @@ export default function AdminAlbumManagementScreen() {
             setAddSongsModalVisible(false);
             return;
         }
+        const target = addSongsTarget;
+        if (!target) return;
+
         setIsAddingSongs(true);
         try {
-            // Add sequentially to avoid conflicts
             for (const songId of pickedIds) {
                 try {
-                    await addSongToAlbum(albumDetail!._id, songId);
+                    await addSongToAlbum(target._id, songId);
                 } catch {
                     // skip duplicates silently
                 }
             }
-            await refreshAlbumDetail();
             setAddSongsModalVisible(false);
+            // Refresh songs modal if it was open for the same album
+            if (albumDetail?._id === target._id) {
+                await refreshAlbumDetail();
+            }
+            // Brief confirmation
+            Alert.alert('✓ Đã thêm', `${pickedIds.length} bài hát vào "${target.name}"`);
         } catch (error: any) {
             Alert.alert('Lỗi', error?.response?.data?.message || 'Không thể thêm bài hát');
         } finally {
@@ -303,12 +390,9 @@ export default function AdminAlbumManagementScreen() {
         }
     };
 
-    // Already-in-album song IDs for filtering
-    const inAlbumIds = new Set((albumDetail?.tracks ?? []).map(t => getSongId(t)));
-
-    const filteredSongs = allSongs
-        .filter(s => !inAlbumIds.has(s._id))
-        .filter(s => s.title.toLowerCase().includes(searchText.toLowerCase()));
+    const filteredSongs = allSongs.filter(s =>
+        s.title.toLowerCase().includes(searchText.toLowerCase())
+    );
 
     // ─────────────────────────────────────────────────────────────────────────
     // RENDER
@@ -323,7 +407,7 @@ export default function AdminAlbumManagementScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()} className="p-2 mr-1">
                         <Ionicons name="arrow-back" size={24} color="white" />
                     </TouchableOpacity>
-                    <Text className="text-white text-xl font-bold">Quản Lý Album</Text>
+                    <Text className="text-white text-xl font-bold">Quản Lý Album & Playlist</Text>
                 </View>
                 <TouchableOpacity
                     onPress={() => (navigation as any).navigate('CreateAlbum')}
@@ -341,13 +425,13 @@ export default function AdminAlbumManagementScreen() {
             ) : albums.length === 0 ? (
                 <View className="flex-1 items-center justify-center px-8">
                     <Ionicons name="albums-outline" size={64} color="#444" />
-                    <Text className="text-white text-xl font-bold text-center mt-4">Chưa có album nào</Text>
-                    <Text className="text-gray-400 text-center mt-2">Nhấn "Thêm" để tạo album mới</Text>
+                    <Text className="text-white text-xl font-bold text-center mt-4">Chưa có album / playlist nào</Text>
+                    <Text className="text-gray-400 text-center mt-2">Nhấn "Thêm" để tạo album hoặc playlist mới</Text>
                 </View>
             ) : (
                 <ScrollView className="flex-1 px-5 pt-4">
                     <Text className="text-gray-500 text-xs mb-4 uppercase tracking-widest">
-                        {albums.length} album hệ thống
+                        {albums.length} album / playlist hệ thống
                     </Text>
 
                     {albums.map(album => (
@@ -393,30 +477,40 @@ export default function AdminAlbumManagementScreen() {
                                 </View>
                             </View>
 
-                            {/* Action bar */}
+                            {/* Action bar — 4 buttons */}
                             <View className="flex-row border-t border-white/10">
                                 <TouchableOpacity
                                     onPress={() => openSongsModal(album)}
                                     className="flex-1 flex-row items-center justify-center py-3 border-r border-white/10"
                                 >
-                                    <Ionicons name="musical-notes-outline" size={16} color="#A855F7" />
-                                    <Text className="text-purple-400 text-xs font-semibold ml-1.5">Bài Hát</Text>
+                                    <Ionicons name="musical-notes-outline" size={15} color="#A855F7" />
+                                    <Text className="text-purple-400 text-xs font-semibold ml-1">Bài Hát</Text>
+                                </TouchableOpacity>
+
+                                {/* ✨ NEW: Direct add songs button */}
+                                <TouchableOpacity
+                                    onPress={() => openAddSongsForAlbum(album)}
+                                    className="flex-1 flex-row items-center justify-center py-3 border-r border-white/10"
+                                    style={{ backgroundColor: 'rgba(34,197,94,0.06)' }}
+                                >
+                                    <Ionicons name="add-circle-outline" size={15} color="#22C55E" />
+                                    <Text className="text-green-400 text-xs font-semibold ml-1">Thêm Nhạc</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
                                     onPress={() => openEdit(album)}
                                     className="flex-1 flex-row items-center justify-center py-3 border-r border-white/10"
                                 >
-                                    <Ionicons name="create-outline" size={16} color="#06B6D4" />
-                                    <Text className="text-cyan-400 text-xs font-semibold ml-1.5">Chỉnh Sửa</Text>
+                                    <Ionicons name="create-outline" size={15} color="#06B6D4" />
+                                    <Text className="text-cyan-400 text-xs font-semibold ml-1">Sửa</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
                                     onPress={() => handleDelete(album)}
                                     className="flex-1 flex-row items-center justify-center py-3"
                                 >
-                                    <Ionicons name="trash-outline" size={16} color="#EF4444" />
-                                    <Text className="text-red-400 text-xs font-semibold ml-1.5">Xóa</Text>
+                                    <Ionicons name="trash-outline" size={15} color="#EF4444" />
+                                    <Text className="text-red-400 text-xs font-semibold ml-1">Xóa</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -425,18 +519,12 @@ export default function AdminAlbumManagementScreen() {
                 </ScrollView>
             )}
 
-            {/* ═══════════════════════════════════════════════════════════════
-                EDIT ALBUM MODAL  (info + cover)
-            ═══════════════════════════════════════════════════════════════ */}
-            <Modal
-                visible={editModalVisible}
-                animationType="slide"
-                transparent
-                onRequestClose={() => setEditModalVisible(false)}
-            >
+            {/* ══════════════════════════════════════════════════════════════════
+                EDIT ALBUM MODAL
+            ══════════════════════════════════════════════════════════════════ */}
+            <BottomSheet visible={editModalVisible} onClose={() => setEditModalVisible(false)}>
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    className="flex-1 bg-black/80 justify-end"
                 >
                     <View className="bg-gray-900 rounded-t-3xl p-6" style={{ maxHeight: '90%' }}>
                         {/* Header */}
@@ -467,11 +555,7 @@ export default function AdminAlbumManagementScreen() {
                                                 <Ionicons name="camera" size={36} color="#EC4899" />
                                             </View>
                                         )}
-
-                                        {/* Overlay edit icon */}
-                                        <View
-                                            className="absolute bottom-0 right-0 bg-pink-600 rounded-tl-xl p-1.5"
-                                        >
+                                        <View className="absolute bottom-0 right-0 bg-pink-600 rounded-tl-xl p-1.5">
                                             <Ionicons name="pencil" size={14} color="white" />
                                         </View>
                                     </View>
@@ -527,7 +611,6 @@ export default function AdminAlbumManagementScreen() {
                                 />
                             </View>
 
-                            {/* Save */}
                             <TouchableOpacity
                                 onPress={handleSaveEdit}
                                 disabled={isSaving}
@@ -549,268 +632,300 @@ export default function AdminAlbumManagementScreen() {
                         </ScrollView>
                     </View>
                 </KeyboardAvoidingView>
-            </Modal>
+            </BottomSheet>
 
-            {/* ═══════════════════════════════════════════════════════════════
+            {/* ══════════════════════════════════════════════════════════════════
                 SONGS MANAGEMENT MODAL
-            ═══════════════════════════════════════════════════════════════ */}
-            <Modal
-                visible={songsModalVisible}
-                animationType="slide"
-                transparent
-                onRequestClose={() => setSongsModalVisible(false)}
-            >
-                <View className="flex-1 bg-black/85 justify-end">
-                    <View className="bg-gray-900 rounded-t-3xl" style={{ maxHeight: '85%' }}>
-                        {/* Header */}
-                        <View className="flex-row items-center justify-between px-6 pt-5 pb-3 border-b border-white/10">
-                            <View className="flex-1">
-                                <Text className="text-white text-lg font-bold" numberOfLines={1}>
-                                    {albumDetail?.name ?? 'Bài hát trong Album'}
+            ══════════════════════════════════════════════════════════════════ */}
+            <BottomSheet visible={songsModalVisible} onClose={() => setSongsModalVisible(false)} maxHeight="85%">
+                <View className="bg-gray-900 rounded-t-3xl" style={{ maxHeight: '100%' }}>
+                    {/* Header */}
+                    <View className="flex-row items-center justify-between px-6 pt-5 pb-3 border-b border-white/10">
+                        <View className="flex-1">
+                            <Text className="text-white text-lg font-bold" numberOfLines={1}>
+                                {albumDetail?.name ?? 'Bài hát trong Album'}
+                            </Text>
+                            {albumDetail && (
+                                <Text className="text-gray-400 text-xs mt-0.5">
+                                    {albumDetail.tracks.length} bài hát
+                                    {isReordering ? ' · Đang lưu...' : ''}
                                 </Text>
-                                {albumDetail && (
-                                    <Text className="text-gray-400 text-xs mt-0.5">
-                                        {albumDetail.tracks.length} bài hát
-                                        {isReordering ? ' · Đang lưu...' : ''}
-                                    </Text>
-                                )}
-                            </View>
-                            <View className="flex-row items-center">
-                                <TouchableOpacity
-                                    onPress={openAddSongs}
-                                    className="bg-pink-600 flex-row items-center px-3 py-2 rounded-xl mr-2"
-                                >
-                                    <Ionicons name="add" size={18} color="white" />
-                                    <Text className="text-white text-sm font-semibold ml-1">Thêm</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => setSongsModalVisible(false)}>
-                                    <Ionicons name="close" size={26} color="white" />
-                                </TouchableOpacity>
-                            </View>
+                            )}
                         </View>
-
-                        {isSongsLoading ? (
-                            <View className="py-16 items-center">
-                                <ActivityIndicator size="large" color="#EC4899" />
-                            </View>
-                        ) : albumDetail && albumDetail.tracks.length === 0 ? (
-                            <View className="py-16 items-center">
-                                <Ionicons name="musical-notes-outline" size={48} color="#555" />
-                                <Text className="text-gray-400 mt-3 text-center">
-                                    Chưa có bài hát nào.{'\n'}Nhấn "Thêm" để thêm bài hát.
-                                </Text>
-                            </View>
-                        ) : (
-                            <ScrollView className="px-5 pt-4" showsVerticalScrollIndicator={false}>
-                                {/* Legend */}
-                                <View className="flex-row items-center mb-3">
-                                    <Ionicons name="swap-vertical" size={14} color="#666" />
-                                    <Text className="text-gray-500 text-xs ml-1">
-                                        Dùng ↑↓ để thay đổi thứ tự bài hát
-                                    </Text>
-                                </View>
-
-                                {albumDetail?.tracks.map((track, idx) => {
-                                    const songId = getSongId(track);
-                                    const title = getSongTitle(track);
-                                    const cover = getSongCover(track);
-                                    const artists = getSongArtists(track);
-                                    const coverUrl = formatCover(cover);
-                                    const total = albumDetail.tracks.length;
-
-                                    return (
-                                        <View
-                                            key={songId || idx}
-                                            className="flex-row items-center bg-white/5 rounded-xl p-3 mb-2 border border-white/8"
-                                        >
-                                            {/* Number */}
-                                            <Text className="text-gray-500 text-xs w-6 text-center">{idx + 1}</Text>
-
-                                            {/* Cover */}
-                                            {coverUrl ? (
-                                                <Image source={{ uri: coverUrl }} className="w-11 h-11 rounded-lg ml-2" />
-                                            ) : (
-                                                <View className="w-11 h-11 rounded-lg bg-gray-700 items-center justify-center ml-2">
-                                                    <Ionicons name="musical-note" size={18} color="gray" />
-                                                </View>
-                                            )}
-
-                                            {/* Info */}
-                                            <View className="flex-1 ml-3">
-                                                <Text className="text-white font-semibold text-sm" numberOfLines={1}>
-                                                    {title}
-                                                </Text>
-                                                {artists ? (
-                                                    <Text className="text-gray-400 text-xs mt-0.5" numberOfLines={1}>
-                                                        {artists}
-                                                    </Text>
-                                                ) : null}
-                                            </View>
-
-                                            {/* Reorder buttons */}
-                                            <View className="flex-col items-center mr-1">
-                                                <TouchableOpacity
-                                                    onPress={() => moveTrack(idx, idx - 1)}
-                                                    disabled={idx === 0 || isReordering}
-                                                    className="p-1.5"
-                                                >
-                                                    <Ionicons
-                                                        name="chevron-up"
-                                                        size={18}
-                                                        color={idx === 0 ? '#333' : '#9CA3AF'}
-                                                    />
-                                                </TouchableOpacity>
-                                                <TouchableOpacity
-                                                    onPress={() => moveTrack(idx, idx + 1)}
-                                                    disabled={idx === total - 1 || isReordering}
-                                                    className="p-1.5"
-                                                >
-                                                    <Ionicons
-                                                        name="chevron-down"
-                                                        size={18}
-                                                        color={idx === total - 1 ? '#333' : '#9CA3AF'}
-                                                    />
-                                                </TouchableOpacity>
-                                            </View>
-
-                                            {/* Remove */}
-                                            <TouchableOpacity
-                                                onPress={() => handleRemoveSong(songId, title)}
-                                                className="bg-red-600/20 rounded-full p-2 ml-1"
-                                            >
-                                                <Ionicons name="trash-outline" size={16} color="#EF4444" />
-                                            </TouchableOpacity>
-                                        </View>
-                                    );
-                                })}
-                                <View className="h-8" />
-                            </ScrollView>
-                        )}
-                    </View>
-                </View>
-            </Modal>
-
-            {/* ═══════════════════════════════════════════════════════════════
-                ADD SONGS SUB-MODAL
-            ═══════════════════════════════════════════════════════════════ */}
-            <Modal
-                visible={addSongsModalVisible}
-                animationType="slide"
-                transparent
-                onRequestClose={() => setAddSongsModalVisible(false)}
-            >
-                <View className="flex-1 bg-black/90 justify-end">
-                    <View className="bg-gray-950 rounded-t-3xl" style={{ maxHeight: '85%' }}>
-                        {/* Header */}
-                        <View className="flex-row items-center justify-between px-6 pt-5 pb-3 border-b border-white/10">
-                            <Text className="text-white text-lg font-bold">Chọn Bài Hát</Text>
-                            <TouchableOpacity onPress={() => setAddSongsModalVisible(false)}>
+                        <View className="flex-row items-center">
+                            {/* Add songs button inside songs modal */}
+                            <TouchableOpacity
+                                onPress={openAddSongsFromSongsModal}
+                                className="bg-green-600/80 flex-row items-center px-3 py-2 rounded-xl mr-2"
+                            >
+                                <Ionicons name="add" size={18} color="white" />
+                                <Text className="text-white text-sm font-semibold ml-1">Thêm</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => setSongsModalVisible(false)}>
                                 <Ionicons name="close" size={26} color="white" />
                             </TouchableOpacity>
                         </View>
+                    </View>
 
-                        {/* Search */}
-                        <View className="px-5 py-3">
-                            <View
-                                className="flex-row items-center rounded-xl px-4 py-2.5"
-                                style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}
-                            >
-                                <Ionicons name="search" size={17} color="#555" />
-                                <TextInput
-                                    value={searchText}
-                                    onChangeText={setSearchText}
-                                    placeholder="Tìm bài hát..."
-                                    placeholderTextColor="#555"
-                                    className="flex-1 text-white ml-2 text-sm"
-                                />
-                                {searchText.length > 0 && (
-                                    <TouchableOpacity onPress={() => setSearchText('')}>
-                                        <Ionicons name="close-circle" size={17} color="#555" />
-                                    </TouchableOpacity>
-                                )}
-                            </View>
+                    {isSongsLoading ? (
+                        <View className="py-16 items-center">
+                            <ActivityIndicator size="large" color="#EC4899" />
                         </View>
-
-                        {isFetchingSongs ? (
-                            <View className="py-12 items-center">
-                                <ActivityIndicator size="large" color="#EC4899" />
-                            </View>
-                        ) : (
-                            <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
-                                {filteredSongs.length === 0 && (
-                                    <View className="py-10 items-center">
-                                        <Text className="text-gray-500">Không có bài hát nào phù hợp</Text>
-                                    </View>
-                                )}
-                                {filteredSongs.map(song => {
-                                    const picked = pickedIds.includes(song._id);
-                                    const coverUrl = formatCover(song.cover_image);
-                                    const artistNames = song.artist_ids?.map(a => a.name).join(', ') ?? '';
-                                    return (
-                                        <TouchableOpacity
-                                            key={song._id}
-                                            onPress={() => togglePick(song._id)}
-                                            activeOpacity={0.7}
-                                            className={`flex-row items-center p-3 rounded-xl mb-2 border ${picked
-                                                ? 'border-pink-500/50 bg-pink-600/15'
-                                                : 'border-white/10 bg-white/5'
-                                                }`}
-                                        >
-                                            {coverUrl ? (
-                                                <Image source={{ uri: coverUrl }} className="w-11 h-11 rounded-lg" />
-                                            ) : (
-                                                <View className="w-11 h-11 rounded-lg bg-gray-700 items-center justify-center">
-                                                    <Ionicons name="musical-note" size={18} color="gray" />
-                                                </View>
-                                            )}
-
-                                            <View className="flex-1 ml-3">
-                                                <Text
-                                                    className={`font-semibold text-sm ${picked ? 'text-pink-300' : 'text-white'}`}
-                                                    numberOfLines={1}
-                                                >
-                                                    {song.title}
-                                                </Text>
-                                                {artistNames ? (
-                                                    <Text className="text-gray-400 text-xs mt-0.5" numberOfLines={1}>
-                                                        {artistNames}
-                                                    </Text>
-                                                ) : null}
-                                            </View>
-
-                                            <View
-                                                className={`w-6 h-6 rounded-full border-2 items-center justify-center ${picked ? 'bg-pink-500 border-pink-500' : 'border-gray-600'}`}
-                                            >
-                                                {picked && <Ionicons name="checkmark" size={13} color="white" />}
-                                            </View>
-                                        </TouchableOpacity>
-                                    );
-                                })}
-                                <View className="h-28" />
-                            </ScrollView>
-                        )}
-
-                        {/* Bottom bar */}
-                        <View className="absolute bottom-0 left-0 right-0 bg-gray-950 border-t border-white/10 px-5 py-4">
+                    ) : albumDetail && albumDetail.tracks.length === 0 ? (
+                        <View className="py-16 items-center px-6">
+                            <Ionicons name="musical-notes-outline" size={48} color="#555" />
+                            <Text className="text-gray-400 mt-3 text-center">
+                                Chưa có bài hát nào.
+                            </Text>
                             <TouchableOpacity
-                                onPress={handleConfirmAddSongs}
-                                disabled={isAddingSongs}
-                                className={`py-4 rounded-xl items-center ${isAddingSongs ? 'bg-gray-700' : 'bg-pink-600'}`}
+                                onPress={openAddSongsFromSongsModal}
+                                className="mt-4 bg-green-600/80 px-6 py-3 rounded-xl flex-row items-center"
                             >
-                                {isAddingSongs ? (
-                                    <ActivityIndicator color="white" />
-                                ) : (
-                                    <Text className="text-white font-bold text-base">
-                                        {pickedIds.length > 0
-                                            ? `Thêm ${pickedIds.length} bài hát`
-                                            : 'Đóng'}
-                                    </Text>
-                                )}
+                                <Ionicons name="add" size={18} color="white" />
+                                <Text className="text-white font-semibold ml-2">Thêm bài hát</Text>
                             </TouchableOpacity>
                         </View>
+                    ) : (
+                        <ScrollView className="px-5 pt-4" showsVerticalScrollIndicator={false}>
+                            <View className="flex-row items-center mb-3">
+                                <Ionicons name="swap-vertical" size={14} color="#666" />
+                                <Text className="text-gray-500 text-xs ml-1">
+                                    Dùng ↑↓ để thay đổi thứ tự bài hát
+                                </Text>
+                            </View>
+
+                            {albumDetail?.tracks.map((track, idx) => {
+                                const songId = getSongId(track);
+                                const title = getSongTitle(track);
+                                const cover = getSongCover(track);
+                                const artists = getSongArtists(track);
+                                const coverUrl = formatCover(cover);
+                                const total = albumDetail.tracks.length;
+
+                                return (
+                                    <View
+                                        key={songId || idx}
+                                        className="flex-row items-center bg-white/5 rounded-xl p-3 mb-2 border border-white/8"
+                                    >
+                                        <Text className="text-gray-500 text-xs w-6 text-center">{idx + 1}</Text>
+
+                                        {coverUrl ? (
+                                            <Image source={{ uri: coverUrl }} className="w-11 h-11 rounded-lg ml-2" />
+                                        ) : (
+                                            <View className="w-11 h-11 rounded-lg bg-gray-700 items-center justify-center ml-2">
+                                                <Ionicons name="musical-note" size={18} color="gray" />
+                                            </View>
+                                        )}
+
+                                        <View className="flex-1 ml-3">
+                                            <Text className="text-white font-semibold text-sm" numberOfLines={1}>
+                                                {title}
+                                            </Text>
+                                            {artists ? (
+                                                <Text className="text-gray-400 text-xs mt-0.5" numberOfLines={1}>
+                                                    {artists}
+                                                </Text>
+                                            ) : null}
+                                        </View>
+
+                                        <View className="flex-col items-center mr-1">
+                                            <TouchableOpacity
+                                                onPress={() => moveTrack(idx, idx - 1)}
+                                                disabled={idx === 0 || isReordering}
+                                                className="p-1.5"
+                                            >
+                                                <Ionicons
+                                                    name="chevron-up"
+                                                    size={18}
+                                                    color={idx === 0 ? '#333' : '#9CA3AF'}
+                                                />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                onPress={() => moveTrack(idx, idx + 1)}
+                                                disabled={idx === total - 1 || isReordering}
+                                                className="p-1.5"
+                                            >
+                                                <Ionicons
+                                                    name="chevron-down"
+                                                    size={18}
+                                                    color={idx === total - 1 ? '#333' : '#9CA3AF'}
+                                                />
+                                            </TouchableOpacity>
+                                        </View>
+
+                                        <TouchableOpacity
+                                            onPress={() => handleRemoveSong(songId, title)}
+                                            className="bg-red-600/20 rounded-full p-2 ml-1"
+                                        >
+                                            <Ionicons name="trash-outline" size={16} color="#EF4444" />
+                                        </TouchableOpacity>
+                                    </View>
+                                );
+                            })}
+                            <View className="h-8" />
+                        </ScrollView>
+                    )}
+                </View>
+            </BottomSheet>
+
+            {/* ══════════════════════════════════════════════════════════════════
+                ADD SONGS MODAL (smooth animated)
+            ══════════════════════════════════════════════════════════════════ */}
+            <BottomSheet
+                visible={addSongsModalVisible}
+                onClose={() => !isAddingSongs && setAddSongsModalVisible(false)}
+                maxHeight="88%"
+            >
+                <View className="bg-gray-950 rounded-t-3xl" style={{ maxHeight: '100%' }}>
+                    {/* Header */}
+                    <View className="flex-row items-center justify-between px-6 pt-5 pb-3 border-b border-white/10">
+                        <View className="flex-1">
+                            <Text className="text-white text-lg font-bold">Thêm Bài Hát</Text>
+                            {addSongsTarget && (
+                                <Text className="text-gray-400 text-xs mt-0.5" numberOfLines={1}>
+                                    vào "{addSongsTarget.name}"
+                                </Text>
+                            )}
+                        </View>
+                        <TouchableOpacity
+                            onPress={() => !isAddingSongs && setAddSongsModalVisible(false)}
+                            disabled={isAddingSongs}
+                        >
+                            <Ionicons name="close" size={26} color={isAddingSongs ? '#555' : 'white'} />
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* Selected count pill */}
+                    {pickedIds.length > 0 && (
+                        <View className="mx-5 mt-3 px-4 py-2 rounded-xl flex-row items-center justify-between"
+                            style={{ backgroundColor: 'rgba(34,197,94,0.12)', borderWidth: 1, borderColor: 'rgba(34,197,94,0.3)' }}>
+                            <View className="flex-row items-center">
+                                <Ionicons name="checkmark-circle" size={16} color="#22C55E" />
+                                <Text className="text-green-400 text-sm font-semibold ml-2">
+                                    Đã chọn {pickedIds.length} bài
+                                </Text>
+                            </View>
+                            <TouchableOpacity onPress={() => setPickedIds([])}>
+                                <Text className="text-gray-400 text-xs">Bỏ chọn hết</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+
+                    {/* Search */}
+                    <View className="px-5 py-3">
+                        <View
+                            className="flex-row items-center rounded-xl px-4 py-2.5"
+                            style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}
+                        >
+                            <Ionicons name="search" size={17} color="#555" />
+                            <TextInput
+                                value={searchText}
+                                onChangeText={setSearchText}
+                                placeholder="Tìm bài hát..."
+                                placeholderTextColor="#555"
+                                className="flex-1 text-white ml-2 text-sm"
+                            />
+                            {searchText.length > 0 && (
+                                <TouchableOpacity onPress={() => setSearchText('')}>
+                                    <Ionicons name="close-circle" size={17} color="#555" />
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                    </View>
+
+                    {isFetchingSongs ? (
+                        <View className="py-12 items-center">
+                            <ActivityIndicator size="large" color="#22C55E" />
+                            <Text className="text-gray-500 text-xs mt-3">Đang tải bài hát...</Text>
+                        </View>
+                    ) : (
+                        <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
+                            {filteredSongs.length === 0 ? (
+                                <View className="py-10 items-center">
+                                    <Ionicons name="musical-notes-outline" size={40} color="#444" />
+                                    <Text className="text-gray-500 mt-3">
+                                        {allSongs.length === 0
+                                            ? 'Tất cả bài hát đã có trong album'
+                                            : 'Không có bài hát phù hợp'}
+                                    </Text>
+                                </View>
+                            ) : null}
+                            {filteredSongs.map(song => {
+                                const picked = pickedIds.includes(song._id);
+                                const coverUrl = formatCover(song.cover_image);
+                                const artistNames = song.artist_ids?.map(a => a.name).join(', ') ?? '';
+                                return (
+                                    <TouchableOpacity
+                                        key={song._id}
+                                        onPress={() => togglePick(song._id)}
+                                        activeOpacity={0.7}
+                                        className={`flex-row items-center p-3 rounded-xl mb-2 border ${picked
+                                            ? 'border-green-500/50'
+                                            : 'border-white/10'
+                                            }`}
+                                        style={{
+                                            backgroundColor: picked
+                                                ? 'rgba(34,197,94,0.12)'
+                                                : 'rgba(255,255,255,0.05)',
+                                        }}
+                                    >
+                                        {coverUrl ? (
+                                            <Image source={{ uri: coverUrl }} className="w-11 h-11 rounded-lg" />
+                                        ) : (
+                                            <View className="w-11 h-11 rounded-lg bg-gray-700 items-center justify-center">
+                                                <Ionicons name="musical-note" size={18} color="gray" />
+                                            </View>
+                                        )}
+
+                                        <View className="flex-1 ml-3">
+                                            <Text
+                                                className={`font-semibold text-sm ${picked ? 'text-green-300' : 'text-white'}`}
+                                                numberOfLines={1}
+                                            >
+                                                {song.title}
+                                            </Text>
+                                            {artistNames ? (
+                                                <Text className="text-gray-400 text-xs mt-0.5" numberOfLines={1}>
+                                                    {artistNames}
+                                                </Text>
+                                            ) : null}
+                                        </View>
+
+                                        <View
+                                            className={`w-6 h-6 rounded-full border-2 items-center justify-center ${picked
+                                                ? 'bg-green-500 border-green-500'
+                                                : 'border-gray-600'
+                                                }`}
+                                        >
+                                            {picked && <Ionicons name="checkmark" size={13} color="white" />}
+                                        </View>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                            <View className="h-28" />
+                        </ScrollView>
+                    )}
+
+                    {/* Bottom bar */}
+                    <View className="absolute bottom-0 left-0 right-0 bg-gray-950 border-t border-white/10 px-5 py-4">
+                        <TouchableOpacity
+                            onPress={handleConfirmAddSongs}
+                            disabled={isAddingSongs}
+                            className={`py-4 rounded-xl items-center ${isAddingSongs ? 'bg-gray-700' : pickedIds.length > 0 ? 'bg-green-600' : 'bg-white/10'}`}
+                            activeOpacity={0.8}
+                        >
+                            {isAddingSongs ? (
+                                <ActivityIndicator color="white" />
+                            ) : (
+                                <Text className={`font-bold text-base ${pickedIds.length > 0 ? 'text-white' : 'text-gray-400'}`}>
+                                    {pickedIds.length > 0 ? `Thêm ${pickedIds.length} bài hát` : 'Đóng'}
+                                </Text>
+                            )}
+                        </TouchableOpacity>
                     </View>
                 </View>
-            </Modal>
+            </BottomSheet>
+
         </SafeAreaView>
     );
 }

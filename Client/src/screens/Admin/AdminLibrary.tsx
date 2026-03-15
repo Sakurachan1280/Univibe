@@ -16,7 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 import { getAllSongs } from '../../API/songAPI';
 import { getAllArtists } from '../../API/artistAPI';
-import { getMyPlaylists } from '../../API/playlistAPI';
+import { getAdminAlbums } from '../../API/playlistAPI';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
 
@@ -34,7 +34,7 @@ export default function AdminAlbum() {
       setIsLoading(true);
       const [songsResponse, playlistsResponse, artistsResponse] = await Promise.all([
         getAllSongs(),
-        getMyPlaylists(),
+        getAdminAlbums(),
         getAllArtists(),
       ]);
       setStats({
@@ -87,12 +87,12 @@ export default function AdminAlbum() {
     },
     {
       id: 'Album',
-      title: 'Album',
-      description: 'Quản lý danh sách Album',
-      icon: 'list',
+      title: 'Album & Playlist',
+      description: 'Quản lý Album và Playlist hệ thống',
+      icon: 'albums',
       color: '#06B6D4',
       count: stats.totalPlaylists,
-      screen: 'AlbumManagement', // TODO: Add playlist management screen
+      screen: 'AlbumManagement',
     },
   ];
 
@@ -149,7 +149,7 @@ export default function AdminAlbum() {
                 <View className="bg-white/5 rounded-2xl p-5 flex-1 ml-2 border border-white/10">
                   <Ionicons name="list" size={24} color="#06B6D4" />
                   <Text className="text-white text-2xl font-bold mt-3">{stats.totalPlaylists}</Text>
-                  <Text className="text-gray-400 text-sm mt-1">Album</Text>
+                  <Text className="text-gray-400 text-sm mt-1">Album / Playlist</Text>
                 </View>
               </View>
             </View>

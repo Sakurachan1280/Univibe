@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
     View,
     Text,
@@ -13,6 +13,7 @@ import {
     ScrollView,
     Image,
     Alert,
+    Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -37,6 +38,26 @@ export default function CreatePlaylistModal({
     const [error, setError] = useState<string | null>(null);
     const [coverUri, setCoverUri] = useState<string | null>(null);
 
+    // Smooth animation
+    const slideAnim = useRef(new Animated.Value(600)).current;
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const [rendered, setRendered] = useState(false);
+
+    useEffect(() => {
+        if (visible) {
+            setRendered(true);
+            Animated.parallel([
+                Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 20, stiffness: 180 }),
+                Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
+            ]).start();
+        } else {
+            Animated.parallel([
+                Animated.timing(slideAnim, { toValue: 600, duration: 240, useNativeDriver: true }),
+                Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
+            ]).start(() => setRendered(false));
+        }
+    }, [visible]);
+
     const handleClose = () => {
         if (loading) return;
         setName("");
@@ -54,7 +75,7 @@ export default function CreatePlaylistModal({
             return;
         }
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ['images'],
             allowsEditing: true,
             aspect: [1, 1],
             quality: 0.85,
@@ -90,25 +111,34 @@ export default function CreatePlaylistModal({
         }
     };
 
+    if (!rendered && !visible) return null;
+
     return (
         <Modal
-            visible={visible}
+            visible
             transparent
-            animationType="slide"
+            animationType="none"
+            statusBarTranslucent
             onRequestClose={handleClose}
         >
-            <TouchableWithoutFeedback onPress={handleClose}>
-                <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.65)", justifyContent: "flex-end" }} />
-            </TouchableWithoutFeedback>
+            {/* Animated backdrop */}
+            <Animated.View
+                style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.65)', opacity: fadeAnim }}
+            >
+                <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={handleClose} />
+            </Animated.View>
 
-            <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : undefined}
+            <Animated.View
                 style={{
-                    position: "absolute",
+                    position: 'absolute',
                     bottom: 0,
                     left: 0,
                     right: 0,
+                    transform: [{ translateY: slideAnim }],
                 }}
+            >
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
             >
                 <View
                     style={{
@@ -304,6 +334,7 @@ export default function CreatePlaylistModal({
                     </ScrollView>
                 </View>
             </KeyboardAvoidingView>
+            </Animated.View>
         </Modal>
     );
 }
