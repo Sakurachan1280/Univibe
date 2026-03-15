@@ -170,6 +170,8 @@ export default function AdminAlbumManagementScreen() {
 
     // target album for direct "add songs" from card (without opening songs modal first)
     const [addSongsTarget, setAddSongsTarget] = useState<Playlist | null>(null);
+    // track if add-songs was opened from songs modal (so we can reopen it after)
+    const [addSongsFromSongsModal, setAddSongsFromSongsModal] = useState(false);
 
     useFocusEffect(
         useCallback(() => {
@@ -352,7 +354,14 @@ export default function AdminAlbumManagementScreen() {
 
     const openAddSongsFromSongsModal = () => {
         if (!albumDetail) return;
-        openAddSongsForAlbum(albumDetail);
+        const target = albumDetail;
+        // Close songs modal first, then open add-songs modal after animation ends
+        // This avoids the React Native "nested Modal" issue on Android
+        setAddSongsFromSongsModal(true);
+        setSongsModalVisible(false);
+        setTimeout(() => {
+            openAddSongsForAlbum(target);
+        }, 350);
     };
 
     const togglePick = (id: string) => {
@@ -377,9 +386,12 @@ export default function AdminAlbumManagementScreen() {
                 }
             }
             setAddSongsModalVisible(false);
-            // Refresh songs modal if it was open for the same album
-            if (albumDetail?._id === target._id) {
-                await refreshAlbumDetail();
+            // Refresh album detail
+            await refreshAlbumDetail();
+            // If opened from songs modal, re-open it after a short delay
+            if (addSongsFromSongsModal) {
+                setAddSongsFromSongsModal(false);
+                setTimeout(() => setSongsModalVisible(true), 300);
             }
             // Brief confirmation
             Alert.alert('✓ Đã thêm', `${pickedIds.length} bài hát vào "${target.name}"`);
@@ -477,7 +489,7 @@ export default function AdminAlbumManagementScreen() {
                                 </View>
                             </View>
 
-                            {/* Action bar — 4 buttons */}
+                            {/* Action bar — 3 buttons */}
                             <View className="flex-row border-t border-white/10">
                                 <TouchableOpacity
                                     onPress={() => openSongsModal(album)}
@@ -485,16 +497,6 @@ export default function AdminAlbumManagementScreen() {
                                 >
                                     <Ionicons name="musical-notes-outline" size={15} color="#A855F7" />
                                     <Text className="text-purple-400 text-xs font-semibold ml-1">Bài Hát</Text>
-                                </TouchableOpacity>
-
-                                {/* ✨ NEW: Direct add songs button */}
-                                <TouchableOpacity
-                                    onPress={() => openAddSongsForAlbum(album)}
-                                    className="flex-1 flex-row items-center justify-center py-3 border-r border-white/10"
-                                    style={{ backgroundColor: 'rgba(34,197,94,0.06)' }}
-                                >
-                                    <Ionicons name="add-circle-outline" size={15} color="#22C55E" />
-                                    <Text className="text-green-400 text-xs font-semibold ml-1">Thêm Nhạc</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
