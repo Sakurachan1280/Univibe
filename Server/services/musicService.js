@@ -123,6 +123,19 @@ const getSongList = async (type = 'new') => {
   }
 };
 
+const getSongsByGenre = async (genre, limit = 30) => {
+  const songs = await Song.find({
+    genres: { $elemMatch: { $regex: genre, $options: 'i' } }
+  })
+    .populate('artist_ids', 'name avatar')
+    .select('title file_url cover_image duration genres stats artist_ids')
+    .lean();
+
+  // Shuffle và giới hạn số lượng
+  const shuffled = songs.sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, Number(limit));
+};
+
 const getRandomSongs = async (limit = 20) => {
   return await Song.aggregate([
     { $sample: { size: Number(limit) } },
@@ -266,6 +279,7 @@ module.exports = {
   getAllSongs,
   getSongList,
   getRandomSongs,
+  getSongsByGenre,
   searchSongs,
   logListeningAction
 };

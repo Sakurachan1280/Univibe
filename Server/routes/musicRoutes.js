@@ -69,6 +69,9 @@ router.get('/songs/random', musicController.getRandomSongs);
 // 3b. Lấy TẤT CẢ bài hát (admin, không giới hạn)
 router.get('/songs/all', musicController.getAllSongs);
 
+// 3c. Lấy bài hát theo thể loại (?genre=pop)
+router.get('/songs/genre', musicController.getSongsByGenre);
+
 // 3. Load bài hát để phát (Play) - MUST be after PUT/DELETE
 router.get('/songs/:id', musicController.playSong);
 

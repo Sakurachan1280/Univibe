@@ -210,6 +210,17 @@ const logAction = async (req, res) => {
   }
 };
 
+const getSongsByGenre = async (req, res) => {
+  try {
+    const { genre, limit } = req.query;
+    if (!genre) return res.status(400).json({ message: 'genre query param is required' });
+    const songs = await musicService.getSongsByGenre(genre, limit);
+    res.json(songs);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 const getRandomSongs = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 20;
@@ -249,6 +260,7 @@ module.exports = {
   getQueue,
   getAllSongs,
   getRandomSongs,
+  getSongsByGenre,
   searchSongs,
   logAction
 };

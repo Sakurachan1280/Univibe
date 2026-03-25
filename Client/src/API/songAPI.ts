@@ -27,6 +27,11 @@ export const getRandomSongs = async (limit: number = 20): Promise<Song[]> => {
     return response.data;
 };
 
+export const getSongsByGenre = async (genre: string, limit: number = 30): Promise<Song[]> => {
+    const response = await axiosClient.get(`/music/songs/genre?genre=${encodeURIComponent(genre)}&limit=${limit}`);
+    return response.data;
+};
+
 export const getAllSongs = async (): Promise<Song[]> => {
     // /songs/all trả về toàn bộ bài hát không giới hạn (dùng cho admin)
     const response = await axiosClient.get('/music/songs/all');

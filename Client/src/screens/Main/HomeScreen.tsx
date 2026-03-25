@@ -194,15 +194,99 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* SECTIONS */}
+        {/* ─── ĐỀ XUẤT CHO BẠN — Genre Playlists ─── */}
+        <View className="mt-6">
+          <Text className="text-white text-2xl font-bold px-4 mb-1">Đề xuất cho bạn</Text>
+          <Text className="text-gray-400 text-sm px-4 mb-4">Playlist nhạc tự động theo thể loại</Text>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View className="flex-row gap-4 px-4">
+              {[
+                {
+                  genre: "pop",
+                  title: "Pop Hits",
+                  desc: "Những bài pop đang hot",
+                  colors: ["#EC4899", "#9333EA"] as [string, string],
+                  icon: "musical-notes",
+                },
+                {
+                  genre: "ballad",
+                  title: "Ballad Buồn",
+                  desc: "Nhạc tâm trạng, sâu lắng",
+                  colors: ["#3B82F6", "#1D4ED8"] as [string, string],
+                  icon: "heart",
+                },
+                {
+                  genre: "rap",
+                  title: "Rap Việt",
+                  desc: "Rap & Hip-hop đỉnh cao",
+                  colors: ["#F59E0B", "#D97706"] as [string, string],
+                  icon: "mic",
+                },
+                {
+                  genre: "edm",
+                  title: "EDM / Electronic",
+                  desc: "Nhạc điện tử sôi động",
+                  colors: ["#06B6D4", "#0891B2"] as [string, string],
+                  icon: "pulse",
+                },
+                {
+                  genre: "indie",
+                  title: "Indie & Chill",
+                  desc: "Nhạc indie nhẹ nhàng",
+                  colors: ["#10B981", "#059669"] as [string, string],
+                  icon: "leaf",
+                },
+              ].map((item) => (
+                <TouchableOpacity
+                  key={item.genre}
+                  activeOpacity={0.75}
+                  onPress={() =>
+                    navigation.navigate("GenrePlaylist", {
+                      genre: item.genre,
+                      title: item.title,
+                    })
+                  }
+                  style={{ width: 160, borderRadius: 14, overflow: "hidden", backgroundColor: "#1c1c1e" }}
+                >
+                  {/* Cover gradient */}
+                  <LinearGradient
+                    colors={item.colors}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={{ height: 120, alignItems: "center", justifyContent: "center" }}
+                  >
+                    <Ionicons name={item.icon as any} size={52} color="rgba(255,255,255,0.9)" />
+                  </LinearGradient>
+
+                  {/* Info */}
+                  <View style={{ padding: 12 }}>
+                    <Text
+                      className="text-white font-bold"
+                      numberOfLines={1}
+                      style={{ fontSize: 14, marginBottom: 3 }}
+                    >
+                      {item.title}
+                    </Text>
+                    <Text
+                      className="text-gray-400"
+                      numberOfLines={2}
+                      style={{ fontSize: 12, lineHeight: 17 }}
+                    >
+                      {item.desc}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+
+        {/* ─── CÁC SECTION KHÁC ─── */}
         {[
           {
             title: "Nghe lại",
             desc: "UniVibe AI chọn nhạc theo gu của bạn",
-          },
-          {
-            title: "Đề xuất cho bạn",
-            desc: "UniVibe AI tạo playlist theo gu của bạn",
           },
           {
             title: "AI gợi ý nhạc cho bạn",
