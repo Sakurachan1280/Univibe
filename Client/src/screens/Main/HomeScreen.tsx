@@ -12,7 +12,8 @@ import { PanResponder, PanResponderInstance } from "react-native";
 import { useMusic } from "../../context/MusicContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { getAllArtists, Artist } from "../../API/artistAPI";
-import { getAdminAlbums } from "../../API/playlistAPI";
+import { getAdminAlbums, Playlist } from "../../API/playlistAPI";
+import { Image } from "expo-image";
 
 
 export default function HomeScreen() {
@@ -21,6 +22,7 @@ export default function HomeScreen() {
   const [showSleepTimer, setShowSleepTimer] = useState(false);
   const { startSleepTimer, cancelSleepTimer, sleepTimer } = useMusic();
   const [quickPlayItems, setQuickPlayItems] = useState<QuickPlayItem[]>(QUICK_PLAY);
+  const [adminAlbums, setAdminAlbums] = useState<Playlist[]>([]);
 
   // Fetch artists và chọn ngẫu nhiên 1 artist để thay slot "Chipu"
   useEffect(() => {
@@ -44,14 +46,13 @@ export default function HomeScreen() {
     loadRandomArtist();
   }, []);
 
-  // Fetch admin albums và chọn ngẫu nhiên 1 album để thay slot "album"
+  // Fetch admin albums — dùng cho cả quick play slot VÀ section album nổi bật
   useEffect(() => {
     const loadRandomAlbum = async () => {
       try {
-        console.log("[Home] Fetching admin albums...");
         const albums = await getAdminAlbums();
-        console.log("[Home] Received albums count:", albums?.length);
         if (albums && albums.length > 0) {
+          setAdminAlbums(albums);
           const randomAlbum = albums[Math.floor(Math.random() * albums.length)];
           setQuickPlayItems(prev =>
             prev.map(item =>
@@ -61,7 +62,6 @@ export default function HomeScreen() {
             )
           );
         } else {
-          // Nếu không có album nào, đổi title để user biết
           setQuickPlayItems(prev =>
             prev.map(item =>
               item.type === 'album'
@@ -71,8 +71,7 @@ export default function HomeScreen() {
           );
         }
       } catch (err) {
-        console.error("[Home] Error loading random album:", err);
-        // Giữ nguyên placeholder nếu lỗi
+        console.error("[Home] Error loading albums:", err);
       }
     };
     loadRandomAlbum();
@@ -282,22 +281,74 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
 
+
         {/* ─── CÁC SECTION KHÁC ─── */}
+
+        {/* Album nổi bật — dữ liệu thật từ admin */}
+        {adminAlbums.length > 0 && (
+          <View className="mt-6">
+            <Text className="text-white text-2xl font-bold px-4 mb-1">Album nổi bật</Text>
+            <Text className="text-gray-400 text-sm px-4 mb-4">Tuyển tập âm nhạc do UniVibe chọn lọc</Text>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View className="flex-row gap-4 px-4">
+                {adminAlbums.map((album) => (
+                  <TouchableOpacity
+                    key={album._id}
+                    activeOpacity={0.75}
+                    onPress={() => navigation.navigate("AlbumDetail", { albumId: album._id })}
+                    style={{ width: 160, borderRadius: 14, overflow: "hidden", backgroundColor: "#1c1c1e" }}
+                  >
+                    {album.cover_image ? (
+                      <Image
+                        source={album.cover_image}
+                        style={{ width: 160, height: 160, borderRadius: 12 }}
+                        contentFit="cover"
+                        cachePolicy="memory-disk"
+                      />
+                    ) : (
+                      <LinearGradient
+                        colors={["#EC4899", "#9333EA"]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={{ width: 160, height: 160, borderRadius: 12, alignItems: "center", justifyContent: "center" }}
+                      >
+                        <Ionicons name="musical-notes" size={52} color="rgba(255,255,255,0.9)" />
+                      </LinearGradient>
+                    )}
+                    <View style={{ padding: 10 }}>
+                      <Text
+                        className="text-white font-bold"
+                        numberOfLines={1}
+                        style={{ fontSize: 14, marginBottom: 3 }}
+                      >
+                        {album.name}
+                      </Text>
+                      <Text className="text-gray-400" numberOfLines={1} style={{ fontSize: 12 }}>
+                        {(() => {
+                          const firstSong = album.tracks?.[0]?.song_id as any;
+                          const artistName = firstSong?.artist_ids?.[0]?.name
+                            ?? firstSong?.artist
+                            ?? album.description;
+                          return artistName ? `Album của ${artistName}` : "Album";
+                        })()}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Các section placeholder (AI features) */}
         {[
           {
-            title: "Nghe lại",
-            desc: "UniVibe AI chọn nhạc theo gu của bạn",
-          },
-          {
             title: "AI gợi ý nhạc cho bạn",
-            desc: "UniVibe AI chọn nhạc theo năm",
+            desc: "UniVibe AI chọn nhạc theo gu của bạn",
           },
           {
             title: "AI tạo playlist cho bạn",
-            desc: "UniVibe AI chọn nhạc theo gu của bạn",
-          },
-          {
-            title: "Playlist thịnh hành trong năm",
             desc: "UniVibe AI chọn nhạc theo gu của bạn",
           },
         ].map((section, idx) => (
@@ -332,6 +383,7 @@ export default function HomeScreen() {
             </ScrollView>
           </View>
         ))}
+
       </ScrollView>
 
       {/* PROFILE MENU (CUSTOM – KHÔNG DRAWER) */}

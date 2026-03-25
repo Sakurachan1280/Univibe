@@ -127,15 +127,15 @@ export default function AlbumDetailScreen() {
                 colors={[...albumColors, "#0a0a0a00"] as any}
                 start={{ x: 0.2, y: 0 }}
                 end={{ x: 0.8, y: 1 }}
-                style={{ paddingBottom: 28, paddingHorizontal: 20 }}
+                style={{ paddingBottom: 12, paddingHorizontal: 20 }}
             >
                 <SafeAreaView edges={["top"]}>
                     {/* Back */}
                     <TouchableOpacity
                         onPress={() => navigation.goBack()}
                         style={{
-                            width: 38,
-                            height: 38,
+                            width: 30,
+                            height: 30,
                             borderRadius: 19,
                             backgroundColor: "rgba(0,0,0,0.35)",
                             alignItems: "center",
@@ -168,12 +168,12 @@ export default function AlbumDetailScreen() {
                     {/* Cover */}
                     <View
                         style={{
-                            width: width * 0.52,
-                            height: width * 0.52,
+                            width: width * 0.40,
+                            height: width * 0.40,
                             borderRadius: 18,
                             overflow: "hidden",
                             alignSelf: "center",
-                            marginBottom: 20,
+                            marginBottom: 16,
                             shadowColor: "#EC4899",
                             shadowOffset: { width: 0, height: 14 },
                             shadowOpacity: 0.55,

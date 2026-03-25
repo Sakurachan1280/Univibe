@@ -275,11 +275,8 @@ const styles = StyleSheet.create({
     artistName: {
         color: 'white',
         fontSize: 34,
-        fontWeight: 'bold',
+        fontWeight: '700',
         letterSpacing: 0.5,
-        textShadowColor: 'rgba(0,0,0,0.8)',
-        textShadowOffset: { width: 0, height: 2 },
-        textShadowRadius: 8,
     },
     artistMeta: {
         color: 'rgba(255,255,255,0.65)',
@@ -336,8 +333,8 @@ const styles = StyleSheet.create({
     bioLabel: {
         color: '#ec4899',
         fontSize: 13,
-        fontWeight: '700',
-        textTransform: 'uppercase',
+        fontWeight: '700' as const,
+        textTransform: 'uppercase' as const,
         letterSpacing: 1,
         marginBottom: 8,
     },
@@ -356,7 +353,7 @@ const styles = StyleSheet.create({
     songListTitle: {
         color: 'white',
         fontSize: 22,
-        fontWeight: 'bold',
+        fontWeight: '700',
         marginBottom: 16,
         paddingHorizontal: 4,
     },
@@ -371,9 +368,9 @@ const styles = StyleSheet.create({
     songRank: {
         color: 'rgba(255,255,255,0.35)',
         fontSize: 14,
-        fontWeight: '600',
+        fontWeight: '600' as const,
         width: 28,
-        textAlign: 'center',
+        textAlign: 'center' as const,
     },
     songThumbnail: {
         width: 52,

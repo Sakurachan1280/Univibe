@@ -324,7 +324,7 @@ export default function LibraryScreen() {
                                         <View className="p-3">
                                             <Text className="text-white font-bold text-base" numberOfLines={1}>{playlist.name}</Text>
                                             <Text className="text-gray-400 text-sm mt-1">
-                                                {playlist.tracks?.length ?? playlist.songs?.length ?? 0} bài hát
+                                                Danh sách phát của tôi
                                             </Text>
                                             <Text className="text-gray-500 text-xs mt-1">
                                                 {playlist.is_public ? "Công khai" : "Riêng tư"}

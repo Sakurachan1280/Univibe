@@ -50,6 +50,21 @@ const GENRE_CONFIG: Record<string, { colors: [string, string, string, string]; i
         icon: "mic",
         label: "Rap",
     },
+    rock: {
+        colors: ["#EF4444", "#B91C1C", "#1a0000", "#050505"],
+        icon: "flame",
+        label: "Rock",
+    },
+    "r&b": {
+        colors: ["#8B5CF6", "#6D28D9", "#0d001a", "#050505"],
+        icon: "headset",
+        label: "R&B",
+    },
+    electronic: {
+        colors: ["#10B981", "#059669", "#001a0d", "#050505"],
+        icon: "flash",
+        label: "Electronic",
+    },
 };
 
 const DEFAULT_CONFIG = {
