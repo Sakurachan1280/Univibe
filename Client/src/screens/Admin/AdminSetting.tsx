@@ -17,6 +17,8 @@ import { CommonActions } from '@react-navigation/native';
 import { getMeAPI, User } from '../../API/userAPI';
 import { AdminTabParamList } from '../../navigation/types';
 import { useAdminTheme } from '../../context/AdminThemeContext';
+import * as SecureStore from 'expo-secure-store';
+import { useMusic } from '../../context/MusicContext';
 
 type AdminAccountNavigationProp = NativeStackNavigationProp<AdminTabParamList>;
 
@@ -27,6 +29,7 @@ export default function AdminAccount() {
   const [isLoading, setIsLoading] = useState(true);
 
   const theme = useAdminTheme();
+  const { stopMusic } = useMusic();
 
   useEffect(() => { fetchUserData(); }, []);
 
@@ -163,7 +166,11 @@ export default function AdminAccount() {
             <TouchableOpacity
               style={{ backgroundColor: 'rgba(239,68,68,0.1)', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)' }}
               activeOpacity={0.8}
-              onPress={() => navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Welcone' }] }))}
+              onPress={async () => {
+              await stopMusic();
+              await SecureStore.deleteItemAsync('accessToken');
+              navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Welcone' }] }));
+            }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>

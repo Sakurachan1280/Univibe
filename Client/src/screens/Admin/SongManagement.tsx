@@ -9,6 +9,7 @@ import {
     ScrollView,
     Modal,
     TextInput,
+    Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +18,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { BASE_URL } from '../../API/axiosClient';
 import { getAllSongs, deleteSong, updateSong } from '../../API/songAPI';
 import { getAllArtists } from '../../API/artistAPI';
+import { useAdminTheme } from '../../context/AdminThemeContext';
 
 // Local interface for admin song management - matches server response structure
 interface AdminSong {
@@ -31,6 +33,7 @@ interface AdminSong {
 
 export default function SongManagementScreen() {
     const navigation = useNavigation();
+    const theme = useAdminTheme();
     const [songs, setSongs] = useState<AdminSong[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [editModalVisible, setEditModalVisible] = useState(false);
@@ -176,12 +179,13 @@ export default function SongManagementScreen() {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-black">
-            <View className="flex-row items-center px-4 py-2 border-b border-white/10">
+        <Animated.View style={{ flex: 1, backgroundColor: theme.animBg }}>
+        <SafeAreaView style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: theme.bgCardBorder }}>
                 <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                    <Ionicons name="arrow-back" size={24} color="white" />
+                    <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
                 </TouchableOpacity>
-                <Text className="text-white text-lg font-bold ml-4">Quản Lý Bài Hát</Text>
+                <Text style={{ color: theme.textPrimary, fontSize: 18, fontWeight: 'bold', marginLeft: 16 }}>Quản Lý Bài Hát</Text>
             </View>
 
             {isLoading ? (
@@ -199,7 +203,7 @@ export default function SongManagementScreen() {
                         songs.map((song) => (
                             <View
                                 key={song._id}
-                                className="bg-white/5 rounded-2xl p-4 mb-3 border border-white/10"
+                                style={{ backgroundColor: theme.bgInput, borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: theme.bgCardBorder }}
                             >
                                 <View className="flex-row items-center">
                                     {song.cover_image ? (
@@ -218,14 +222,14 @@ export default function SongManagementScreen() {
                                     )}
 
                                     <View className="flex-1 ml-4">
-                                        <Text className="text-white text-lg font-bold" numberOfLines={1}>
+                                        <Text style={{ color: theme.textPrimary, fontSize: 18, fontWeight: 'bold' }} numberOfLines={1}>
                                             {song.title}
                                         </Text>
-                                        <Text className="text-gray-400 text-sm mt-1">
+                                        <Text style={{ color: theme.textSecondary, fontSize: 14, marginTop: 4 }}>
                                             {formatDuration(song.duration || 0)}
                                         </Text>
                                         {song.genres && song.genres.length > 0 && (
-                                            <Text className="text-gray-500 text-xs mt-1" numberOfLines={1}>
+                                            <Text style={{ color: theme.textSecondary, fontSize: 12, marginTop: 4, opacity: 0.7 }} numberOfLines={1}>
                                                 {song.genres.join(', ')}
                                             </Text>
                                         )}
@@ -260,12 +264,12 @@ export default function SongManagementScreen() {
                 transparent={true}
                 onRequestClose={() => setEditModalVisible(false)}
             >
-                <View className="flex-1 bg-black/80 justify-end">
-                    <View className="bg-gray-900 rounded-t-3xl p-6" style={{ maxHeight: '80%' }}>
-                        <View className="flex-row items-center justify-between mb-6">
-                            <Text className="text-white text-xl font-bold">Chỉnh Sửa Bài Hát</Text>
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' }}>
+                    <Animated.View style={{ backgroundColor: theme.animCard, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '80%', borderTopWidth: 1, borderColor: theme.bgCardBorder }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+                            <Text style={{ color: theme.textPrimary, fontSize: 20, fontWeight: 'bold' }}>Chỉnh Sửa Bài Hát</Text>
                             <TouchableOpacity onPress={() => setEditModalVisible(false)}>
-                                <Ionicons name="close" size={28} color="white" />
+                                <Ionicons name="close" size={28} color={theme.textPrimary} />
                             </TouchableOpacity>
                         </View>
 
@@ -292,50 +296,50 @@ export default function SongManagementScreen() {
                                         )}
                                     </View>
                                 </TouchableOpacity>
-                                <Text className="text-gray-400 text-sm mt-2">Nhấn để thay đổi ảnh bìa</Text>
+                                <Text style={{ color: theme.textSecondary, fontSize: 14, marginTop: 8 }}>Nhấn để thay đổi ảnh bìa</Text>
                             </View>
 
                             {/* Title */}
                             <View className="mb-4">
-                                <Text className="text-gray-400 text-sm mb-2">Tên Bài Hát *</Text>
+                                <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>Tên Bài Hát *</Text>
                                 <TextInput
                                     value={editTitle}
                                     onChangeText={setEditTitle}
                                     placeholder="Nhập tên bài hát"
-                                    placeholderTextColor="#666"
-                                    className="bg-white/10 text-white p-4 rounded-xl border border-white/10"
+                                    placeholderTextColor={theme.textSecondary}
+                                    style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput }}
                                 />
                             </View>
 
                             {/* Duration */}
                             <View className="mb-4">
-                                <Text className="text-gray-400 text-sm mb-2">Thời lượng (giây)</Text>
+                                <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>Thời lượng (giây)</Text>
                                 <TextInput
                                     value={editDuration}
                                     onChangeText={setEditDuration}
                                     placeholder="300"
-                                    placeholderTextColor="#666"
+                                    placeholderTextColor={theme.textSecondary}
                                     keyboardType="numeric"
-                                    className="bg-white/10 text-white p-4 rounded-xl border border-white/10"
+                                    style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput }}
                                 />
                             </View>
 
                             {/* Genres */}
                             <View className="mb-4">
-                                <Text className="text-gray-400 text-sm mb-2">Thể loại (phân cách bằng dấu phẩy)</Text>
+                                <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>Thể loại (phân cách bằng dấu phẩy)</Text>
                                 <TextInput
                                     value={editGenres}
                                     onChangeText={setEditGenres}
                                     placeholder="Pop, Rock, Jazz"
-                                    placeholderTextColor="#666"
-                                    className="bg-white/10 text-white p-4 rounded-xl border border-white/10"
+                                    placeholderTextColor={theme.textSecondary}
+                                    style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput }}
                                 />
                             </View>
 
                             {/* Artists */}
                             <View className="mb-6">
-                                <Text className="text-gray-400 text-sm mb-2">Ca Sĩ *</Text>
-                                <View className="bg-white/10 rounded-xl border border-white/10 p-2" style={{ maxHeight: 220 }}>
+                                <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>Ca Sĩ *</Text>
+                                <View style={{ backgroundColor: theme.bgInput, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, padding: 8, maxHeight: 220 }}>
                                     <ScrollView nestedScrollEnabled showsVerticalScrollIndicator>
                                         {allArtists.map((artist) => {
                                             const selected = editArtistIds.includes(artist._id);
@@ -361,7 +365,7 @@ export default function SongManagementScreen() {
                                                             <Ionicons name="person" size={18} color="gray" />
                                                         </View>
                                                     )}
-                                                    <Text className="text-white ml-3 flex-1" numberOfLines={1}>{artist.name}</Text>
+                                                    <Text style={{ color: theme.textPrimary, marginLeft: 12, flex: 1 }} numberOfLines={1}>{artist.name}</Text>
                                                     {selected && <Ionicons name="checkmark-circle" size={22} color="#EC4899" />}
                                                 </TouchableOpacity>
                                             );
@@ -380,20 +384,21 @@ export default function SongManagementScreen() {
                                 {isSaving ? (
                                     <ActivityIndicator color="white" />
                                 ) : (
-                                    <Text className="text-white font-bold text-lg">Lưu Thay Đổi</Text>
+                                    <Text style={{ color: '#FFFFFF', fontWeight: 'bold', fontSize: 18 }}>Lưu Thay Đổi</Text>
                                 )}
                             </TouchableOpacity>
 
                             <TouchableOpacity
                                 onPress={() => setEditModalVisible(false)}
-                                className="py-4 rounded-xl items-center bg-white/10"
+                                style={{ paddingVertical: 16, borderRadius: 12, alignItems: 'center', backgroundColor: theme.bgCardBorder }}
                             >
-                                <Text className="text-white font-semibold">Hủy</Text>
+                                <Text style={{ color: theme.textPrimary, fontWeight: '600' }}>Hủy</Text>
                             </TouchableOpacity>
                         </ScrollView>
-                    </View>
+                    </Animated.View>
                 </View>
             </Modal>
         </SafeAreaView>
+        </Animated.View>
     );
 }

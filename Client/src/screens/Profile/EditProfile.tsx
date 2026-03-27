@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { BASE_URL } from '../../API/axiosClient';
-import { getMeAPI, updateProfileAPI } from '../../API/userAPI';
+import { getMeAPI, updateProfileAPI, User } from '../../API/userAPI';
 
 export default function EditProfileScreen() {
     const navigation = useNavigation();
@@ -36,12 +36,14 @@ export default function EditProfileScreen() {
     const fetchUserProfile = async () => {
         try {
             setIsLoading(true);
-            const userData = await getMeAPI();
+            const userData: User | null = await getMeAPI();
 
-            setDisplayName(userData.profile?.display_name || userData.username || '');
-            setBio(userData.profile?.bio || '');
-            setAvatarUrl(userData.profile?.avatar_url || '');
-            setCoverUrl(userData.profile?.cover_url || '');
+            if (userData) {
+                setDisplayName(userData.profile?.display_name || userData.username || '');
+                setBio(userData.profile?.bio || '');
+                setAvatarUrl(userData.profile?.avatar_url || '');
+                setCoverUrl(userData.profile?.cover_url || '');
+            }
         } catch (error) {
             console.error('Error fetching profile:', error);
             Alert.alert('Error', 'Failed to load profile');

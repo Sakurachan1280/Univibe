@@ -32,6 +32,7 @@ import {
 } from '../../API/playlistAPI';
 import { getAllSongs, Song } from '../../API/songAPI';
 import { BASE_URL } from '../../API/axiosClient';
+import { useAdminTheme } from '../../context/AdminThemeContext';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -141,6 +142,7 @@ function BottomSheet({
 
 export default function AdminAlbumManagementScreen() {
     const navigation = useNavigation();
+    const theme = useAdminTheme();
 
     const [albums, setAlbums] = useState<Playlist[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -423,15 +425,16 @@ export default function AdminAlbumManagementScreen() {
     // ─────────────────────────────────────────────────────────────────────────
 
     return (
-        <SafeAreaView className="flex-1 bg-black">
+        <Animated.View style={{ flex: 1, backgroundColor: theme.animBg }}>
+        <SafeAreaView style={{ flex: 1 }}>
 
             {/* Header */}
-            <View className="flex-row items-center justify-between px-4 py-3 border-b border-white/10">
-                <View className="flex-row items-center">
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="p-2 mr-1">
-                        <Ionicons name="arrow-back" size={24} color="white" />
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: theme.bgCardBorder }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8, marginRight: 4 }}>
+                        <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
                     </TouchableOpacity>
-                    <Text className="text-white text-xl font-bold">Quản Lý Album & Playlist</Text>
+                    <Text style={{ color: theme.textPrimary, fontSize: 20, fontWeight: 'bold' }}>Quản Lý Album & Playlist</Text>
                 </View>
                 <TouchableOpacity
                     onPress={() => (navigation as any).navigate('CreateAlbum')}
@@ -448,20 +451,20 @@ export default function AdminAlbumManagementScreen() {
                 </View>
             ) : albums.length === 0 ? (
                 <View className="flex-1 items-center justify-center px-8">
-                    <Ionicons name="albums-outline" size={64} color="#444" />
-                    <Text className="text-white text-xl font-bold text-center mt-4">Chưa có album / playlist nào</Text>
-                    <Text className="text-gray-400 text-center mt-2">Nhấn "Thêm" để tạo album hoặc playlist mới</Text>
+                    <Ionicons name="albums-outline" size={64} color={theme.textSecondary} />
+                    <Text style={{ color: theme.textPrimary, fontSize: 20, fontWeight: 'bold', textAlign: 'center', marginTop: 16 }}>Chưa có album / playlist nào</Text>
+                    <Text style={{ color: theme.textSecondary, textAlign: 'center', marginTop: 8 }}>Nhấn "Thêm" để tạo album hoặc playlist mới</Text>
                 </View>
             ) : (
                 <ScrollView className="flex-1 px-5 pt-4">
-                    <Text className="text-gray-500 text-xs mb-4 uppercase tracking-widest">
+                    <Text style={{ color: theme.textSecondary, fontSize: 12, marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1 }}>
                         {albums.length} album / playlist hệ thống
                     </Text>
 
                     {albums.map(album => (
-                        <View
+                        <Animated.View
                             key={album._id}
-                            className="bg-white/5 rounded-2xl mb-4 border border-white/10 overflow-hidden"
+                            style={{ backgroundColor: theme.animCard, borderRadius: 16, marginBottom: 16, borderWidth: 1, borderColor: theme.bgCardBorder, overflow: 'hidden' }}
                         >
                             <View className="flex-row items-center p-4">
                                 {/* Cover */}
@@ -481,11 +484,11 @@ export default function AdminAlbumManagementScreen() {
 
                                 {/* Info */}
                                 <View className="flex-1 ml-3">
-                                    <Text className="text-white font-bold text-base" numberOfLines={1}>
+                                    <Text style={{ color: theme.textPrimary, fontWeight: 'bold', fontSize: 16 }} numberOfLines={1}>
                                         {album.name}
                                     </Text>
                                     {album.description ? (
-                                        <Text className="text-gray-400 text-xs mt-0.5" numberOfLines={1}>
+                                        <Text style={{ color: theme.textSecondary, fontSize: 12, marginTop: 2 }} numberOfLines={1}>
                                             {album.description}
                                         </Text>
                                     ) : null}
@@ -502,10 +505,10 @@ export default function AdminAlbumManagementScreen() {
                             </View>
 
                             {/* Action bar — 3 buttons */}
-                            <View className="flex-row border-t border-white/10">
+                            <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: theme.bgCardBorder }}>
                                 <TouchableOpacity
                                     onPress={() => openSongsModal(album)}
-                                    className="flex-1 flex-row items-center justify-center py-3 border-r border-white/10"
+                                    style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, borderRightWidth: 1, borderRightColor: theme.bgCardBorder }}
                                 >
                                     <Ionicons name="musical-notes-outline" size={15} color="#A855F7" />
                                     <Text className="text-purple-400 text-xs font-semibold ml-1">Bài Hát</Text>
@@ -513,7 +516,7 @@ export default function AdminAlbumManagementScreen() {
 
                                 <TouchableOpacity
                                     onPress={() => openEdit(album)}
-                                    className="flex-1 flex-row items-center justify-center py-3 border-r border-white/10"
+                                    style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, borderRightWidth: 1, borderRightColor: theme.bgCardBorder }}
                                 >
                                     <Ionicons name="create-outline" size={15} color="#06B6D4" />
                                     <Text className="text-cyan-400 text-xs font-semibold ml-1">Sửa</Text>
@@ -521,13 +524,13 @@ export default function AdminAlbumManagementScreen() {
 
                                 <TouchableOpacity
                                     onPress={() => handleDelete(album)}
-                                    className="flex-1 flex-row items-center justify-center py-3"
+                                    style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12 }}
                                 >
                                     <Ionicons name="trash-outline" size={15} color="#EF4444" />
                                     <Text className="text-red-400 text-xs font-semibold ml-1">Xóa</Text>
                                 </TouchableOpacity>
                             </View>
-                        </View>
+                        </Animated.View>
                     ))}
                     <View className="h-8" />
                 </ScrollView>
@@ -540,12 +543,12 @@ export default function AdminAlbumManagementScreen() {
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 >
-                    <View className="bg-gray-900 rounded-t-3xl p-6" style={{ maxHeight: '90%' }}>
+                    <Animated.View style={{ backgroundColor: theme.animCard, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '90%' }}>
                         {/* Header */}
-                        <View className="flex-row items-center justify-between mb-5">
-                            <Text className="text-white text-xl font-bold">Chỉnh Sửa Album</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                            <Text style={{ color: theme.textPrimary, fontSize: 20, fontWeight: 'bold' }}>Chỉnh Sửa Album</Text>
                             <TouchableOpacity onPress={() => setEditModalVisible(false)}>
-                                <Ionicons name="close" size={28} color="white" />
+                                <Ionicons name="close" size={28} color={theme.textPrimary} />
                             </TouchableOpacity>
                         </View>
 
@@ -555,7 +558,7 @@ export default function AdminAlbumManagementScreen() {
                                 <TouchableOpacity onPress={pickCover} activeOpacity={0.8}>
                                     <View
                                         className="w-32 h-32 rounded-2xl overflow-hidden border-2 border-pink-500"
-                                        style={{ backgroundColor: '#1a1a2e' }}
+                                        style={{ backgroundColor: theme.bgInput }}
                                     >
                                         {editCoverUri ? (
                                             <Image source={{ uri: editCoverUri }} style={{ width: '100%', height: '100%' }} />
@@ -574,7 +577,7 @@ export default function AdminAlbumManagementScreen() {
                                         </View>
                                     </View>
                                 </TouchableOpacity>
-                                <Text className="text-gray-400 text-xs mt-2">
+                                <Text style={{ color: theme.textSecondary, fontSize: 12, marginTop: 8 }}>
                                     {editCoverUri ? '✓ Ảnh mới đã chọn' : 'Nhấn để thay đổi ảnh bìa'}
                                 </Text>
                                 {editCoverUri && (
@@ -586,42 +589,39 @@ export default function AdminAlbumManagementScreen() {
 
                             {/* Name */}
                             <View className="mb-4">
-                                <Text className="text-gray-400 text-sm mb-2">Tên Album *</Text>
+                                <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>Tên Album *</Text>
                                 <TextInput
                                     value={editName}
                                     onChangeText={setEditName}
                                     placeholder="Nhập tên album"
-                                    placeholderTextColor="#555"
-                                    className="text-white p-4 rounded-xl border border-white/10"
-                                    style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}
+                                    placeholderTextColor={theme.textSecondary}
+                                    style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput }}
                                 />
                             </View>
 
                             {/* Description */}
                             <View className="mb-4">
-                                <Text className="text-gray-400 text-sm mb-2">Mô Tả</Text>
+                                <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>Mô Tả</Text>
                                 <TextInput
                                     value={editDesc}
                                     onChangeText={setEditDesc}
                                     placeholder="Nhập mô tả album"
-                                    placeholderTextColor="#555"
+                                    placeholderTextColor={theme.textSecondary}
                                     multiline
                                     textAlignVertical="top"
-                                    className="text-white p-4 rounded-xl border border-white/10 h-24"
-                                    style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}
+                                    style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput, height: 96 }}
                                 />
                             </View>
 
                             {/* Tags */}
                             <View className="mb-6">
-                                <Text className="text-gray-400 text-sm mb-2">Tags (phân cách bằng dấu phẩy)</Text>
+                                <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>Tags (phân cách bằng dấu phẩy)</Text>
                                 <TextInput
                                     value={editTags}
                                     onChangeText={setEditTags}
                                     placeholder="Pop, Ballad, V-Pop"
-                                    placeholderTextColor="#555"
-                                    className="text-white p-4 rounded-xl border border-white/10"
-                                    style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}
+                                    placeholderTextColor={theme.textSecondary}
+                                    style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput }}
                                 />
                             </View>
 
@@ -633,18 +633,18 @@ export default function AdminAlbumManagementScreen() {
                                 {isSaving ? (
                                     <ActivityIndicator color="white" />
                                 ) : (
-                                    <Text className="text-white font-bold text-lg">Lưu Thay Đổi</Text>
+                                    <Text style={{ color: '#FFFFFF', fontWeight: 'bold', fontSize: 18 }}>Lưu Thay Đổi</Text>
                                 )}
                             </TouchableOpacity>
 
                             <TouchableOpacity
                                 onPress={() => setEditModalVisible(false)}
-                                className="py-4 rounded-xl items-center bg-white/10 mb-2"
+                                style={{ paddingVertical: 16, borderRadius: 12, alignItems: 'center', backgroundColor: theme.bgCardBorder, marginBottom: 8 }}
                             >
-                                <Text className="text-white font-semibold">Hủy</Text>
+                                <Text style={{ color: theme.textPrimary, fontWeight: '600' }}>Hủy</Text>
                             </TouchableOpacity>
                         </ScrollView>
-                    </View>
+                    </Animated.View>
                 </KeyboardAvoidingView>
             </BottomSheet>
 
@@ -652,31 +652,31 @@ export default function AdminAlbumManagementScreen() {
                 SONGS MANAGEMENT MODAL
             ══════════════════════════════════════════════════════════════════ */}
             <BottomSheet visible={songsModalVisible} onClose={() => setSongsModalVisible(false)} maxHeight="85%">
-                <View className="bg-gray-900 rounded-t-3xl" style={{ maxHeight: '100%' }}>
+                <Animated.View style={{ backgroundColor: theme.animCard, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '100%' }}>
                     {/* Header */}
-                    <View className="flex-row items-center justify-between px-6 pt-5 pb-3 border-b border-white/10">
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: 20, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: theme.bgCardBorder }}>
                         <View className="flex-1">
-                            <Text className="text-white text-lg font-bold" numberOfLines={1}>
+                            <Text style={{ color: theme.textPrimary, fontSize: 18, fontWeight: 'bold' }} numberOfLines={1}>
                                 {albumDetail?.name ?? 'Bài hát trong Album'}
                             </Text>
                             {albumDetail && (
-                                <Text className="text-gray-400 text-xs mt-0.5">
+                                <Text style={{ color: theme.textSecondary, fontSize: 12, marginTop: 2 }}>
                                     {albumDetail.tracks.length} bài hát
                                     {isReordering ? ' · Đang lưu...' : ''}
                                 </Text>
                             )}
                         </View>
-                        <View className="flex-row items-center">
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                             {/* Add songs button inside songs modal */}
                             <TouchableOpacity
                                 onPress={openAddSongsFromSongsModal}
-                                className="bg-green-600/80 flex-row items-center px-3 py-2 rounded-xl mr-2"
+                                style={{ backgroundColor: '#16A34A', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, marginRight: 8 }}
                             >
                                 <Ionicons name="add" size={18} color="white" />
-                                <Text className="text-white text-sm font-semibold ml-1">Thêm</Text>
+                                <Text style={{ color: 'white', fontSize: 14, fontWeight: '600', marginLeft: 4 }}>Thêm</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => setSongsModalVisible(false)}>
-                                <Ionicons name="close" size={26} color="white" />
+                                <Ionicons name="close" size={26} color={theme.textPrimary} />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -687,23 +687,23 @@ export default function AdminAlbumManagementScreen() {
                         </View>
                     ) : albumDetail && albumDetail.tracks.length === 0 ? (
                         <View className="py-16 items-center px-6">
-                            <Ionicons name="musical-notes-outline" size={48} color="#555" />
-                            <Text className="text-gray-400 mt-3 text-center">
+                            <Ionicons name="musical-notes-outline" size={48} color={theme.textSecondary} />
+                            <Text style={{ color: theme.textSecondary, marginTop: 12, textAlign: 'center' }}>
                                 Chưa có bài hát nào.
                             </Text>
                             <TouchableOpacity
                                 onPress={openAddSongsFromSongsModal}
-                                className="mt-4 bg-green-600/80 px-6 py-3 rounded-xl flex-row items-center"
+                                style={{ marginTop: 16, backgroundColor: '#16A34A', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, flexDirection: 'row', alignItems: 'center' }}
                             >
                                 <Ionicons name="add" size={18} color="white" />
-                                <Text className="text-white font-semibold ml-2">Thêm bài hát</Text>
+                                <Text style={{ color: 'white', fontWeight: '600', marginLeft: 8 }}>Thêm bài hát</Text>
                             </TouchableOpacity>
                         </View>
                     ) : (
                         <ScrollView className="px-5 pt-4" showsVerticalScrollIndicator={false}>
-                            <View className="flex-row items-center mb-3">
-                                <Ionicons name="swap-vertical" size={14} color="#666" />
-                                <Text className="text-gray-500 text-xs ml-1">
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                                <Ionicons name="swap-vertical" size={14} color={theme.textSecondary} />
+                                <Text style={{ color: theme.textSecondary, fontSize: 12, marginLeft: 4 }}>
                                     Dùng ↑↓ để thay đổi thứ tự bài hát
                                 </Text>
                             </View>
@@ -719,9 +719,9 @@ export default function AdminAlbumManagementScreen() {
                                 return (
                                     <View
                                         key={songId || idx}
-                                        className="flex-row items-center bg-white/5 rounded-xl p-3 mb-2 border border-white/8"
+                                        style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: theme.bgInput, borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: theme.bgCardBorder }}
                                     >
-                                        <Text className="text-gray-500 text-xs w-6 text-center">{idx + 1}</Text>
+                                        <Text style={{ color: theme.textSecondary, fontSize: 12, width: 24, textAlign: 'center' }}>{idx + 1}</Text>
 
                                         {coverUrl ? (
                                             <Image source={{ uri: coverUrl }} className="w-11 h-11 rounded-lg ml-2" />
@@ -732,11 +732,11 @@ export default function AdminAlbumManagementScreen() {
                                         )}
 
                                         <View className="flex-1 ml-3">
-                                            <Text className="text-white font-semibold text-sm" numberOfLines={1}>
+                                            <Text style={{ color: theme.textPrimary, fontWeight: '600', fontSize: 14 }} numberOfLines={1}>
                                                 {title}
                                             </Text>
                                             {artists ? (
-                                                <Text className="text-gray-400 text-xs mt-0.5" numberOfLines={1}>
+                                                <Text style={{ color: theme.textSecondary, fontSize: 12, marginTop: 2 }} numberOfLines={1}>
                                                     {artists}
                                                 </Text>
                                             ) : null}
@@ -779,7 +779,7 @@ export default function AdminAlbumManagementScreen() {
                             <View className="h-8" />
                         </ScrollView>
                     )}
-                </View>
+                </Animated.View>
             </BottomSheet>
 
             {/* ══════════════════════════════════════════════════════════════════
@@ -790,7 +790,7 @@ export default function AdminAlbumManagementScreen() {
                 onClose={() => !isAddingSongs && setAddSongsModalVisible(false)}
                 maxHeight="88%"
             >
-                <View className="bg-gray-950 rounded-t-3xl" style={{ maxHeight: '100%' }}>
+                <Animated.View style={{ backgroundColor: theme.animCard, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '100%' }}>
                     {/* Header */}
                     <View className="flex-row items-center justify-between px-6 pt-5 pb-3 border-b border-white/10">
                         <View className="flex-1">
@@ -811,37 +811,35 @@ export default function AdminAlbumManagementScreen() {
 
                     {/* Selected count pill */}
                     {pickedIds.length > 0 && (
-                        <View className="mx-5 mt-3 px-4 py-2 rounded-xl flex-row items-center justify-between"
-                            style={{ backgroundColor: 'rgba(34,197,94,0.12)', borderWidth: 1, borderColor: 'rgba(34,197,94,0.3)' }}>
+                        <View style={{ marginHorizontal: 20, marginTop: 12, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(34,197,94,0.12)', borderWidth: 1, borderColor: 'rgba(34,197,94,0.3)' }}>
                             <View className="flex-row items-center">
                                 <Ionicons name="checkmark-circle" size={16} color="#22C55E" />
-                                <Text className="text-green-400 text-sm font-semibold ml-2">
+                                <Text style={{ color: '#4ADE80', fontSize: 14, fontWeight: '600', marginLeft: 8 }}>
                                     Đã chọn {pickedIds.length} bài
                                 </Text>
                             </View>
                             <TouchableOpacity onPress={() => setPickedIds([])}>
-                                <Text className="text-gray-400 text-xs">Bỏ chọn hết</Text>
+                                <Text style={{ color: theme.textSecondary, fontSize: 12 }}>Bỏ chọn hết</Text>
                             </TouchableOpacity>
                         </View>
                     )}
 
                     {/* Search */}
-                    <View className="px-5 py-3">
+                    <View style={{ paddingHorizontal: 20, paddingVertical: 12 }}>
                         <View
-                            className="flex-row items-center rounded-xl px-4 py-2.5"
-                            style={{ backgroundColor: 'rgba(255,255,255,0.07)' }}
+                            style={{ flexDirection: 'row', alignItems: 'center', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10, backgroundColor: theme.bgInput, borderWidth: 1, borderColor: theme.bgCardBorder }}
                         >
-                            <Ionicons name="search" size={17} color="#555" />
+                            <Ionicons name="search" size={17} color={theme.textSecondary} />
                             <TextInput
                                 value={searchText}
                                 onChangeText={setSearchText}
                                 placeholder="Tìm bài hát..."
-                                placeholderTextColor="#555"
-                                className="flex-1 text-white ml-2 text-sm"
+                                placeholderTextColor={theme.textSecondary}
+                                style={{ flex: 1, color: theme.textPrimary, marginLeft: 8, fontSize: 14 }}
                             />
                             {searchText.length > 0 && (
                                 <TouchableOpacity onPress={() => setSearchText('')}>
-                                    <Ionicons name="close-circle" size={17} color="#555" />
+                                    <Ionicons name="close-circle" size={17} color={theme.textSecondary} />
                                 </TouchableOpacity>
                             )}
                         </View>
@@ -850,14 +848,14 @@ export default function AdminAlbumManagementScreen() {
                     {isFetchingSongs ? (
                         <View className="py-12 items-center">
                             <ActivityIndicator size="large" color="#22C55E" />
-                            <Text className="text-gray-500 text-xs mt-3">Đang tải bài hát...</Text>
+                            <Text style={{ color: theme.textSecondary, fontSize: 12, marginTop: 12 }}>Đang tải bài hát...</Text>
                         </View>
                     ) : (
                         <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
                             {filteredSongs.length === 0 ? (
                                 <View className="py-10 items-center">
-                                    <Ionicons name="musical-notes-outline" size={40} color="#444" />
-                                    <Text className="text-gray-500 mt-3">
+                                    <Ionicons name="musical-notes-outline" size={40} color={theme.textSecondary} />
+                                    <Text style={{ color: theme.textSecondary, marginTop: 12 }}>
                                         {allSongs.length === 0
                                             ? 'Tất cả bài hát đã có trong album'
                                             : 'Không có bài hát phù hợp'}
@@ -873,14 +871,10 @@ export default function AdminAlbumManagementScreen() {
                                         key={song._id}
                                         onPress={() => togglePick(song._id)}
                                         activeOpacity={0.7}
-                                        className={`flex-row items-center p-3 rounded-xl mb-2 border ${picked
-                                            ? 'border-green-500/50'
-                                            : 'border-white/10'
-                                            }`}
                                         style={{
-                                            backgroundColor: picked
-                                                ? 'rgba(34,197,94,0.12)'
-                                                : 'rgba(255,255,255,0.05)',
+                                            flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 12, marginBottom: 8, borderWidth: 1,
+                                            borderColor: picked ? 'rgba(34,197,94,0.5)' : theme.bgCardBorder,
+                                            backgroundColor: picked ? 'rgba(34,197,94,0.12)' : theme.bgInput,
                                         }}
                                     >
                                         {coverUrl ? (
@@ -893,23 +887,20 @@ export default function AdminAlbumManagementScreen() {
 
                                         <View className="flex-1 ml-3">
                                             <Text
-                                                className={`font-semibold text-sm ${picked ? 'text-green-300' : 'text-white'}`}
+                                                style={{ fontWeight: '600', fontSize: 14, color: picked ? '#86EFAC' : theme.textPrimary }}
                                                 numberOfLines={1}
                                             >
                                                 {song.title}
                                             </Text>
                                             {artistNames ? (
-                                                <Text className="text-gray-400 text-xs mt-0.5" numberOfLines={1}>
+                                                <Text style={{ color: theme.textSecondary, fontSize: 12, marginTop: 2 }} numberOfLines={1}>
                                                     {artistNames}
                                                 </Text>
                                             ) : null}
                                         </View>
 
                                         <View
-                                            className={`w-6 h-6 rounded-full border-2 items-center justify-center ${picked
-                                                ? 'bg-green-500 border-green-500'
-                                                : 'border-gray-600'
-                                                }`}
+                                            style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, alignItems: 'center', justifyContent: 'center', borderColor: picked ? '#22C55E' : theme.textSecondary, backgroundColor: picked ? '#22C55E' : 'transparent' }}
                                         >
                                             {picked && <Ionicons name="checkmark" size={13} color="white" />}
                                         </View>
@@ -921,25 +912,26 @@ export default function AdminAlbumManagementScreen() {
                     )}
 
                     {/* Bottom bar */}
-                    <View className="absolute bottom-0 left-0 right-0 bg-gray-950 border-t border-white/10 px-5 py-4">
+                    <Animated.View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: theme.animCard, borderTopWidth: 1, borderTopColor: theme.bgCardBorder, paddingHorizontal: 20, paddingVertical: 16 }}>
                         <TouchableOpacity
                             onPress={handleConfirmAddSongs}
                             disabled={isAddingSongs}
-                            className={`py-4 rounded-xl items-center ${isAddingSongs ? 'bg-gray-700' : pickedIds.length > 0 ? 'bg-green-600' : 'bg-white/10'}`}
+                            style={{ paddingVertical: 16, borderRadius: 12, alignItems: 'center', backgroundColor: isAddingSongs ? theme.bgInput : pickedIds.length > 0 ? '#16A34A' : theme.bgCardBorder }}
                             activeOpacity={0.8}
                         >
                             {isAddingSongs ? (
                                 <ActivityIndicator color="white" />
                             ) : (
-                                <Text className={`font-bold text-base ${pickedIds.length > 0 ? 'text-white' : 'text-gray-400'}`}>
+                                <Text style={{ fontWeight: 'bold', fontSize: 16, color: pickedIds.length > 0 ? 'white' : theme.textSecondary }}>
                                     {pickedIds.length > 0 ? `Thêm ${pickedIds.length} bài hát` : 'Đóng'}
                                 </Text>
                             )}
                         </TouchableOpacity>
-                    </View>
-                </View>
+                    </Animated.View>
+                </Animated.View>
             </BottomSheet>
 
         </SafeAreaView>
+        </Animated.View>
     );
 }

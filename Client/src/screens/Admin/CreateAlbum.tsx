@@ -10,6 +10,7 @@ import {
     TextInput,
     KeyboardAvoidingView,
     Platform,
+    Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,6 +21,7 @@ import { createAdminAlbum, addSongToAlbum, Playlist } from '../../API/playlistAP
 import { getAllSongs } from '../../API/songAPI';
 import { getAllArtists, getSongsByArtist, Artist } from '../../API/artistAPI';
 import { BASE_URL } from '../../API/axiosClient';
+import { useAdminTheme } from '../../context/AdminThemeContext';
 
 // Minimal song shape used in this screen (compatible with both musicAPI.Song and songAPI.Song)
 interface SongItem {
@@ -61,6 +63,7 @@ type Step = 0 | 1 | 2 | 3;
 
 export default function CreateAlbumScreen() {
     const navigation = useNavigation();
+    const theme = useAdminTheme();
 
     // ── type & step ──────────────────────────────────────────────────────────
     const [collectionType, setCollectionType] = useState<CollectionType | null>(null);
@@ -258,15 +261,16 @@ export default function CreateAlbumScreen() {
     // ─────────────────────────────────────────────────────────────────────────
 
     return (
-        <SafeAreaView className="flex-1 bg-black">
+        <Animated.View style={{ flex: 1, backgroundColor: theme.animBg }}>
+        <SafeAreaView style={{ flex: 1 }}>
 
             {/* ── Header ── */}
-            <View className="flex-row items-center px-4 py-3 border-b border-white/10">
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: theme.bgCardBorder }}>
                 <TouchableOpacity onPress={goBack} className="p-2 mr-2">
-                    <Ionicons name="arrow-back" size={24} color="white" />
+                    <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
                 </TouchableOpacity>
                 <View className="flex-1">
-                    <Text className="text-white text-xl font-bold">
+                    <Text style={{ color: theme.textPrimary, fontSize: 20, fontWeight: 'bold' }}>
                         {step === 0
                             ? 'Tạo Mới'
                             : collectionType === 'album'
@@ -274,7 +278,7 @@ export default function CreateAlbumScreen() {
                                 : 'Tạo Playlist'}
                     </Text>
                     {step > 0 && (
-                        <Text className="text-gray-400 text-xs">
+                        <Text style={{ color: theme.textSecondary, fontSize: 12 }}>
                             Bước {currentStepDisplay}/{totalSteps} ·{' '}
                             {step === 1
                                 ? 'Thông tin'
@@ -302,10 +306,10 @@ export default function CreateAlbumScreen() {
             ══════════════════════════════════════════════════════════════════ */}
             {step === 0 && (
                 <ScrollView className="flex-1 px-6 pt-8">
-                    <Text className="text-white text-2xl font-bold text-center mb-2">
+                    <Text style={{ color: theme.textPrimary, fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 8 }}>
                         Bạn muốn tạo gì?
                     </Text>
-                    <Text className="text-gray-400 text-center mb-8">
+                    <Text style={{ color: theme.textSecondary, textAlign: 'center', marginBottom: 32 }}>
                         Chọn loại để bắt đầu
                     </Text>
 
@@ -431,7 +435,7 @@ export default function CreateAlbumScreen() {
 
                         {/* Name */}
                         <View className="mb-4">
-                            <Text className="text-gray-400 text-sm mb-2">
+                            <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>
                                 Tên {collectionType === 'album' ? 'Album' : 'Playlist'}{' '}
                                 <Text className="text-pink-500">*</Text>
                             </Text>
@@ -439,39 +443,36 @@ export default function CreateAlbumScreen() {
                                 value={name}
                                 onChangeText={setName}
                                 placeholder={`Nhập tên ${collectionType === 'album' ? 'album' : 'playlist'}`}
-                                placeholderTextColor="#555"
-                                className="text-white p-4 rounded-xl border border-white/10"
-                                style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
+                                placeholderTextColor={theme.textSecondary}
+                                style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput }}
                             />
                         </View>
 
                         {/* Description */}
                         <View className="mb-4">
-                            <Text className="text-gray-400 text-sm mb-2">Mô Tả</Text>
+                            <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>Mô Tả</Text>
                             <TextInput
                                 value={description}
                                 onChangeText={setDescription}
                                 placeholder="Nhập mô tả (tuỳ chọn)"
-                                placeholderTextColor="#555"
+                                placeholderTextColor={theme.textSecondary}
                                 multiline
                                 textAlignVertical="top"
-                                className="text-white p-4 rounded-xl border border-white/10 h-24"
-                                style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
+                                style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput, height: 96 }}
                             />
                         </View>
 
                         {/* Tags */}
                         <View className="mb-8">
-                            <Text className="text-gray-400 text-sm mb-2">
-                                Tags <Text className="text-gray-500">(phân cách bằng dấu phẩy)</Text>
+                            <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>
+                                Tags <Text style={{ color: theme.textSecondary, opacity: 0.7 }}>(phân cách bằng dấu phẩy)</Text>
                             </Text>
                             <TextInput
                                 value={tags}
                                 onChangeText={setTags}
                                 placeholder="Pop, Ballad, V-Pop"
-                                placeholderTextColor="#555"
-                                className="text-white p-4 rounded-xl border border-white/10"
-                                style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
+                                placeholderTextColor={theme.textSecondary}
+                                style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput }}
                             />
                         </View>
 
@@ -522,29 +523,25 @@ export default function CreateAlbumScreen() {
             {step === 2 && collectionType === 'album' && (
                 <View className="flex-1">
                     {/* Info bar */}
-                    <View className="px-5 py-3 border-b border-white/10"
-                        style={{ backgroundColor: 'rgba(236,72,153,0.06)' }}>
-                        <Text className="text-pink-300 text-sm font-semibold">
+                    <View style={{ paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: theme.bgCardBorder, backgroundColor: 'rgba(236,72,153,0.06)' }}>
+                        <Text style={{ color: '#F9A8D4', fontSize: 14, fontWeight: '600' }}>
                             Chọn 1 ca sĩ cho album này
                         </Text>
-                        <Text className="text-gray-500 text-xs mt-0.5">
+                        <Text style={{ color: theme.textSecondary, fontSize: 12, marginTop: 2 }}>
                             Chỉ bài hát của ca sĩ được chọn mới có thể thêm vào album
                         </Text>
                     </View>
 
                     {/* Search */}
-                    <View className="px-5 py-3">
-                        <View
-                            className="flex-row items-center rounded-xl px-4 py-2.5"
-                            style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
-                        >
-                            <Ionicons name="search" size={18} color="#666" />
+                    <View style={{ paddingHorizontal: 20, paddingVertical: 12 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10, backgroundColor: theme.bgInput, borderWidth: 1, borderColor: theme.bgCardBorder }}>
+                            <Ionicons name="search" size={18} color={theme.textSecondary} />
                             <TextInput
                                 value={artistSearch}
                                 onChangeText={setArtistSearch}
                                 placeholder="Tìm ca sĩ..."
-                                placeholderTextColor="#555"
-                                className="flex-1 text-white ml-2"
+                                placeholderTextColor={theme.textSecondary}
+                                style={{ flex: 1, color: theme.textPrimary, marginLeft: 8 }}
                             />
                             {artistSearch.length > 0 && (
                                 <TouchableOpacity onPress={() => setArtistSearch('')}>
@@ -573,8 +570,7 @@ export default function CreateAlbumScreen() {
                                         key={artist._id}
                                         onPress={() => selectArtistAndNext(artist)}
                                         activeOpacity={0.75}
-                                        className="flex-row items-center p-3 rounded-xl mb-2 border border-white/10"
-                                        style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
+                                        style={{ flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 12, marginBottom: 8, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput }}
                                     >
                                         {/* Avatar */}
                                         {avatarUrl ? (
@@ -589,12 +585,12 @@ export default function CreateAlbumScreen() {
                                         )}
 
                                         {/* Name */}
-                                        <Text className="flex-1 text-white font-semibold ml-3" numberOfLines={1}>
+                                        <Text style={{ flex: 1, color: theme.textPrimary, fontWeight: '600', marginLeft: 12 }} numberOfLines={1}>
                                             {artist.name}
                                         </Text>
 
                                         {/* Arrow */}
-                                        <Ionicons name="chevron-forward" size={20} color="#555" />
+                                        <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
                                     </TouchableOpacity>
                                 );
                             })}
@@ -610,16 +606,15 @@ export default function CreateAlbumScreen() {
             {step === 3 && (
                 <View className="flex-1">
                     {/* Summary bar */}
-                    <View className="px-5 py-3 border-b border-white/10"
-                        style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
-                        <Text className="text-white font-semibold" numberOfLines={1}>{name}</Text>
+                    <View style={{ paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: theme.bgCardBorder }}>
+                        <Text style={{ color: theme.textPrimary, fontWeight: '600' }} numberOfLines={1}>{name}</Text>
                         {collectionType === 'album' && selectedArtist && (
                             <View className="flex-row items-center mt-0.5">
                                 <Ionicons name="person" size={12} color="#EC4899" />
                                 <Text className="text-pink-400 text-xs ml-1">{selectedArtist.name}</Text>
                             </View>
                         )}
-                        <Text className="text-gray-400 text-xs mt-0.5">
+                        <Text style={{ color: theme.textSecondary, fontSize: 12, marginTop: 2 }}>
                             {selectedSongIds.length > 0
                                 ? `${selectedSongIds.length} bài đã chọn`
                                 : 'Chưa chọn bài hát nào (tuỳ chọn)'}
@@ -641,18 +636,15 @@ export default function CreateAlbumScreen() {
                     )}
 
                     {/* Search */}
-                    <View className="px-5 py-3">
-                        <View
-                            className="flex-row items-center rounded-xl px-4 py-2.5"
-                            style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
-                        >
-                            <Ionicons name="search" size={18} color="#666" />
+                    <View style={{ paddingHorizontal: 20, paddingVertical: 12 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10, backgroundColor: theme.bgInput, borderWidth: 1, borderColor: theme.bgCardBorder }}>
+                            <Ionicons name="search" size={18} color={theme.textSecondary} />
                             <TextInput
                                 value={songSearch}
                                 onChangeText={setSongSearch}
                                 placeholder="Tìm bài hát..."
-                                placeholderTextColor="#555"
-                                className="flex-1 text-white ml-2"
+                                placeholderTextColor={theme.textSecondary}
+                                style={{ flex: 1, color: theme.textPrimary, marginLeft: 8 }}
                             />
                             {songSearch.length > 0 && (
                                 <TouchableOpacity onPress={() => setSongSearch('')}>
@@ -748,7 +740,7 @@ export default function CreateAlbumScreen() {
                     )}
 
                     {/* Bottom action */}
-                    <View className="absolute bottom-0 left-0 right-0 bg-gray-900 border-t border-white/10 px-5 py-4">
+                    <Animated.View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: theme.animCard, borderTopWidth: 1, borderTopColor: theme.bgCardBorder, paddingHorizontal: 20, paddingVertical: 16 }}>
                         <TouchableOpacity
                             onPress={handleCreate}
                             disabled={isCreating}
@@ -767,9 +759,10 @@ export default function CreateAlbumScreen() {
                                 </View>
                             )}
                         </TouchableOpacity>
-                    </View>
+                    </Animated.View>
                 </View>
             )}
         </SafeAreaView>
+        </Animated.View>
     );
 }

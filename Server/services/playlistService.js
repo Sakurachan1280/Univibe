@@ -1,5 +1,6 @@
 const Playlist = require('../models/Playlist');
 const Song = require('../models/Song');
+const User = require('../models/User'); // Import User model
 
 const createPlaylist = async (userId, data) => {
   const playlist = await Playlist.create({
@@ -45,8 +46,14 @@ const getPlaylistById = async (playlistId, userId) => {
 };
 
 const updatePlaylist = async (userId, playlistId, updateData) => {
-  const playlist = await Playlist.findOne({ _id: playlistId, owner_id: userId });
-  if (!playlist) throw new Error('Playlist not found or you are not the owner');
+  const playlist = await Playlist.findById(playlistId);
+  if (!playlist) throw new Error('Playlist not found');
+
+  const user = await User.findById(userId);
+  const isOwner = playlist.owner_id.toString() === userId.toString();
+  const isAdminAndSystem = user?.role === 'admin' && playlist.type === 'system_mix';
+
+  if (!isOwner && !isAdminAndSystem) throw new Error('You do not have permission to modify this playlist');
 
   if (updateData.name) playlist.name = updateData.name;
   if (updateData.description !== undefined) playlist.description = updateData.description;
@@ -58,14 +65,28 @@ const updatePlaylist = async (userId, playlistId, updateData) => {
 };
 
 const deletePlaylist = async (userId, playlistId) => {
-  const playlist = await Playlist.findOneAndDelete({ _id: playlistId, owner_id: userId });
-  if (!playlist) throw new Error('Playlist not found or you are not the owner');
+  const playlist = await Playlist.findById(playlistId);
+  if (!playlist) throw new Error('Playlist not found');
+
+  const user = await User.findById(userId);
+  const isOwner = playlist.owner_id.toString() === userId.toString();
+  const isAdminAndSystem = user?.role === 'admin' && playlist.type === 'system_mix';
+
+  if (!isOwner && !isAdminAndSystem) throw new Error('You do not have permission to delete this playlist');
+
+  await Playlist.findByIdAndDelete(playlistId);
   return { message: 'Playlist deleted successfully' };
 };
 
 const addSongToPlaylist = async (userId, playlistId, songId) => {
-  const playlist = await Playlist.findOne({ _id: playlistId, owner_id: userId });
-  if (!playlist) throw new Error('Playlist not found or you are not the owner');
+  const playlist = await Playlist.findById(playlistId);
+  if (!playlist) throw new Error('Playlist not found');
+
+  const user = await User.findById(userId);
+  const isOwner = playlist.owner_id.toString() === userId.toString();
+  const isAdminAndSystem = user?.role === 'admin' && playlist.type === 'system_mix';
+
+  if (!isOwner && !isAdminAndSystem) throw new Error('You do not have permission to modify this playlist');
 
   const song = await Song.findById(songId);
   if (!song) throw new Error('Song not found');
@@ -87,8 +108,14 @@ const addSongToPlaylist = async (userId, playlistId, songId) => {
 };
 
 const removeSongFromPlaylist = async (userId, playlistId, songId) => {
-  const playlist = await Playlist.findOne({ _id: playlistId, owner_id: userId });
-  if (!playlist) throw new Error('Playlist not found or you are not the owner');
+  const playlist = await Playlist.findById(playlistId);
+  if (!playlist) throw new Error('Playlist not found');
+
+  const user = await User.findById(userId);
+  const isOwner = playlist.owner_id.toString() === userId.toString();
+  const isAdminAndSystem = user?.role === 'admin' && playlist.type === 'system_mix';
+
+  if (!isOwner && !isAdminAndSystem) throw new Error('You do not have permission to modify this playlist');
 
   playlist.tracks = playlist.tracks.filter(track => track.song_id.toString() !== songId);
 
@@ -97,16 +124,28 @@ const removeSongFromPlaylist = async (userId, playlistId, songId) => {
 };
 
 const updatePlaylistCover = async (userId, playlistId, coverImageUrl) => {
-  const playlist = await Playlist.findOne({ _id: playlistId, owner_id: userId });
-  if (!playlist) throw new Error('Playlist not found or you are not the owner');
+  const playlist = await Playlist.findById(playlistId);
+  if (!playlist) throw new Error('Playlist not found');
+
+  const user = await User.findById(userId);
+  const isOwner = playlist.owner_id.toString() === userId.toString();
+  const isAdminAndSystem = user?.role === 'admin' && playlist.type === 'system_mix';
+
+  if (!isOwner && !isAdminAndSystem) throw new Error('You do not have permission to modify this playlist');
   playlist.cover_image = coverImageUrl;
   await playlist.save();
   return playlist;
 };
 
 const reorderPlaylistTracks = async (userId, playlistId, orderedSongIds) => {
-  const playlist = await Playlist.findOne({ _id: playlistId, owner_id: userId });
-  if (!playlist) throw new Error('Playlist not found or you are not the owner');
+  const playlist = await Playlist.findById(playlistId);
+  if (!playlist) throw new Error('Playlist not found');
+
+  const user = await User.findById(userId);
+  const isOwner = playlist.owner_id.toString() === userId.toString();
+  const isAdminAndSystem = user?.role === 'admin' && playlist.type === 'system_mix';
+
+  if (!isOwner && !isAdminAndSystem) throw new Error('You do not have permission to modify this playlist');
 
   // Rebuild tracks array in the new order (keep original added_at)
   const trackMap = new Map(playlist.tracks.map(t => [t.song_id.toString(), t]));

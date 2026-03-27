@@ -38,7 +38,7 @@ export default function PhoneOTP() {
 
       <Text className="text-neutral-400 text-sm mt-4">Chúng tôi đã gửi một mã gồm 6 chữ số tới số của bạn.</Text>
 
-      <TouchableOpacity className="mt-10 py-4 rounded-full items-center bg-neutral-800 opacity-40" activeOpacity={0.5} onPress={() => navigation.navigate("")} >
+      <TouchableOpacity className="mt-10 py-4 rounded-full items-center bg-neutral-800 opacity-40" activeOpacity={0.5} onPress={() => navigation.navigate("Login")} >
         <Text className="text-neutral-400 text-base font-semibold">Tiếp</Text>
       </TouchableOpacity>
 

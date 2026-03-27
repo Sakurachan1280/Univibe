@@ -19,9 +19,12 @@ import * as ImagePicker from 'expo-image-picker';
 
 import { BASE_URL } from '../../API/axiosClient';
 import { getAllArtists, deleteArtist, updateArtist, Artist } from '../../API/artistAPI';
+import { useAdminTheme } from '../../context/AdminThemeContext';
+import { Animated } from 'react-native';
 
 export default function ArtistManagementScreen() {
     const navigation = useNavigation();
+    const theme = useAdminTheme();
     const [artists, setArtists] = useState<Artist[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [editModalVisible, setEditModalVisible] = useState(false);
@@ -138,12 +141,13 @@ export default function ArtistManagementScreen() {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-black">
-            <View className="flex-row items-center px-4 py-2 border-b border-white/10">
+        <Animated.View style={{ flex: 1, backgroundColor: theme.animBg }}>
+        <SafeAreaView style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: theme.bgCardBorder }}>
                 <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                    <Ionicons name="arrow-back" size={24} color="white" />
+                    <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
                 </TouchableOpacity>
-                <Text className="text-white text-lg font-bold ml-4">Quản Lý Nghệ Sĩ</Text>
+                <Text style={{ color: theme.textPrimary, fontSize: 18, fontWeight: 'bold', marginLeft: 16 }}>Quản Lý Nghệ Sĩ</Text>
             </View>
 
             {isLoading ? (
@@ -154,14 +158,14 @@ export default function ArtistManagementScreen() {
                 <ScrollView className="flex-1 px-5 pt-4">
                     {artists.length === 0 ? (
                         <View className="items-center justify-center py-20">
-                            <Ionicons name="people-outline" size={64} color="#666" />
-                            <Text className="text-gray-400 text-center mt-4">Chưa có nghệ sĩ nào</Text>
+                            <Ionicons name="people-outline" size={64} color={theme.textSecondary} />
+                            <Text style={{ color: theme.textSecondary, textAlign: 'center', marginTop: 16 }}>Chưa có nghệ sĩ nào</Text>
                         </View>
                     ) : (
                         artists.map((artist) => (
                             <View
                                 key={artist._id}
-                                className="bg-white/5 rounded-2xl p-4 mb-3 border border-white/10"
+                                style={{ backgroundColor: theme.bgInput, borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: theme.bgCardBorder }}
                             >
                                 <View className="flex-row items-center">
                                     {artist.avatar ? (
@@ -180,9 +184,9 @@ export default function ArtistManagementScreen() {
                                     )}
 
                                     <View className="flex-1 ml-4">
-                                        <Text className="text-white text-lg font-bold">{artist.name}</Text>
+                                        <Text style={{ color: theme.textPrimary, fontSize: 16, fontWeight: 'bold' }}>{artist.name}</Text>
                                         {artist.bio && (
-                                            <Text className="text-gray-400 text-sm mt-1" numberOfLines={2}>
+                                            <Text style={{ color: theme.textSecondary, fontSize: 14, marginTop: 4 }} numberOfLines={2}>
                                                 {artist.bio}
                                             </Text>
                                         )}
@@ -219,13 +223,13 @@ export default function ArtistManagementScreen() {
             >
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    className="flex-1 bg-black/80 justify-end"
+                    style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.8)' }}
                 >
-                    <View className="bg-gray-900 rounded-t-3xl p-6" style={{ maxHeight: '80%' }}>
-                        <View className="flex-row items-center justify-between mb-6">
-                            <Text className="text-white text-xl font-bold">Chỉnh Sửa Nghệ Sĩ</Text>
+                    <Animated.View style={{ backgroundColor: theme.animCard, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '80%', borderTopWidth: 1, borderColor: theme.bgCardBorder }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+                            <Text style={{ color: theme.textPrimary, fontSize: 20, fontWeight: 'bold' }}>Chỉnh Sửa Nghệ Sĩ</Text>
                             <TouchableOpacity onPress={() => setEditModalVisible(false)}>
-                                <Ionicons name="close" size={28} color="white" />
+                                <Ionicons name="close" size={28} color={theme.textPrimary} />
                             </TouchableOpacity>
                         </View>
 
@@ -252,32 +256,32 @@ export default function ArtistManagementScreen() {
                                         )}
                                     </View>
                                 </TouchableOpacity>
-                                <Text className="text-gray-400 text-sm mt-2">Nhấn để thay đổi ảnh</Text>
+                                <Text style={{ color: theme.textSecondary, fontSize: 14, marginTop: 8 }}>Nhấn để thay đổi ảnh</Text>
                             </View>
 
                             {/* Name */}
                             <View className="mb-4">
-                                <Text className="text-gray-400 text-sm mb-2">Tên Nghệ Sĩ *</Text>
+                                <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>Tên Nghệ Sĩ *</Text>
                                 <TextInput
                                     value={editName}
                                     onChangeText={setEditName}
                                     placeholder="Nhập tên nghệ sĩ"
-                                    placeholderTextColor="#666"
-                                    className="bg-white/10 text-white p-4 rounded-xl border border-white/10"
+                                    placeholderTextColor={theme.textSecondary}
+                                    style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput }}
                                 />
                             </View>
 
                             {/* Bio */}
                             <View className="mb-6">
-                                <Text className="text-gray-400 text-sm mb-2">Tiểu Sử</Text>
+                                <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>Tiểu Sử</Text>
                                 <TextInput
                                     value={editBio}
                                     onChangeText={setEditBio}
                                     placeholder="Nhập tiểu sử"
-                                    placeholderTextColor="#666"
-                                    className="bg-white/10 text-white p-4 rounded-xl border border-white/10 h-24"
+                                    placeholderTextColor={theme.textSecondary}
                                     multiline
                                     textAlignVertical="top"
+                                    style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput, height: 96 }}
                                 />
                             </View>
 
@@ -291,21 +295,22 @@ export default function ArtistManagementScreen() {
                                 {isSaving ? (
                                     <ActivityIndicator color="white" />
                                 ) : (
-                                    <Text className="text-white font-bold text-lg">Lưu Thay Đổi</Text>
+                                    <Text style={{ color: '#FFFFFF', fontWeight: 'bold', fontSize: 18 }}>Lưu Thay Đổi</Text>
                                 )}
                             </TouchableOpacity>
 
                             <TouchableOpacity
                                 onPress={() => setEditModalVisible(false)}
-                                className="py-4 rounded-xl items-center bg-white/10"
+                                style={{ paddingVertical: 16, borderRadius: 12, alignItems: 'center', backgroundColor: theme.bgCardBorder }}
                             >
-                                <Text className="text-white font-semibold">Hủy</Text>
+                                <Text style={{ color: theme.textPrimary, fontWeight: '600' }}>Hủy</Text>
                             </TouchableOpacity>
                         </ScrollView>
-                    </View>
+                    </Animated.View>
 
                 </KeyboardAvoidingView>
             </Modal>
         </SafeAreaView>
+        </Animated.View>
     );
 }

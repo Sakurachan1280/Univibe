@@ -275,19 +275,21 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             // Import dynamically to avoid circular dependency if any
             const { getListeningHistory } = require("../API/libraryAPI");
             const history = await getListeningHistory();
-            if (history && history.length > 0 && history[0].song_id) {
-                const lastSong = history[0].song_id;
-                console.log("Loading last played:", lastSong.title);
-                // Create a generic queue based on history or just random songs?
-                // For now, let's just make a queue of 1 song to keep it simple, or maybe fetch random
-                // Fetch random songs for queue context
-                const randomSongs = await musicAPI.getRandomSongs(19);
-                const newQueue = [lastSong, ...randomSongs.filter(s => s._id !== lastSong._id)];
+            // history có thể là null nếu guest (401 → interceptor trả null)
+            if (!history || !Array.isArray(history) || history.length === 0) return;
+            const firstItem = history[0];
+            if (!firstItem?.song_id) return;
+            const lastSong = firstItem.song_id;
+            console.log("Loading last played:", lastSong.title);
+            // Create a generic queue based on history or just random songs?
+            // For now, let's just make a queue of 1 song to keep it simple, or maybe fetch random
+            // Fetch random songs for queue context
+            const randomSongs = await musicAPI.getRandomSongs(19);
+            const newQueue = [lastSong, ...randomSongs.filter(s => s._id !== lastSong._id)];
 
-                setQueue(newQueue);
-                setCurrentIndex(0);
-                await loadSong(lastSong, false); // shouldPlay = false
-            }
+            setQueue(newQueue);
+            setCurrentIndex(0);
+            await loadSong(lastSong, false); // shouldPlay = false
         } catch (error) {
             console.log("Error loading last played:", error);
         }

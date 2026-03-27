@@ -165,9 +165,11 @@ export default function LibraryScreen() {
         try {
             setIsLoading(true);
             const data = await getMyPlaylists();
-            setPlaylists(data);
+            // data có thể là null nếu guest (401 → interceptor trả null)
+            setPlaylists(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Error loading playlists:', error);
+            setPlaylists([]);
         } finally {
             setIsLoading(false);
         }

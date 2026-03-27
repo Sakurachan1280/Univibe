@@ -53,7 +53,7 @@ export default function UserAvatar({ size = 40, onPress }: UserAvatarProps) {
 
     const fetchUserData = async () => {
         try {
-            const data: User = await getMeAPI();
+            const data: User | null = await getMeAPI();
             const url = data?.profile?.avatar_url;
             if (url) {
                 if (url.startsWith('http') || url.includes('spoti_images')) {
