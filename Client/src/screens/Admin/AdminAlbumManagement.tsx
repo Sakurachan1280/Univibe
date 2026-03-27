@@ -344,7 +344,19 @@ export default function AdminAlbumManagementScreen() {
             // Pre-fetch detail to know which songs are already in album
             const detail = await getPlaylistDetail(album._id);
             const inAlbum = new Set(detail.tracks.map(t => getSongId(t)));
-            setAllSongs(songs.filter(s => !inAlbum.has(s._id)));
+            let available = songs.filter(s => !inAlbum.has(s._id));
+
+            // Nếu album gắn với ca sĩ cụ thể, chỉ hiện bài của ca sĩ đó
+            if (album.artist_id) {
+                available = available.filter(s =>
+                    s.artist_ids?.some((a: any) => {
+                        const id = typeof a === 'string' ? a : a._id;
+                        return id === album.artist_id;
+                    })
+                );
+            }
+
+            setAllSongs(available);
         } catch {
             Alert.alert('Lỗi', 'Không thể tải danh sách bài hát');
         } finally {

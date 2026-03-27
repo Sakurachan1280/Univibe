@@ -15,6 +15,7 @@ export interface Playlist {
     is_public: boolean;
     type: "user_created" | "system_mix" | "mood";
     tags: string[];
+    artist_id?: string | null;
     tracks: PlaylistTrack[];
     created_at: string;
     updated_at: string;
@@ -117,7 +118,8 @@ export const createAdminAlbum = async (
     name: string,
     description: string | undefined,
     tags: string[],
-    coverUri: string | undefined
+    coverUri: string | undefined,
+    artistId?: string
 ): Promise<Playlist> => {
     const formData = new FormData();
     formData.append("name", name);
@@ -125,6 +127,7 @@ export const createAdminAlbum = async (
     formData.append("is_public", "true");
     if (description) formData.append("description", description);
     tags.forEach(tag => formData.append("tags[]", tag));
+    if (artistId) formData.append("artist_id", artistId);
     if (coverUri) {
         const filename = coverUri.split("/").pop() ?? "cover.jpg";
         const ext = filename.split(".").pop()?.toLowerCase() ?? "jpg";

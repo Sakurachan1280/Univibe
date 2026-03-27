@@ -43,7 +43,7 @@ const getSystemAlbums = async (req, res) => {
 
 const getDetail = async (req, res) => {
   try {
-    const playlist = await playlistService.getPlaylistById(req.params.id, req.user.id);
+    const playlist = await playlistService.getPlaylistById(req.params.id, req.user?.id ?? null);
     res.json(playlist);
   } catch (err) {
     res.status(404).json({ message: err.message });

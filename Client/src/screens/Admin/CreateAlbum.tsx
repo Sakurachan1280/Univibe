@@ -217,7 +217,8 @@ export default function CreateAlbumScreen() {
                 name.trim(),
                 description.trim() || undefined,
                 tagsArray,
-                coverUri ?? undefined
+                coverUri ?? undefined,
+                collectionType === 'album' ? selectedArtist?._id : undefined
             );
 
             if (selectedSongIds.length > 0) {

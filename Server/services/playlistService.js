@@ -34,8 +34,11 @@ const getPlaylistById = async (playlistId, userId) => {
 
   if (!playlist) throw new Error('Playlist not found');
 
-  if (!playlist.is_public && playlist.owner_id._id.toString() !== userId) {
-    throw new Error('This playlist is private');
+  // Guest (chưa đăng nhập) chỉ xem được playlist public
+  if (!playlist.is_public) {
+    if (!userId || playlist.owner_id._id.toString() !== userId) {
+      throw new Error('This playlist is private');
+    }
   }
 
   return playlist;
@@ -66,6 +69,14 @@ const addSongToPlaylist = async (userId, playlistId, songId) => {
 
   const song = await Song.findById(songId);
   if (!song) throw new Error('Song not found');
+
+  // Nếu album gắn với một ca sĩ cụ thể, kiểm tra bài hát có thuộc ca sĩ đó không
+  if (playlist.artist_id) {
+    const belongsToArtist = song.artist_ids.some(
+      artistId => artistId.toString() === playlist.artist_id.toString()
+    );
+    if (!belongsToArtist) throw new Error('Bài hát này không thuộc ca sĩ của album');
+  }
 
   const isExists = playlist.tracks.some(track => track.song_id.toString() === songId);
   if (isExists) throw new Error('Song already exists in this playlist');

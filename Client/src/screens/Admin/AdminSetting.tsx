@@ -7,6 +7,7 @@ import {
   ScrollView,
   Switch,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,19 +16,19 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { CommonActions } from '@react-navigation/native';
 import { getMeAPI, User } from '../../API/userAPI';
 import { AdminTabParamList } from '../../navigation/types';
+import { useAdminTheme } from '../../context/AdminThemeContext';
 
 type AdminAccountNavigationProp = NativeStackNavigationProp<AdminTabParamList>;
 
 export default function AdminAccount() {
   const navigation = useNavigation<AdminAccountNavigationProp>();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkModeEnabled, setDarkModeEnabled] = useState(true);
   const [userData, setUserData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchUserData();
-  }, []);
+  const theme = useAdminTheme();
+
+  useEffect(() => { fetchUserData(); }, []);
 
   const fetchUserData = async () => {
     try {
@@ -40,9 +41,7 @@ export default function AdminAccount() {
     }
   };
 
-  const handleNavigation = (screen: keyof AdminTabParamList) => {
-    navigation.navigate(screen);
-  };
+  const handleNavigation = (screen: keyof AdminTabParamList) => navigation.navigate(screen);
 
   const settingsSections = [
     {
@@ -50,131 +49,133 @@ export default function AdminAccount() {
       items: [
         { id: 'about', label: 'Về UniVibe', icon: 'information-circle-outline', color: '#EC4899', screen: 'AboutScreen' },
         { id: 'logs', label: 'Nhật ký hệ thống', icon: 'document-text-outline', color: '#06B6D4', screen: 'SystemLogsScreen' },
-        { id: 'version', label: 'Phiên bản 1.0.0', icon: 'code-outline', color: '#666', screen: null },
+        { id: 'version', label: 'Phiên bản 1.0.0', icon: 'code-outline', color: theme.isDark ? '#666' : '#9CA3AF', screen: null },
       ],
     },
   ];
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
-      <StatusBar barStyle="light-content" backgroundColor="#000" />
+    // Animated.View handles smooth bg color
+    <Animated.View style={{ flex: 1, backgroundColor: theme.animBg }}>
+      <SafeAreaView style={{ flex: 1 }}>
+        <StatusBar
+          barStyle={theme.isDark ? 'light-content' : 'dark-content'}
+          backgroundColor="transparent"
+          translucent
+        />
 
-      {/* Header */}
-      <View className="px-6 py-4 border-b border-white/10">
-        <Text className="text-white text-3xl font-bold">Cài Đặt</Text>
-        <Text className="text-gray-400 text-sm mt-1">Quản lý hệ thống</Text>
-      </View>
-
-      {/* Content */}
-      <ScrollView className="flex-1 px-6 py-6">
-        {/* Admin Profile Card */}
-        <View className="bg-gradient-to-r from-pink-500 to-cyan-500 rounded-2xl p-6 mb-6" style={{ backgroundColor: '#EC4899' }}>
-          <View className="flex-row items-center">
-            <View className="w-16 h-16 rounded-full bg-white/20 items-center justify-center mr-4">
-              <Ionicons name="person" size={32} color="white" />
-            </View>
-            <View className="flex-1">
-              {isLoading ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <>
-                  <Text className="text-white text-xl font-bold">
-                    Admin {userData?.username ? `• ${userData.username}` : ''}
-                  </Text>
-                  <Text className="text-white/80 text-sm mt-1">Quản trị viên hệ thống</Text>
-                </>
-              )}
-            </View>
-          </View>
+        {/* Header */}
+        <View style={{ paddingHorizontal: 24, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: theme.bgCardBorder }}>
+          <Text style={{ color: theme.textPrimary, fontSize: 30, fontWeight: 'bold' }}>Cài Đặt</Text>
+          <Text style={{ color: theme.textSecondary, fontSize: 14, marginTop: 4 }}>Quản lý hệ thống</Text>
         </View>
 
-        {/* Preferences */}
-        <View className="mb-6">
-          <Text className="text-white text-xl font-bold mb-4">Tùy Chỉnh</Text>
-
-          <View className="bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
-            <View className="flex-row items-center justify-between p-5 border-b border-white/10">
-              <View className="flex-row items-center flex-1">
-                <View className="w-10 h-10 rounded-full bg-pink-600/20 items-center justify-center mr-3">
-                  <Ionicons name="notifications-outline" size={20} color="#EC4899" />
-                </View>
-                <Text className="text-white font-semibold">Thông báo</Text>
+        <ScrollView style={{ flex: 1, paddingHorizontal: 24, paddingTop: 24 }}>
+          {/* Admin Profile Card */}
+          <View style={{ backgroundColor: '#EC4899', borderRadius: 16, padding: 24, marginBottom: 24 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', marginRight: 16 }}>
+                <Ionicons name="person" size={32} color="white" />
               </View>
-              <Switch
-                value={notificationsEnabled}
-                onValueChange={setNotificationsEnabled}
-                trackColor={{ false: '#3e3e3e', true: '#EC4899' }}
-                thumbColor={notificationsEnabled ? '#fff' : '#f4f3f4'}
-              />
-            </View>
-
-            <View className="flex-row items-center justify-between p-5">
-              <View className="flex-row items-center flex-1">
-                <View className="w-10 h-10 rounded-full bg-pink-600/20 items-center justify-center mr-3">
-                  <Ionicons name="moon-outline" size={20} color="#06B6D4" />
-                </View>
-                <Text className="text-white font-semibold">Chế độ tối</Text>
+              <View style={{ flex: 1 }}>
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <>
+                    <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}>
+                      Admin {userData?.username ? `• ${userData.username}` : ''}
+                    </Text>
+                    <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 14, marginTop: 4 }}>Quản trị viên hệ thống</Text>
+                  </>
+                )}
               </View>
-              <Switch
-                value={darkModeEnabled}
-                onValueChange={setDarkModeEnabled}
-                trackColor={{ false: '#3e3e3e', true: '#EC4899' }}
-                thumbColor={darkModeEnabled ? '#fff' : '#f4f3f4'}
-              />
             </View>
           </View>
-        </View>
 
-        {/* Settings Sections */}
-        {settingsSections.map((section, sectionIndex) => (
-          <View key={sectionIndex} className="mb-6">
-            <Text className="text-white text-xl font-bold mb-4">{section.title}</Text>
-
-            <View className="bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
-              {section.items.map((item, itemIndex) => (
-                <TouchableOpacity
-                  key={item.id}
-                  className={`flex-row items-center justify-between p-5 ${itemIndex < section.items.length - 1 ? 'border-b border-white/10' : ''
-                    }`}
-                  activeOpacity={0.7}
-                  disabled={item.id === 'version'}
-                  onPress={() => item.screen && handleNavigation(item.screen as any)}
-                >
-                  <View className="flex-row items-center flex-1">
-                    <View
-                      className="w-10 h-10 rounded-full items-center justify-center mr-3"
-                      style={{ backgroundColor: `${item.color}20` }}
-                    >
-                      <Ionicons name={item.icon as any} size={20} color={item.color} />
-                    </View>
-                    <Text className="text-white font-semibold">{item.label}</Text>
+          {/* Preferences */}
+          <View style={{ marginBottom: 24 }}>
+            <Text style={{ color: theme.textPrimary, fontSize: 20, fontWeight: 'bold', marginBottom: 16 }}>Tùy Chỉnh</Text>
+            <Animated.View style={{ backgroundColor: theme.animCard, borderRadius: 16, borderWidth: 1, borderColor: theme.bgCardBorder, overflow: 'hidden' }}>
+              {/* Notifications */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, borderBottomWidth: 1, borderBottomColor: theme.bgCardBorder }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                  <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(236,72,153,0.15)', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                    <Ionicons name="notifications-outline" size={20} color="#EC4899" />
                   </View>
-                  {item.id !== 'version' && (
-                    <Ionicons name="chevron-forward" size={20} color="#666" />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        ))}
-
-        {/* Danger Zone */}
-        <View className="mb-8">
-          <TouchableOpacity
-            className="bg-red-600/10 rounded-2xl p-5 border border-red-600/30"
-            activeOpacity={0.8}
-            onPress={() => navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: "Welcone" }], }))}
-          >
-            <View className="flex-row items-center justify-between">
-              <View className="flex-row items-center">
-                <Ionicons name="log-out-outline" size={20} color="#EF4444" />
-                <Text className="text-red-500 font-semibold ml-3">Đăng xuất</Text>
+                  <Text style={{ color: theme.textPrimary, fontWeight: '600' }}>Thông báo</Text>
+                </View>
+                <Switch
+                  value={notificationsEnabled}
+                  onValueChange={setNotificationsEnabled}
+                  trackColor={{ false: theme.isDark ? '#3e3e3e' : '#D1D5DB', true: '#EC4899' }}
+                  thumbColor={notificationsEnabled ? '#fff' : '#f4f3f4'}
+                />
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#EF4444" />
+
+              {/* Dark mode */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                  <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(6,182,212,0.15)', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                    <Ionicons name={theme.isDark ? 'moon-outline' : 'sunny-outline'} size={20} color="#06B6D4" />
+                  </View>
+                  <Text style={{ color: theme.textPrimary, fontWeight: '600' }}>Chế độ tối</Text>
+                </View>
+                <Switch
+                  value={theme.isDark}
+                  onValueChange={theme.toggleTheme}
+                  trackColor={{ false: '#D1D5DB', true: '#EC4899' }}
+                  thumbColor={theme.isDark ? '#fff' : '#f4f3f4'}
+                />
+              </View>
+            </Animated.View>
+          </View>
+
+          {/* Settings Sections */}
+          {settingsSections.map((section, sectionIndex) => (
+            <View key={sectionIndex} style={{ marginBottom: 24 }}>
+              <Text style={{ color: theme.textPrimary, fontSize: 20, fontWeight: 'bold', marginBottom: 16 }}>{section.title}</Text>
+              <Animated.View style={{ backgroundColor: theme.animCard, borderRadius: 16, borderWidth: 1, borderColor: theme.bgCardBorder, overflow: 'hidden' }}>
+                {section.items.map((item, itemIndex) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, borderBottomWidth: itemIndex < section.items.length - 1 ? 1 : 0, borderBottomColor: theme.bgCardBorder }}
+                    activeOpacity={0.7}
+                    disabled={item.id === 'version'}
+                    onPress={() => item.screen && handleNavigation(item.screen as any)}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: `${item.color}20`, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                        <Ionicons name={item.icon as any} size={20} color={item.color} />
+                      </View>
+                      <Text style={{ color: theme.textPrimary, fontWeight: '600' }}>{item.label}</Text>
+                    </View>
+                    {item.id !== 'version' && (
+                      <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </Animated.View>
             </View>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          ))}
+
+          {/* Danger Zone */}
+          <View style={{ marginBottom: 32 }}>
+            <TouchableOpacity
+              style={{ backgroundColor: 'rgba(239,68,68,0.1)', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)' }}
+              activeOpacity={0.8}
+              onPress={() => navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Welcone' }] }))}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Ionicons name="log-out-outline" size={20} color="#EF4444" />
+                  <Text style={{ color: '#EF4444', fontWeight: '600', marginLeft: 12 }}>Đăng xuất</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#EF4444" />
+              </View>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </Animated.View>
   );
 }

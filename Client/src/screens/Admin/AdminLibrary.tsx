@@ -8,8 +8,8 @@ import {
   ActivityIndicator,
   Alert,
   DeviceEventEmitter,
+  Animated,
 } from 'react-native';
-
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -19,179 +19,125 @@ import { getAllArtists } from '../../API/artistAPI';
 import { getAdminAlbums } from '../../API/playlistAPI';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
+import { useAdminTheme } from '../../context/AdminThemeContext';
 
 export default function AdminAlbum() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [isLoading, setIsLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalSongs: 0,
-    totalPlaylists: 0,
-    totalArtists: 0,
-  });
+  const [stats, setStats] = useState({ totalSongs: 0, totalPlaylists: 0, totalArtists: 0 });
+  const theme = useAdminTheme();
 
   const fetchStats = useCallback(async () => {
     try {
       setIsLoading(true);
       const [songsResponse, playlistsResponse, artistsResponse] = await Promise.all([
-        getAllSongs(),
-        getAdminAlbums(),
-        getAllArtists(),
+        getAllSongs(), getAdminAlbums(), getAllArtists(),
       ]);
       setStats({
         totalSongs: songsResponse?.length || 0,
         totalPlaylists: playlistsResponse?.length || 0,
         totalArtists: artistsResponse?.length || 0,
       });
-    } catch (error) {
-      console.error('Error fetching stats:', error);
+    } catch {
       Alert.alert('Error', 'Failed to load library statistics');
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Tự động load lại mỗi khi tab này được focus
-  useFocusEffect(
-    useCallback(() => {
-      fetchStats();
-    }, [fetchStats])
-  );
-
-  // Lắng nghe sự kiện 'adminRefresh' từ AdminSong
+  useFocusEffect(useCallback(() => { fetchStats(); }, [fetchStats]));
   useEffect(() => {
-    const sub = DeviceEventEmitter.addListener('adminRefresh', () => {
-      fetchStats();
-    });
+    const sub = DeviceEventEmitter.addListener('adminRefresh', () => fetchStats());
     return () => sub.remove();
   }, [fetchStats]);
 
-
   const libraryFeatures = [
-    {
-      id: 'artists',
-      title: 'Nghệ Sĩ',
-      description: 'Quản lý danh sách nghệ sĩ',
-      icon: 'person',
-      color: '#EC4899',
-      count: stats.totalArtists,
-      screen: 'ArtistManagement',
-    },
-    {
-      id: 'songs',
-      title: 'Bài Hát',
-      description: 'Quản lý danh sách bài hát',
-      icon: 'musical-notes',
-      color: '#8B5CF6',
-      count: stats.totalSongs,
-      screen: 'SongManagement',
-    },
-    {
-      id: 'Album',
-      title: 'Album & Playlist',
-      description: 'Quản lý Album và Playlist hệ thống',
-      icon: 'albums',
-      color: '#06B6D4',
-      count: stats.totalPlaylists,
-      screen: 'AlbumManagement',
-    },
+    { id: 'artists', title: 'Nghệ Sĩ', description: 'Quản lý danh sách nghệ sĩ', icon: 'person', color: '#EC4899', count: stats.totalArtists, screen: 'ArtistManagement' },
+    { id: 'songs', title: 'Bài Hát', description: 'Quản lý danh sách bài hát', icon: 'musical-notes', color: '#8B5CF6', count: stats.totalSongs, screen: 'SongManagement' },
+    { id: 'Album', title: 'Album & Playlist', description: 'Quản lý Album và Playlist hệ thống', icon: 'albums', color: '#06B6D4', count: stats.totalPlaylists, screen: 'AlbumManagement' },
   ];
 
-  const handleNavigate = (screen: string | null) => {
-    if (screen) {
-      navigation.navigate(screen as any);
-    } else {
-      Alert.alert('Thông báo', 'Tính năng đang phát triển');
-    }
-  };
-
   return (
-    <SafeAreaView className="flex-1 bg-black">
-      <StatusBar barStyle="light-content" backgroundColor="#000" />
+    <Animated.View style={{ flex: 1, backgroundColor: theme.animBg }}>
+      <SafeAreaView style={{ flex: 1 }}>
+        <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
 
-      {/* Header */}
-      <View className="px-6 py-4 border-b border-white/10">
-        <Text className="text-white text-3xl font-bold">Thư Viện</Text>
-        <Text className="text-gray-400 text-sm mt-1">Quản lý nội dung</Text>
-      </View>
+        {/* Header */}
+        <View style={{ paddingHorizontal: 24, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: theme.bgCardBorder }}>
+          <Text style={{ color: theme.textPrimary, fontSize: 30, fontWeight: 'bold' }}>Thư Viện</Text>
+          <Text style={{ color: theme.textSecondary, fontSize: 14, marginTop: 4 }}>Quản lý nội dung</Text>
+        </View>
 
-      {/* Content */}
-      <ScrollView className="flex-1 px-6 py-6">
-        {isLoading ? (
-          <View className="flex-1 items-center justify-center py-20">
-            <ActivityIndicator size="large" color="#EC4899" />
-            <Text className="text-gray-400 mt-4">Đang tải dữ liệu...</Text>
-          </View>
-        ) : (
-          <>
-            {/* Library Stats */}
-            <View className="mb-6">
-              <Text className="text-white text-xl font-bold mb-4">Tổng Quan</Text>
+        <ScrollView style={{ flex: 1, paddingHorizontal: 24, paddingTop: 24 }}>
+          {isLoading ? (
+            <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 80 }}>
+              <ActivityIndicator size="large" color="#EC4899" />
+              <Text style={{ color: theme.textSecondary, marginTop: 16 }}>Đang tải dữ liệu...</Text>
+            </View>
+          ) : (
+            <>
+              <View style={{ marginBottom: 24 }}>
+                <Text style={{ color: theme.textPrimary, fontSize: 20, fontWeight: 'bold', marginBottom: 16 }}>Tổng Quan</Text>
 
-              <View className="bg-gradient-to-br from-pink-500 to-cyan-500 rounded-2xl p-6 mb-4" style={{ backgroundColor: '#EC4899' }}>
-                <View className="flex-row justify-between items-center">
-                  <View>
-                    <Text className="text-white/80 text-sm mb-1">Tổng số bài hát</Text>
-                    <Text className="text-white text-4xl font-bold">{stats.totalSongs}</Text>
+                {/* Hero */}
+                <View style={{ backgroundColor: '#EC4899', borderRadius: 16, padding: 24, marginBottom: 16 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <View>
+                      <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 14, marginBottom: 4 }}>Tổng số bài hát</Text>
+                      <Text style={{ color: 'white', fontSize: 40, fontWeight: 'bold' }}>{stats.totalSongs}</Text>
+                    </View>
+                    <View style={{ backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 999, padding: 16 }}>
+                      <Ionicons name="musical-notes" size={32} color="white" />
+                    </View>
                   </View>
-                  <View className="bg-white/20 rounded-full p-4">
-                    <Ionicons name="musical-notes" size={32} color="white" />
-                  </View>
+                </View>
+
+                {/* Mini stats */}
+                <View style={{ flexDirection: 'row' }}>
+                  <Animated.View style={{ backgroundColor: theme.animCard, borderRadius: 16, padding: 20, flex: 1, marginRight: 8, borderWidth: 1, borderColor: theme.bgCardBorder }}>
+                    <Ionicons name="person" size={24} color="#EC4899" />
+                    <Text style={{ color: theme.textPrimary, fontSize: 24, fontWeight: 'bold', marginTop: 12 }}>{stats.totalArtists}</Text>
+                    <Text style={{ color: theme.textSecondary, fontSize: 14, marginTop: 4 }}>Nghệ sĩ</Text>
+                  </Animated.View>
+                  <Animated.View style={{ backgroundColor: theme.animCard, borderRadius: 16, padding: 20, flex: 1, marginLeft: 8, borderWidth: 1, borderColor: theme.bgCardBorder }}>
+                    <Ionicons name="list" size={24} color="#06B6D4" />
+                    <Text style={{ color: theme.textPrimary, fontSize: 24, fontWeight: 'bold', marginTop: 12 }}>{stats.totalPlaylists}</Text>
+                    <Text style={{ color: theme.textSecondary, fontSize: 14, marginTop: 4 }}>Album / Playlist</Text>
+                  </Animated.View>
                 </View>
               </View>
 
-              <View className="flex-row justify-between">
-                <View className="bg-white/5 rounded-2xl p-5 flex-1 mr-2 border border-white/10">
-                  <Ionicons name="person" size={24} color="#EC4899" />
-                  <Text className="text-white text-2xl font-bold mt-3">{stats.totalArtists}</Text>
-                  <Text className="text-gray-400 text-sm mt-1">Nghệ sĩ</Text>
-                </View>
-
-                <View className="bg-white/5 rounded-2xl p-5 flex-1 ml-2 border border-white/10">
-                  <Ionicons name="list" size={24} color="#06B6D4" />
-                  <Text className="text-white text-2xl font-bold mt-3">{stats.totalPlaylists}</Text>
-                  <Text className="text-gray-400 text-sm mt-1">Album / Playlist</Text>
-                </View>
+              {/* Categories */}
+              <View style={{ marginBottom: 24 }}>
+                <Text style={{ color: theme.textPrimary, fontSize: 20, fontWeight: 'bold', marginBottom: 16 }}>Danh Mục</Text>
+                {libraryFeatures.map((feature) => (
+                  <TouchableOpacity
+                    key={feature.id}
+                    activeOpacity={0.8}
+                    onPress={() => feature.screen ? navigation.navigate(feature.screen as any) : Alert.alert('Thông báo', 'Tính năng đang phát triển')}
+                    style={{ marginBottom: 12 }}
+                  >
+                    <Animated.View style={{ backgroundColor: theme.animCard, borderRadius: 16, padding: 20, borderWidth: 1, borderColor: theme.bgCardBorder }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: `${feature.color}20`, alignItems: 'center', justifyContent: 'center', marginRight: 16 }}>
+                          <Ionicons name={feature.icon as any} size={24} color={feature.color} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ color: theme.textPrimary, fontSize: 18, fontWeight: 'bold', marginBottom: 4 }}>{feature.title}</Text>
+                          <Text style={{ color: theme.textSecondary, fontSize: 14 }}>{feature.description}</Text>
+                        </View>
+                        <View style={{ backgroundColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)', borderRadius: 999, paddingHorizontal: 16, paddingVertical: 8 }}>
+                          <Text style={{ color: theme.textPrimary, fontWeight: 'bold' }}>{feature.count}</Text>
+                        </View>
+                      </View>
+                    </Animated.View>
+                  </TouchableOpacity>
+                ))}
               </View>
-            </View>
-
-            {/* Library Categories */}
-            <View className="mb-6">
-              <Text className="text-white text-xl font-bold mb-4">Danh Mục</Text>
-
-              {libraryFeatures.map((feature) => (
-                <TouchableOpacity
-                  key={feature.id}
-                  className="bg-white/5 rounded-2xl p-5 mb-3 border border-white/10"
-                  activeOpacity={0.8}
-                  onPress={() => handleNavigate(feature.screen)}
-                >
-                  <View className="flex-row items-center">
-                    <View
-                      className="w-14 h-14 rounded-full items-center justify-center mr-4"
-                      style={{ backgroundColor: `${feature.color}20` }}
-                    >
-                      <Ionicons name={feature.icon as any} size={24} color={feature.color} />
-                    </View>
-
-                    <View className="flex-1">
-                      <Text className="text-white text-lg font-bold mb-1">
-                        {feature.title}
-                      </Text>
-                      <Text className="text-gray-400 text-sm">
-                        {feature.description}
-                      </Text>
-                    </View>
-
-                    <View className="bg-white/10 rounded-full px-4 py-2">
-                      <Text className="text-white font-bold">{feature.count}</Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+            </>
+          )}
+        </ScrollView>
+      </SafeAreaView>
+    </Animated.View>
   );
 }

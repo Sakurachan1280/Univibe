@@ -1,31 +1,33 @@
 const express = require('express');
 const router = express.Router();
 const playlistController = require('../controllers/playlistController');
-const { protect } = require('../middlewares/authMiddleware');
+const { protect, optionalProtect } = require('../middlewares/authMiddleware');
 const upload = require('../middlewares/uploadMiddleware');
 
-// Tất cả thao tác Playlist đều cần đăng nhập
-router.use(protect);
+// ── Public (không cần đăng nhập) ──────────────────────────────────────────────
+// Album hệ thống (system_mix, public) — mọi user xem được kể cả chưa login
+router.get('/system', optionalProtect, playlistController.getSystemAlbums);
 
-// 1. Tạo & Lấy danh sách
-router.post('/', upload.fields([{ name: 'cover_image', maxCount: 1 }]), playlistController.create);
-router.get('/', playlistController.getMyPlaylists);
-router.get('/system', playlistController.getSystemAlbums); // Album hệ thống (system_mix, public) - mọi user xem được
+// Xem chi tiết playlist/album công khai — optionalProtect để check owner nếu cần
+router.get('/:id', optionalProtect, playlistController.getDetail);
 
+// ── Protected (cần đăng nhập) ─────────────────────────────────────────────────
+// 1. Tạo & Lấy danh sách playlist của user
+router.post('/', protect, upload.fields([{ name: 'cover_image', maxCount: 1 }]), playlistController.create);
+router.get('/', protect, playlistController.getMyPlaylists);
 
-// 2. Thao tác trên Playlist cụ thể (Sửa, Xóa, Xem chi tiết)
-router.get('/:id', playlistController.getDetail);
-router.put('/:id', playlistController.update); // Đổi tên, Đổi chế độ public/private
-router.delete('/:id', playlistController.remove);
+// 2. Thao tác trên Playlist cụ thể (Sửa, Xóa)
+router.put('/:id', protect, playlistController.update);
+router.delete('/:id', protect, playlistController.remove);
 
 // 3. Quản lý bài hát trong Playlist
-router.post('/:id/songs', playlistController.addSong);
-router.delete('/:id/songs/:songId', playlistController.removeSong); // Xóa bài hát cụ thể
+router.post('/:id/songs', protect, playlistController.addSong);
+router.delete('/:id/songs/:songId', protect, playlistController.removeSong);
 
-// 4. Cập nhật ảnh bìa (riêng để dùng multipart)
-router.put('/:id/cover', upload.fields([{ name: 'cover_image', maxCount: 1 }]), playlistController.updateCover);
+// 4. Cập nhật ảnh bìa
+router.put('/:id/cover', protect, upload.fields([{ name: 'cover_image', maxCount: 1 }]), playlistController.updateCover);
 
 // 5. Sắp xếp lại thứ tự bài hát
-router.put('/:id/reorder', playlistController.reorderTracks);
+router.put('/:id/reorder', protect, playlistController.reorderTracks);
 
 module.exports = router;

@@ -26,7 +26,7 @@ import * as SecureStore from "expo-secure-store";
 //export const BASE_URL = "https://jena-unmistrustful-yael.ngrok-free.dev";
 
 // 🔄 TÙY CHỌN KHÁC (Uncomment để sử dụng):
-export const BASE_URL = "http://192.168.0.73:5000"; // Local IP
+export const BASE_URL = "http://192.168.1.12:5000"; // Local IP
 // export const BASE_URL = "http://10.0.2.2:5000"; // Android Emulator
 
 /**
@@ -102,4 +102,25 @@ axiosClient.interceptors.request.use(async (config) => {
  * });
  */
 
-export default axiosClient;
+/**
+ * ============================================================================
+ * RESPONSE INTERCEPTOR
+ * ============================================================================
+ *
+ * Xử lý lỗi 401 (Unauthorized) khi user chưa đăng nhập:
+ * - Các API browse (nhạc, album hệ thống) đã public → không bao giờ 401
+ * - Các API cần đăng nhập (users/me, library, playlists...) trả về null
+ *   thay vì throw error → tránh crash khi guest dùng app
+ */
+axiosClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.status === 401) {
+      // Trả về null thay vì throw, các màn hình tự handle khi data = null
+      return Promise.resolve({ data: null });
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default axiosClient;

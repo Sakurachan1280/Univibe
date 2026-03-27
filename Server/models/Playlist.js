@@ -11,6 +11,7 @@ const playlistSchema = new mongoose.Schema({
     enum: ['user_created', 'system_mix', 'mood'], 
     default: 'user_created' 
   },
+  artist_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Artist', default: null },
   tags: [{ type: String }],
   tracks: [{
     song_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Song' },

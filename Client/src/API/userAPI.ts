@@ -26,7 +26,7 @@ export interface User {
     updated_at: Date;
 }
 
-export const getMeAPI = async (): Promise<User> => {
+export const getMeAPI = async (): Promise<User | null> => {
     const res = await axiosClient.get("/users/me");
     return res.data;
 };

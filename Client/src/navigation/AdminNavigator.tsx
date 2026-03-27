@@ -2,6 +2,7 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
+import { AdminThemeProvider, useAdminTheme } from "../context/AdminThemeContext";
 
 // Screens
 import MusicListScreen from "../screens/Admin/AdminSong";
@@ -125,7 +126,8 @@ const AccountStack = () => (
   </Stack.Navigator>
 );
 
-export default function AdminNavigator() {
+function AdminTabs() {
+  const theme = useAdminTheme();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -138,10 +140,10 @@ export default function AdminNavigator() {
           return <Ionicons name={iconName as any} size={size} color={color} />;
         },
         tabBarActiveTintColor: '#EC4899',
-        tabBarInactiveTintColor: '#B3B3B3',
+        tabBarInactiveTintColor: theme.isDark ? '#B3B3B3' : '#6B7280',
         tabBarStyle: {
-          backgroundColor: '#000000',
-          borderTopColor: '#282828',
+          backgroundColor: theme.tabBarBg,
+          borderTopColor: theme.tabBarBorder,
           borderTopWidth: 1,
           paddingBottom: 12,
           paddingTop: 10,
@@ -160,24 +162,26 @@ export default function AdminNavigator() {
       <Tab.Screen
         name="Content"
         component={SongStack}
-        options={{
-          tabBarLabel: 'Nội dung',
-        }}
+        options={{ tabBarLabel: 'Nội dung' }}
       />
       <Tab.Screen
         name="Library"
         component={LibraryStack}
-        options={{
-          tabBarLabel: 'Thư viện',
-        }}
+        options={{ tabBarLabel: 'Thư viện' }}
       />
       <Tab.Screen
         name="Settings"
         component={AccountStack}
-        options={{
-          tabBarLabel: 'Cài đặt',
-        }}
+        options={{ tabBarLabel: 'Cài đặt' }}
       />
     </Tab.Navigator>
   );
-};
+}
+
+export default function AdminNavigator() {
+  return (
+    <AdminThemeProvider>
+      <AdminTabs />
+    </AdminThemeProvider>
+  );
+}
