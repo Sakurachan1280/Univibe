@@ -2,6 +2,7 @@ const Interaction = require('../models/Interaction');
 const Song = require('../models/Song');
 const Artist = require('../models/Artist');
 const ListeningHistory = require('../models/ListeningHistory');
+const Playlist = require('../models/Playlist');
 
 const toggleInteraction = async (userId, targetId, targetType, action) => {
   const existing = await Interaction.findOne({
@@ -47,4 +48,66 @@ const getListeningHistory = async (userId) => {
     });
 };
 
-module.exports = { toggleInteraction, getLikedSongs, getListeningHistory };
+const toggleSaveAlbum = async (userId, albumId) => {
+  const existing = await Interaction.findOne({
+    user_id: userId,
+    target_id: albumId,
+    target_type: 'playlist',
+    action: 'like',
+  });
+
+  if (existing) {
+    await Interaction.deleteOne({ _id: existing._id });
+    return { status: 'removed' };
+  } else {
+    await Interaction.create({
+      user_id: userId,
+      target_id: albumId,
+      target_type: 'playlist',
+      action: 'like',
+    });
+    return { status: 'added' };
+  }
+};
+
+const getSavedAlbums = async (userId) => {
+  const interactions = await Interaction.find({
+    user_id: userId,
+    target_type: 'playlist',
+    action: 'like',
+  }).sort({ timestamp: -1 });
+  const albumIds = interactions.map(i => i.target_id);
+  return await Playlist.find({ _id: { $in: albumIds } });
+};
+
+const isAlbumSaved = async (userId, albumId) => {
+  const existing = await Interaction.findOne({
+    user_id: userId,
+    target_id: albumId,
+    target_type: 'playlist',
+    action: 'like',
+  });
+  return !!existing;
+};
+
+const getFollowedArtists = async (userId) => {
+  const interactions = await Interaction.find({
+    user_id: userId,
+    target_type: 'artist',
+    action: 'follow',
+  }).sort({ timestamp: -1 });
+  const artistIds = interactions.map(i => i.target_id);
+  return await Artist.find({ _id: { $in: artistIds } });
+};
+
+const isArtistFollowed = async (userId, artistId) => {
+  const existing = await Interaction.findOne({
+    user_id: userId,
+    target_id: artistId,
+    target_type: 'artist',
+    action: 'follow',
+  });
+  return !!existing;
+};
+
+module.exports = { toggleInteraction, getLikedSongs, getListeningHistory, toggleSaveAlbum, getSavedAlbums, isAlbumSaved, getFollowedArtists, isArtistFollowed };

@@ -68,3 +68,26 @@ export const updateArtist = async (id: string, formData: FormData): Promise<Arti
 export const deleteArtist = async (id: string): Promise<void> => {
     await axiosClient.delete(`/music/artists/${id}`);
 };
+/**
+ * Toggle theo dõi / bỏ theo dõi artist
+ */
+export const toggleFollowArtist = async (artistId: string): Promise<{ status: 'added' | 'removed' }> => {
+    const response = await axiosClient.post('/library/follow/artist', { artistId });
+    return response.data;
+};
+
+/**
+ * Lấy danh sách artist đang theo dõi
+ */
+export const getFollowedArtists = async (): Promise<Artist[]> => {
+    const response = await axiosClient.get('/library/followed-artists');
+    return response.data;
+};
+
+/**
+ * Kiểm tra đã theo dõi artist chưa
+ */
+export const checkArtistFollowed = async (artistId: string): Promise<boolean> => {
+    const response = await axiosClient.get(`/library/followed-artists/${artistId}`);
+    return response.data.followed;
+};

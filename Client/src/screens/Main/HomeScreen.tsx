@@ -24,7 +24,7 @@ export default function HomeScreen() {
   const [quickPlayItems, setQuickPlayItems] = useState<QuickPlayItem[]>(QUICK_PLAY);
   const [adminAlbums, setAdminAlbums] = useState<Playlist[]>([]);
 
-  // Fetch artists và chọn ngẫu nhiên 1 artist để thay slot "Chipu"
+  // Fetch artists và chọn ngẫu nhiên 1 artist
   useEffect(() => {
     const loadRandomArtist = async () => {
       try {

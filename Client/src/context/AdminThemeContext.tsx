@@ -44,7 +44,7 @@ export const AdminThemeProvider = ({ children }: { children: React.ReactNode }) 
   });
   const animCard = progress.interpolate({
     inputRange: [0, 1],
-    outputRange: ['rgba(255,255,255,0.05)', '#FFFFFF'],
+    outputRange: ['#1C1C1E', '#FFFFFF'],
   });
   const animCardBorder = progress.interpolate({
     inputRange: [0, 1],

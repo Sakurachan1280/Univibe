@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,47 @@ import * as SecureStore from 'expo-secure-store';
 import { useMusic } from '../../context/MusicContext';
 
 type AdminAccountNavigationProp = NativeStackNavigationProp<AdminTabParamList>;
+
+/** Row hiển thị toggle dark/light với nhãn đổi mượt */
+function ThemeLabelRow({ theme }: { theme: ReturnType<typeof useAdminTheme> }) {
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const [displayDark, setDisplayDark] = useState(theme.isDark);
+
+  useEffect(() => {
+    // Fade out → đổi chữ → fade in
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 120,
+      useNativeDriver: true,
+    }).start(() => {
+      setDisplayDark(theme.isDark);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    });
+  }, [theme.isDark]);
+
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+        <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(6,182,212,0.15)', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+          <Ionicons name={theme.isDark ? 'moon-outline' : 'sunny-outline'} size={20} color="#06B6D4" />
+        </View>
+        <Animated.Text style={{ color: theme.textPrimary, fontWeight: '600', opacity: fadeAnim }}>
+          {displayDark ? 'Chế độ tối' : 'Chế độ sáng'}
+        </Animated.Text>
+      </View>
+      <Switch
+        value={theme.isDark}
+        onValueChange={theme.toggleTheme}
+        trackColor={{ false: '#D1D5DB', true: '#EC4899' }}
+        thumbColor={theme.isDark ? '#fff' : '#f4f3f4'}
+      />
+    </View>
+  );
+}
 
 export default function AdminAccount() {
   const navigation = useNavigation<AdminAccountNavigationProp>();
@@ -116,20 +157,7 @@ export default function AdminAccount() {
               </View>
 
               {/* Dark mode */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                  <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(6,182,212,0.15)', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-                    <Ionicons name={theme.isDark ? 'moon-outline' : 'sunny-outline'} size={20} color="#06B6D4" />
-                  </View>
-                  <Text style={{ color: theme.textPrimary, fontWeight: '600' }}>Chế độ tối</Text>
-                </View>
-                <Switch
-                  value={theme.isDark}
-                  onValueChange={theme.toggleTheme}
-                  trackColor={{ false: '#D1D5DB', true: '#EC4899' }}
-                  thumbColor={theme.isDark ? '#fff' : '#f4f3f4'}
-                />
-              </View>
+              <ThemeLabelRow theme={theme} />
             </Animated.View>
           </View>
 

@@ -27,6 +27,7 @@ import HistoryScreen from '../screens/Main/HistoryScreen';
 import SettingsScreen from '../screens/Profile/Setting';
 import PlaylistsScreen from '../screens/Main/PlaylistsScreen';
 import GenrePlaylistScreen from '../screens/ItemsMainMusic/GenrePlaylistScreen';
+import AlbumDetailScreen from '../screens/ItemsMainMusic/AlbumDetailScreen';
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -60,6 +61,7 @@ export default function AppNavigator() {
         <Stack.Screen name="History" component={HistoryScreen} />
         <Stack.Screen name="Playlists" component={PlaylistsScreen} />
         <Stack.Screen name="GenrePlaylist" component={GenrePlaylistScreen} />
+        <Stack.Screen name="AlbumDetail" component={AlbumDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

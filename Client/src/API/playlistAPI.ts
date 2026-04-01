@@ -196,4 +196,26 @@ export const reorderAlbumTracks = async (albumId: string, orderedSongIds: string
     const response = await axiosClient.put(`/playlists/${albumId}/reorder`, { orderedSongIds });
     return response.data;
 };
+/**
+ * Toggle lưu/bỏ lưu album vào thư viện
+ */
+export const toggleSaveAlbum = async (albumId: string): Promise<{ status: 'added' | 'removed' }> => {
+    const response = await axiosClient.post("/library/save/album", { albumId });
+    return response.data;
+};
 
+/**
+ * Lấy danh sách album đã lưu vào thư viện
+ */
+export const getSavedAlbums = async (): Promise<Playlist[]> => {
+    const response = await axiosClient.get("/library/saved-albums");
+    return response.data;
+};
+
+/**
+ * Kiểm tra album có trong thư viện chưa
+ */
+export const checkAlbumSaved = async (albumId: string): Promise<boolean> => {
+    const response = await axiosClient.get(`/library/saved-albums/${albumId}`);
+    return response.data.saved;
+};

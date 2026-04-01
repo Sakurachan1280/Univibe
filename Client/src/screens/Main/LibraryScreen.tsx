@@ -10,9 +10,10 @@ import UserAvatar from "../../components/ModalProfile/UserAvatar";
 import { LinearGradient } from 'expo-linear-gradient';
 import CreatePlaylistModal from "../../components/Playlist/CreatePlaylistModal";
 
-import { Playlist, getMyPlaylists, deletePlaylist } from "../../API/playlistAPI";
+import { Playlist, getMyPlaylists, deletePlaylist, getSavedAlbums } from "../../API/playlistAPI";
+import { Artist, getFollowedArtists } from "../../API/artistAPI";
 import { BASE_URL } from "../../API/axiosClient";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../navigation/types";
 
@@ -143,6 +144,8 @@ export default function LibraryScreen() {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [menuPlaylist, setMenuPlaylist] = useState<Playlist | null>(null);
     const [menuVisible, setMenuVisible] = useState(false);
+    const [savedAlbums, setSavedAlbums] = useState<Playlist[]>([]);
+    const [followedArtists, setFollowedArtists] = useState<Artist[]>([]);
 
     const panResponder = useRef<PanResponderInstance>(
         PanResponder.create({
@@ -161,17 +164,42 @@ export default function LibraryScreen() {
 
     useEffect(() => { loadPlaylists(); }, []);
 
+    // Reload albums & artists mỗi khi quay lại màn hình (sau khi follow/unfollow, save/unsave)
+    useFocusEffect(
+        useCallback(() => {
+            loadSavedAlbums();
+            loadFollowedArtists();
+        }, [])
+    );
+
     const loadPlaylists = async () => {
         try {
             setIsLoading(true);
             const data = await getMyPlaylists();
-            // data có thể là null nếu guest (401 → interceptor trả null)
             setPlaylists(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Error loading playlists:', error);
             setPlaylists([]);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const loadSavedAlbums = async () => {
+        try {
+            const data = await getSavedAlbums();
+            setSavedAlbums(Array.isArray(data) ? data : []);
+        } catch {
+            setSavedAlbums([]);
+        }
+    };
+
+    const loadFollowedArtists = async () => {
+        try {
+            const data = await getFollowedArtists();
+            setFollowedArtists(Array.isArray(data) ? data : []);
+        } catch {
+            setFollowedArtists([]);
         }
     };
 
@@ -218,8 +246,12 @@ export default function LibraryScreen() {
         { id: "all", label: "Tất cả" },
         { id: "albums", label: "Album" },
         { id: "playlists", label: "Playlist" },
-        { id: "artists", label: "Nghệ sĩ" },
+        { id: "artists", label: "Ca sĩ" },
     ];
+
+    const showAlbums = activeFilter === "all" || activeFilter === "albums";
+    const showPlaylists = activeFilter === "all" || activeFilter === "playlists";
+    const showArtists = activeFilter === "all" || activeFilter === "artists";
 
     return (
         <SafeAreaView className="flex-1 bg-black" edges={["top"]}>
@@ -236,7 +268,9 @@ export default function LibraryScreen() {
                     <TouchableOpacity onPress={() => navigation.navigate("History")}>
                         <Ionicons name="timer-outline" size={22} color="white" />
                     </TouchableOpacity>
-                    <Ionicons name="settings-outline" size={22} color="white" />
+                    <TouchableOpacity onPress={() => navigation.navigate("Settings")}>
+                        <Ionicons name="settings-outline" size={22} color="white" />
+                    </TouchableOpacity>
                 </View>
             </View>
 
@@ -270,19 +304,61 @@ export default function LibraryScreen() {
                 </View>
 
                 {/* CREATE NEW PLAYLIST BUTTON */}
-                <View className="px-4 mt-6">
-                    <TouchableOpacity activeOpacity={0.8} className="rounded-2xl overflow-hidden" onPress={() => setShowCreateModal(true)}>
-                        <LinearGradient
-                            colors={["#EC4899", "#06B6D4"] as const}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                            className="flex-row items-center justify-center py-4 px-6"
-                        >
-                            <Ionicons name="add-circle-outline" size={24} color="white" />
-                            <Text className="text-white font-bold text-lg ml-3">Tạo Playlist Mới</Text>
-                        </LinearGradient>
-                    </TouchableOpacity>
-                </View>
+                {showPlaylists && (
+                    <View className="px-4 mt-6">
+                        <TouchableOpacity activeOpacity={0.8} className="rounded-2xl overflow-hidden" onPress={() => setShowCreateModal(true)}>
+                            <LinearGradient
+                                colors={["#EC4899", "#06B6D4"] as const}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                                className="flex-row items-center justify-center py-4 px-6"
+                            >
+                                <Ionicons name="add-circle-outline" size={24} color="white" />
+                                <Text className="text-white font-bold text-lg ml-3">Tạo Playlist Mới</Text>
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
+                )}
+
+                {/* SAVED ALBUMS SECTION */}
+                {showAlbums && savedAlbums.length > 0 && (
+                    <View className="px-4 mt-6">
+                        <Text className="text-white text-xl font-bold mb-4">Album đã lưu</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14 }}>
+                            {savedAlbums.map((album) => {
+                                const coverUrl = formatCover(album.cover_image);
+                                return (
+                                    <TouchableOpacity
+                                        key={album._id}
+                                        activeOpacity={0.8}
+                                        onPress={() => navigation.navigate("AlbumDetail", { albumId: album._id })}
+                                        style={{ width: 140 }}
+                                    >
+                                        {coverUrl ? (
+                                            <Image
+                                                source={coverUrl}
+                                                style={{ width: 140, height: 140, borderRadius: 14 }}
+                                                contentFit="cover"
+                                                cachePolicy="memory-disk"
+                                            />
+                                        ) : (
+                                            <LinearGradient
+                                                colors={["#EC4899", "#F97316"] as const}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 1, y: 1 }}
+                                                style={{ width: 140, height: 140, borderRadius: 14, alignItems: "center", justifyContent: "center" }}
+                                            >
+                                                <Ionicons name="disc" size={52} color="rgba(255,255,255,0.85)" />
+                                            </LinearGradient>
+                                        )}
+                                        <Text className="text-white font-semibold text-sm mt-2" numberOfLines={1}>{album.name}</Text>
+                                        <Text className="text-gray-400 text-xs mt-0.5">Album</Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </ScrollView>
+                    </View>
+                )}
 
                 {/* PLAYLIST GRID */}
                 {isLoading ? (
@@ -290,7 +366,7 @@ export default function LibraryScreen() {
                         <ActivityIndicator size="large" color="#EC4899" />
                         <Text className="text-gray-400 mt-3">Đang tải...</Text>
                     </View>
-                ) : playlists.length > 0 ? (
+                ) : showPlaylists && playlists.length > 0 ? (
                     <View className="px-4 mt-6">
                         <Text className="text-white text-xl font-bold mb-4">Playlist của tôi</Text>
                         <View className="flex-row flex-wrap justify-between">
@@ -328,9 +404,6 @@ export default function LibraryScreen() {
                                             <Text className="text-gray-400 text-sm mt-1">
                                                 Danh sách phát của tôi
                                             </Text>
-                                            <Text className="text-gray-500 text-xs mt-1">
-                                                {playlist.is_public ? "Công khai" : "Riêng tư"}
-                                            </Text>
                                         </View>
 
                                         {/* More Options */}
@@ -345,13 +418,13 @@ export default function LibraryScreen() {
                             })}
                         </View>
                     </View>
-                ) : (
-                    /* EMPTY STATE */
+                ) : showPlaylists && playlists.length === 0 && !isLoading ? (
+                    /* EMPTY STATE — no playlists */
                     <View className="px-4 mt-12">
                         <View className="bg-neutral-900/50 rounded-2xl p-8 items-center border border-white/5">
                             <View className="w-24 h-24 rounded-full items-center justify-center mb-4"
                                 style={{ backgroundColor: "rgba(236,72,153,0.15)" }}>
-                                <Ionicons name="albums-outline" size={48} color="#EC4899" />
+                                <Ionicons name="musical-notes-outline" size={48} color="#EC4899" />
                             </View>
                             <Text className="text-white text-xl font-bold mb-2">Chưa có playlist nào</Text>
                             <Text className="text-gray-400 text-center mb-6">
@@ -367,6 +440,80 @@ export default function LibraryScreen() {
                                     <Text className="text-white font-bold">Tạo Playlist Ngay</Text>
                                 </LinearGradient>
                             </TouchableOpacity>
+                        </View>
+                    </View>
+                ) : null}
+
+                {/* EMPTY STATE — albums filter, no saved albums */}
+                {activeFilter === "albums" && savedAlbums.length === 0 && !isLoading && (
+                    <View className="px-4 mt-12">
+                        <View className="bg-neutral-900/50 rounded-2xl p-8 items-center border border-white/5">
+                            <View className="w-24 h-24 rounded-full items-center justify-center mb-4"
+                                style={{ backgroundColor: "rgba(236,72,153,0.15)" }}>
+                                <Ionicons name="albums-outline" size={48} color="#EC4899" />
+                            </View>
+                            <Text className="text-white text-xl font-bold mb-2">Chưa có album nào</Text>
+                            <Text className="text-gray-400 text-center">
+                                Vào trang Album và nhấn ••• để{"\n"}thêm album vào thư viện
+                            </Text>
+                        </View>
+                    </View>
+                )}
+
+                {/* FOLLOWED ARTISTS SECTION */}
+                {showArtists && followedArtists.length > 0 && (
+                    <View className="px-4 mt-6">
+                        <Text className="text-white text-xl font-bold mb-4">Nghệ sĩ đang theo dõi</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16 }}>
+                            {followedArtists.map((artist) => {
+                                const avatarUrl = artist.avatar
+                                    ? (artist.avatar.startsWith('http') ? artist.avatar : `${BASE_URL}${artist.avatar}`)
+                                    : null;
+                                return (
+                                    <TouchableOpacity
+                                        key={artist._id}
+                                        activeOpacity={0.8}
+                                        onPress={() => navigation.navigate("ArtistDetail", { artistId: artist._id, artistName: artist.name })}
+                                        style={{ width: 100, alignItems: 'center' }}
+                                    >
+                                        {avatarUrl ? (
+                                            <Image
+                                                source={avatarUrl}
+                                                style={{ width: 90, height: 90, borderRadius: 45 }}
+                                                contentFit="cover"
+                                                cachePolicy="memory-disk"
+                                            />
+                                        ) : (
+                                            <LinearGradient
+                                                colors={["#EC4899", "#9333EA"] as const}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 1, y: 1 }}
+                                                style={{ width: 90, height: 90, borderRadius: 45, alignItems: "center", justifyContent: "center" }}
+                                            >
+                                                <Ionicons name="person" size={40} color="rgba(255,255,255,0.85)" />
+                                            </LinearGradient>
+                                        )}
+                                        <Text className="text-white font-semibold text-sm mt-2 text-center" numberOfLines={1}>{artist.name}</Text>
+                                        <Text className="text-gray-400 text-xs mt-0.5">Ca sĩ</Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </ScrollView>
+                    </View>
+                )}
+
+                {/* EMPTY STATE — artists filter, no followed artists */}
+                {activeFilter === "artists" && followedArtists.length === 0 && !isLoading && (
+                    <View className="px-4 mt-12">
+                        <View className="bg-neutral-900/50 rounded-2xl p-8 items-center border border-white/5">
+                            <View className="w-24 h-24 rounded-full items-center justify-center mb-4"
+                                style={{ backgroundColor: "rgba(236,72,153,0.15)" }}>
+                                <Ionicons name="person-outline" size={48} color="#EC4899" />
+                            </View>
+                            <Text className="text-white text-xl font-bold mb-2">Chưa theo dõi ca sĩ nào</Text>
+                            <Text className="text-gray-400 text-center">
+                                Vào trang ca sĩ và nhấn{"\n"}"Theo dõi" để thêm vào thư viện
+                            </Text>
                         </View>
                     </View>
                 )}

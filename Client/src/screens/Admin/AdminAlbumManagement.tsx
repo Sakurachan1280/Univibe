@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
     View,
     Text,
@@ -155,6 +155,7 @@ export default function AdminAlbumManagementScreen() {
     const [editTags, setEditTags] = useState('');
     const [editCoverUri, setEditCoverUri] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const nameInputRef = useRef<any>(null);
 
     // ── Songs modal ──
     const [songsModalVisible, setSongsModalVisible] = useState(false);
@@ -202,6 +203,10 @@ export default function AdminAlbumManagementScreen() {
         setEditTags(album.tags?.join(', ') || '');
         setEditCoverUri(null);
         setEditModalVisible(true);
+        // Tự động focus vào ô tên sau khi bottom sheet mở xong animation
+        setTimeout(() => {
+            nameInputRef.current?.focus();
+        }, 400);
     };
 
     const pickCover = async () => {
@@ -591,10 +596,12 @@ export default function AdminAlbumManagementScreen() {
                             <View className="mb-4">
                                 <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>Tên Album *</Text>
                                 <TextInput
+                                    ref={nameInputRef}
                                     value={editName}
                                     onChangeText={setEditName}
                                     placeholder="Nhập tên album"
                                     placeholderTextColor={theme.textSecondary}
+                                    returnKeyType="next"
                                     style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput }}
                                 />
                             </View>

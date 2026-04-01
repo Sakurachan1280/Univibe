@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -8,14 +8,17 @@ import {
     Dimensions,
     StatusBar,
     StyleSheet,
+    ToastAndroid,
+    Platform,
+    Alert,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
-import { getArtistById, getSongsByArtist, Artist } from '../../API/artistAPI';
+import { getArtistById, getSongsByArtist, Artist, toggleFollowArtist, checkArtistFollowed } from '../../API/artistAPI';
 import { Song } from '../../API/musicAPI';
 import { RootStackParamList } from '../../navigation/types';
 
@@ -32,10 +35,21 @@ export default function ArtistDetailScreen() {
     const [songs, setSongs] = useState<Song[]>([]);
     const [loading, setLoading] = useState(true);
     const [songsLoading, setSongsLoading] = useState(true);
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [followLoading, setFollowLoading] = useState(false);
 
     useEffect(() => {
         loadArtistData();
     }, [artistId]);
+
+    // Re-check follow status every time screen comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            checkArtistFollowed(artistId)
+                .then(followed => setIsFollowing(followed))
+                .catch(() => {});
+        }, [artistId])
+    );
 
     const loadArtistData = async () => {
         try {
@@ -49,11 +63,40 @@ export default function ArtistDetailScreen() {
 
             setArtist(artistData);
             setSongs(songsData);
+
+            // Check follow status
+            try {
+                const followed = await checkArtistFollowed(artistId);
+                setIsFollowing(followed);
+            } catch {
+                // ignore if not logged in
+            }
         } catch (error) {
             console.error('Error loading artist data:', error);
         } finally {
             setLoading(false);
             setSongsLoading(false);
+        }
+    };
+
+    const showToast = (msg: string) => {
+        if (Platform.OS === 'android') ToastAndroid.show(msg, ToastAndroid.SHORT);
+        else Alert.alert('', msg);
+    };
+
+    const handleToggleFollow = async () => {
+        setFollowLoading(true);
+        try {
+            const result = await toggleFollowArtist(artistId);
+            const nowFollowing = result.status === 'added';
+            setIsFollowing(nowFollowing);
+            showToast(nowFollowing
+                ? `Đang theo dõi ${artist?.name ?? 'ca sĩ'}`
+                : `Đã bỏ theo dõi ${artist?.name ?? 'ca sĩ'}`);
+        } catch {
+            showToast('Không thể thực hiện. Vui lòng thử lại.');
+        } finally {
+            setFollowLoading(false);
         }
     };
 
@@ -174,8 +217,25 @@ export default function ArtistDetailScreen() {
                 >
                     {/* Action buttons */}
                     <View style={styles.actionsRow}>
-                        <TouchableOpacity style={styles.followButton}>
-                            <Text style={styles.followButtonText}>Theo dõi</Text>
+                        <TouchableOpacity
+                            style={[styles.followButton, isFollowing && styles.followButtonActive]}
+                            onPress={handleToggleFollow}
+                            disabled={followLoading}
+                        >
+                            {followLoading ? (
+                                <ActivityIndicator size="small" color="white" />
+                            ) : (
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+                                    <Ionicons
+                                        name={isFollowing ? 'heart' : 'heart-outline'}
+                                        size={18}
+                                        color={isFollowing ? '#ec4899' : 'white'}
+                                    />
+                                    <Text style={[styles.followButtonText, isFollowing && styles.followButtonTextActive]}>
+                                        {isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
+                                    </Text>
+                                </View>
+                            )}
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.playAllButton} onPress={handlePlayAll}>
@@ -303,11 +363,21 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         borderWidth: 1.5,
         borderColor: 'rgba(236,72,153,0.7)',
+        minWidth: 140,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    followButtonActive: {
+        backgroundColor: 'rgba(236,72,153,0.15)',
+        borderColor: '#ec4899',
     },
     followButtonText: {
         color: 'white',
         fontWeight: '600',
         fontSize: 15,
+    },
+    followButtonTextActive: {
+        color: '#ec4899',
     },
     playAllButton: {
         shadowColor: '#ec4899',

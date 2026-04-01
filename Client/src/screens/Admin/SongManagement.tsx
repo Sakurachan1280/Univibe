@@ -10,6 +10,8 @@ import {
     Modal,
     TextInput,
     Animated,
+    KeyboardAvoidingView,
+    Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -264,139 +266,152 @@ export default function SongManagementScreen() {
                 transparent={true}
                 onRequestClose={() => setEditModalVisible(false)}
             >
-                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' }}>
-                    <Animated.View style={{ backgroundColor: theme.animCard, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '80%', borderTopWidth: 1, borderColor: theme.bgCardBorder }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-                            <Text style={{ color: theme.textPrimary, fontSize: 20, fontWeight: 'bold' }}>Chỉnh Sửa Bài Hát</Text>
-                            <TouchableOpacity onPress={() => setEditModalVisible(false)}>
-                                <Ionicons name="close" size={28} color={theme.textPrimary} />
-                            </TouchableOpacity>
-                        </View>
-
-                        <ScrollView>
-                            {/* Cover */}
-                            <View className="items-center mb-6">
-                                <TouchableOpacity onPress={pickCover}>
-                                    <View className="w-32 h-32 rounded-2xl overflow-hidden border-2 border-pink-500">
-                                        {editCover ? (
-                                            <Image source={{ uri: editCover }} className="w-full h-full" />
-                                        ) : selectedSong?.cover_image ? (
-                                            <Image
-                                                source={{
-                                                    uri: selectedSong.cover_image.startsWith('http')
-                                                        ? selectedSong.cover_image
-                                                        : `${BASE_URL}${selectedSong.cover_image}`
-                                                }}
-                                                className="w-full h-full"
-                                            />
-                                        ) : (
-                                            <View className="w-full h-full bg-gray-700 items-center justify-center">
-                                                <Ionicons name="image" size={40} color="gray" />
-                                            </View>
-                                        )}
-                                    </View>
+                <KeyboardAvoidingView
+                    style={{ flex: 1 }}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                >
+                    <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' }}>
+                        <View style={{
+                            borderTopLeftRadius: 24,
+                            borderTopRightRadius: 24,
+                            padding: 24,
+                            maxHeight: '90%',
+                            borderTopWidth: 1,
+                            borderColor: theme.bgCardBorder,
+                            backgroundColor: theme.isDark ? '#1C1C1E' : '#FFFFFF',
+                        }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+                                <Text style={{ color: theme.textPrimary, fontSize: 20, fontWeight: 'bold' }}>Chỉnh Sửa Bài Hát</Text>
+                                <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+                                    <Ionicons name="close" size={28} color={theme.textPrimary} />
                                 </TouchableOpacity>
-                                <Text style={{ color: theme.textSecondary, fontSize: 14, marginTop: 8 }}>Nhấn để thay đổi ảnh bìa</Text>
                             </View>
 
-                            {/* Title */}
-                            <View className="mb-4">
-                                <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>Tên Bài Hát *</Text>
-                                <TextInput
-                                    value={editTitle}
-                                    onChangeText={setEditTitle}
-                                    placeholder="Nhập tên bài hát"
-                                    placeholderTextColor={theme.textSecondary}
-                                    style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput }}
-                                />
-                            </View>
-
-                            {/* Duration */}
-                            <View className="mb-4">
-                                <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>Thời lượng (giây)</Text>
-                                <TextInput
-                                    value={editDuration}
-                                    onChangeText={setEditDuration}
-                                    placeholder="300"
-                                    placeholderTextColor={theme.textSecondary}
-                                    keyboardType="numeric"
-                                    style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput }}
-                                />
-                            </View>
-
-                            {/* Genres */}
-                            <View className="mb-4">
-                                <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>Thể loại (phân cách bằng dấu phẩy)</Text>
-                                <TextInput
-                                    value={editGenres}
-                                    onChangeText={setEditGenres}
-                                    placeholder="Pop, Rock, Jazz"
-                                    placeholderTextColor={theme.textSecondary}
-                                    style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput }}
-                                />
-                            </View>
-
-                            {/* Artists */}
-                            <View className="mb-6">
-                                <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>Ca Sĩ *</Text>
-                                <View style={{ backgroundColor: theme.bgInput, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, padding: 8, maxHeight: 220 }}>
-                                    <ScrollView nestedScrollEnabled showsVerticalScrollIndicator>
-                                        {allArtists.map((artist) => {
-                                            const selected = editArtistIds.includes(artist._id);
-                                            return (
-                                                <TouchableOpacity
-                                                    key={artist._id}
-                                                    onPress={() => {
-                                                        setEditArtistIds(prev =>
-                                                            selected
-                                                                ? prev.filter(id => id !== artist._id)
-                                                                : [...prev, artist._id]
-                                                        );
+                            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+                                {/* Cover */}
+                                <View className="items-center mb-6">
+                                    <TouchableOpacity onPress={pickCover}>
+                                        <View className="w-32 h-32 rounded-2xl overflow-hidden border-2 border-pink-500">
+                                            {editCover ? (
+                                                <Image source={{ uri: editCover }} className="w-full h-full" />
+                                            ) : selectedSong?.cover_image ? (
+                                                <Image
+                                                    source={{
+                                                        uri: selectedSong.cover_image.startsWith('http')
+                                                            ? selectedSong.cover_image
+                                                            : `${BASE_URL}${selectedSong.cover_image}`
                                                     }}
-                                                    className={`flex-row items-center p-3 rounded-lg mb-1 ${selected ? 'bg-pink-600/30' : 'bg-transparent'}`}
-                                                >
-                                                    {artist.avatar ? (
-                                                        <Image
-                                                            source={{ uri: artist.avatar.startsWith('http') ? artist.avatar : `${BASE_URL}${artist.avatar}` }}
-                                                            className="w-9 h-9 rounded-full"
-                                                        />
-                                                    ) : (
-                                                        <View className="w-9 h-9 rounded-full bg-gray-700 items-center justify-center">
-                                                            <Ionicons name="person" size={18} color="gray" />
-                                                        </View>
-                                                    )}
-                                                    <Text style={{ color: theme.textPrimary, marginLeft: 12, flex: 1 }} numberOfLines={1}>{artist.name}</Text>
-                                                    {selected && <Ionicons name="checkmark-circle" size={22} color="#EC4899" />}
-                                                </TouchableOpacity>
-                                            );
-                                        })}
-                                    </ScrollView>
+                                                    className="w-full h-full"
+                                                />
+                                            ) : (
+                                                <View className="w-full h-full bg-gray-700 items-center justify-center">
+                                                    <Ionicons name="image" size={40} color="gray" />
+                                                </View>
+                                            )}
+                                        </View>
+                                    </TouchableOpacity>
+                                    <Text style={{ color: theme.textSecondary, fontSize: 14, marginTop: 8 }}>Nhấn để thay đổi ảnh bìa</Text>
                                 </View>
-                            </View>
 
-                            {/* Buttons */}
-                            <TouchableOpacity
-                                onPress={handleSaveEdit}
-                                disabled={isSaving}
-                                className={`py-4 rounded-xl items-center mb-3 ${isSaving ? 'bg-gray-700' : 'bg-pink-600'
-                                    }`}
-                            >
-                                {isSaving ? (
-                                    <ActivityIndicator color="white" />
-                                ) : (
-                                    <Text style={{ color: '#FFFFFF', fontWeight: 'bold', fontSize: 18 }}>Lưu Thay Đổi</Text>
-                                )}
-                            </TouchableOpacity>
+                                {/* Title */}
+                                <View className="mb-4">
+                                    <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>Tên Bài Hát *</Text>
+                                    <TextInput
+                                        value={editTitle}
+                                        onChangeText={setEditTitle}
+                                        placeholder="Nhập tên bài hát"
+                                        placeholderTextColor={theme.textSecondary}
+                                        style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput }}
+                                    />
+                                </View>
 
-                            <TouchableOpacity
-                                onPress={() => setEditModalVisible(false)}
-                                style={{ paddingVertical: 16, borderRadius: 12, alignItems: 'center', backgroundColor: theme.bgCardBorder }}
-                            >
-                                <Text style={{ color: theme.textPrimary, fontWeight: '600' }}>Hủy</Text>
-                            </TouchableOpacity>
-                        </ScrollView>
-                    </Animated.View>
-                </View>
+                                {/* Duration */}
+                                <View className="mb-4">
+                                    <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>Thời lượng (giây)</Text>
+                                    <TextInput
+                                        value={editDuration}
+                                        onChangeText={setEditDuration}
+                                        placeholder="300"
+                                        placeholderTextColor={theme.textSecondary}
+                                        keyboardType="numeric"
+                                        style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput }}
+                                    />
+                                </View>
+
+                                {/* Genres */}
+                                <View className="mb-4">
+                                    <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>Thể loại (phân cách bằng dấu phẩy)</Text>
+                                    <TextInput
+                                        value={editGenres}
+                                        onChangeText={setEditGenres}
+                                        placeholder="Pop, Rock, Jazz"
+                                        placeholderTextColor={theme.textSecondary}
+                                        style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput }}
+                                    />
+                                </View>
+
+                                {/* Artists */}
+                                <View className="mb-6">
+                                    <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8 }}>Ca Sĩ *</Text>
+                                    <View style={{ backgroundColor: theme.bgInput, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, padding: 8, maxHeight: 220 }}>
+                                        <ScrollView nestedScrollEnabled showsVerticalScrollIndicator>
+                                            {allArtists.map((artist) => {
+                                                const selected = editArtistIds.includes(artist._id);
+                                                return (
+                                                    <TouchableOpacity
+                                                        key={artist._id}
+                                                        onPress={() => {
+                                                            setEditArtistIds(prev =>
+                                                                selected
+                                                                    ? prev.filter(id => id !== artist._id)
+                                                                    : [...prev, artist._id]
+                                                            );
+                                                        }}
+                                                        className={`flex-row items-center p-3 rounded-lg mb-1 ${selected ? 'bg-pink-600/30' : 'bg-transparent'}`}
+                                                    >
+                                                        {artist.avatar ? (
+                                                            <Image
+                                                                source={{ uri: artist.avatar.startsWith('http') ? artist.avatar : `${BASE_URL}${artist.avatar}` }}
+                                                                className="w-9 h-9 rounded-full"
+                                                            />
+                                                        ) : (
+                                                            <View className="w-9 h-9 rounded-full bg-gray-700 items-center justify-center">
+                                                                <Ionicons name="person" size={18} color="gray" />
+                                                            </View>
+                                                        )}
+                                                        <Text style={{ color: theme.textPrimary, marginLeft: 12, flex: 1 }} numberOfLines={1}>{artist.name}</Text>
+                                                        {selected && <Ionicons name="checkmark-circle" size={22} color="#EC4899" />}
+                                                    </TouchableOpacity>
+                                                );
+                                            })}
+                                        </ScrollView>
+                                    </View>
+                                </View>
+
+                                {/* Buttons */}
+                                <TouchableOpacity
+                                    onPress={handleSaveEdit}
+                                    disabled={isSaving}
+                                    className={`py-4 rounded-xl items-center mb-3 ${isSaving ? 'bg-gray-700' : 'bg-pink-600'
+                                        }`}
+                                >
+                                    {isSaving ? (
+                                        <ActivityIndicator color="white" />
+                                    ) : (
+                                        <Text style={{ color: '#FFFFFF', fontWeight: 'bold', fontSize: 18 }}>Lưu Thay Đổi</Text>
+                                    )}
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    onPress={() => setEditModalVisible(false)}
+                                    style={{ paddingVertical: 16, borderRadius: 12, alignItems: 'center', marginBottom: 8, backgroundColor: theme.bgCardBorder }}
+                                >
+                                    <Text style={{ color: theme.textPrimary, fontWeight: '600' }}>Hủy</Text>
+                                </TouchableOpacity>
+                            </ScrollView>
+                        </View>
+                    </View>
+                </KeyboardAvoidingView>
             </Modal>
         </SafeAreaView>
         </Animated.View>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
     View,
     Text,
@@ -8,6 +8,11 @@ import {
     StatusBar,
     RefreshControl,
     Dimensions,
+    Modal,
+    Animated,
+    ToastAndroid,
+    Platform,
+    Alert,
 } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,7 +21,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../navigation/types";
-import { getPlaylistDetail, Playlist } from "../../API/playlistAPI";
+import { getPlaylistDetail, Playlist, toggleSaveAlbum, checkAlbumSaved } from "../../API/playlistAPI";
 import { Song } from "../../API/musicAPI";
 import { getServerURL } from "../../API/axiosClient";
 import { useMusic } from "../../context/MusicContext";
@@ -53,6 +58,11 @@ export default function AlbumDetailScreen() {
     const [error, setError] = useState<string | null>(null);
     const [currentPlayingId, setCurrentPlayingId] = useState<string | null>(null);
     const [addToPlaylistSong, setAddToPlaylistSong] = useState<Song | null>(null);
+    const [albumMenuVisible, setAlbumMenuVisible] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
+    const [savingAlbum, setSavingAlbum] = useState(false);
+    const slideAnim = useRef(new Animated.Value(400)).current;
+    const fadeAnim = useRef(new Animated.Value(0)).current;
 
     const fetchAlbum = useCallback(async () => {
         if (!albumId || albumId === 'undefined') {
@@ -70,6 +80,13 @@ export default function AlbumDetailScreen() {
                 .map((t) => t.song_id)
                 .filter(Boolean) as Song[];
             setSongs(extracted);
+            // Check save status
+            try {
+                const saved = await checkAlbumSaved(albumId);
+                setIsSaved(saved);
+            } catch {
+                // ignore if not logged in
+            }
         } catch (err: any) {
             console.error("[AlbumDetail] Fetch error:", err);
             setError(err?.message ?? "Không thể tải album");
@@ -112,7 +129,48 @@ export default function AlbumDetailScreen() {
         return `${getServerURL()}${url}`;
     };
 
+    const openAlbumMenu = () => {
+        setAlbumMenuVisible(true);
+        Animated.parallel([
+            Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 20, stiffness: 200 }),
+            Animated.timing(fadeAnim, { toValue: 1, duration: 180, useNativeDriver: true }),
+        ]).start();
+    };
+
+    const closeAlbumMenu = () => {
+        Animated.parallel([
+            Animated.timing(slideAnim, { toValue: 400, duration: 200, useNativeDriver: true }),
+            Animated.timing(fadeAnim, { toValue: 0, duration: 160, useNativeDriver: true }),
+        ]).start(() => setAlbumMenuVisible(false));
+    };
+
+    const showToast = (msg: string) => {
+        if (Platform.OS === 'android') {
+            ToastAndroid.show(msg, ToastAndroid.SHORT);
+        } else {
+            Alert.alert('', msg);
+        }
+    };
+
+    const handleToggleSaveAlbum = async () => {
+        if (!album) return;
+        closeAlbumMenu();
+        setSavingAlbum(true);
+        try {
+            const result = await toggleSaveAlbum(album._id);
+            setIsSaved(result.status === 'added');
+            showToast(result.status === 'added'
+                ? `Đã thêm "${album.name}" vào thư viện`
+                : `Đã xóa "${album.name}" khỏi thư viện`);
+        } catch (err: any) {
+            showToast('Không thể thực hiện. Vui lòng thử lại.');
+        } finally {
+            setSavingAlbum(false);
+        }
+    };
+
     return (
+        <>
         <View style={{ flex: 1, backgroundColor: "#0a0a0a" }}>
             <AddToPlaylistModal
                 visible={addToPlaylistSong !== null}
@@ -289,6 +347,7 @@ export default function AlbumDetailScreen() {
                     </TouchableOpacity>
 
                     <TouchableOpacity
+                        onPress={openAlbumMenu}
                         style={{
                             width: 46,
                             height: 46,
@@ -298,7 +357,10 @@ export default function AlbumDetailScreen() {
                             justifyContent: "center",
                         }}
                     >
-                        <Ionicons name="ellipsis-horizontal" size={22} color="white" />
+                        {savingAlbum
+                            ? <ActivityIndicator size="small" color="white" />
+                            : <Ionicons name="ellipsis-horizontal" size={22} color="white" />
+                        }
                     </TouchableOpacity>
                 </View>
             )}
@@ -456,5 +518,104 @@ export default function AlbumDetailScreen() {
                 </ScrollView>
             )}
         </View>
+
+        {/* ── ALBUM OPTIONS BOTTOM SHEET ── */}
+        {albumMenuVisible && (
+            <Modal visible transparent animationType="none" statusBarTranslucent onRequestClose={closeAlbumMenu}>
+                <Animated.View
+                    style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', opacity: fadeAnim }}
+                >
+                    <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeAlbumMenu} />
+                </Animated.View>
+
+                <Animated.View style={{
+                    position: 'absolute',
+                    bottom: 0, left: 0, right: 0,
+                    transform: [{ translateY: slideAnim }],
+                }}>
+                    <View style={{
+                        backgroundColor: '#1a1a1a',
+                        borderTopLeftRadius: 24,
+                        borderTopRightRadius: 24,
+                        borderWidth: 1,
+                        borderColor: 'rgba(255,255,255,0.08)',
+                        paddingBottom: 36,
+                    }}>
+                        {/* Handle */}
+                        <View style={{ alignItems: 'center', paddingTop: 12, marginBottom: 4 }}>
+                            <View style={{ width: 36, height: 4, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 2 }} />
+                        </View>
+
+                        {/* Album header */}
+                        <View style={{
+                            flexDirection: 'row', alignItems: 'center',
+                            paddingHorizontal: 20, paddingVertical: 14,
+                            borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)',
+                        }}>
+                            {album?.cover_image ? (
+                                <Image
+                                    source={formatImageUrl(album.cover_image)}
+                                    style={{ width: 52, height: 52, borderRadius: 10 }}
+                                    contentFit="cover"
+                                />
+                            ) : (
+                                <LinearGradient
+                                    colors={albumColors as any}
+                                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                                    style={{ width: 52, height: 52, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}
+                                >
+                                    <Ionicons name="disc" size={26} color="rgba(255,255,255,0.9)" />
+                                </LinearGradient>
+                            )}
+                            <View style={{ marginLeft: 14, flex: 1 }}>
+                                <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, marginBottom: 3 }}>ALBUM</Text>
+                                <Text style={{ color: 'white', fontSize: 16, fontWeight: '700' }} numberOfLines={1}>
+                                    {album?.name}
+                                </Text>
+                            </View>
+                        </View>
+
+                        {/* Add / Remove from Library */}
+                        <TouchableOpacity
+                            style={{ flexDirection: 'row', alignItems: 'center', padding: 18, gap: 16 }}
+                            onPress={handleToggleSaveAlbum}
+                        >
+                            <View style={{
+                                width: 40, height: 40, borderRadius: 20,
+                                backgroundColor: isSaved ? 'rgba(236,72,153,0.18)' : 'rgba(255,255,255,0.07)',
+                                alignItems: 'center', justifyContent: 'center',
+                            }}>
+                                <Ionicons
+                                    name={isSaved ? 'heart' : 'heart-outline'}
+                                    size={22}
+                                    color={isSaved ? '#EC4899' : 'white'}
+                                />
+                            </View>
+                            <View>
+                                <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>
+                                    {isSaved ? 'Xóa khỏi thư viện' : 'Thêm vào thư viện'}
+                                </Text>
+                                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 }}>
+                                    {isSaved ? 'Album sẽ bị xóa khỏi Thư viện của bạn' : 'Album sẽ xuất hiện trong Thư viện của bạn'}
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
+
+                        {/* Cancel */}
+                        <TouchableOpacity
+                            style={{
+                                marginHorizontal: 20, marginTop: 6,
+                                padding: 14, alignItems: 'center',
+                                backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14,
+                            }}
+                            onPress={closeAlbumMenu}
+                        >
+                            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15 }}>Hủy</Text>
+                        </TouchableOpacity>
+                    </View>
+                </Animated.View>
+            </Modal>
+        )}
+        </>
     );
 }
