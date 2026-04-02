@@ -22,9 +22,10 @@ function createVietnameseRegex(keyword) {
   str = str.replace(/w/gi, '[wư]');
   str = str.replace(/[.,/#!$%^&*;:{}=_`~()]/g, '[.,/#!$%^&*;:{}=_`~()]?');
 
-  
   return new RegExp(str, 'i');
 }
+
+// Tìm kiếm người dùng (chỉ role: user, bỏ admin)
 const searchUsers = async (keyword, currentUserId) => {
   const searchRegex = createVietnameseRegex(keyword);
   
@@ -34,9 +35,10 @@ const searchUsers = async (keyword, currentUserId) => {
         { email: searchRegex }, 
         { 'profile.display_name': searchRegex } 
     ],
-    _id: { $ne: currentUserId }
+    _id: { $ne: currentUserId },
+    role: 'user' // Chỉ tìm user, không tìm admin
   })
-  .select('username profile.display_name profile.avatar_url');
+  .select('username profile.display_name profile.avatar_url status.is_online');
   return users;
 };
 
@@ -100,6 +102,15 @@ const modifyRelation = async (userId, targetUserId, action) => {
     await friendship.save();
     return { message: "User blocked" };
   }
+
+  // Hủy lời mời kết bạn (người gửi hủy)
+  if (action === 'cancel_request') {
+    if (friendship.requester_id.toString() !== userId.toString()) {
+      throw new Error("You are not the requester");
+    }
+    await Friendship.deleteOne({ _id: friendship._id });
+    return { message: "Friend request cancelled" };
+  }
 };
 
 const getUserProfile = async (targetUserId) => {
@@ -122,11 +133,64 @@ const getPendingRequests = async (userId) => {
     .populate('requester_id', 'username profile.display_name profile.avatar_url');
 };
 
+// Lấy danh sách bạn bè đã accepted
+const getFriends = async (userId) => {
+  const friendships = await Friendship.find({
+    $or: [
+      { requester_id: userId },
+      { recipient_id: userId }
+    ],
+    status: 'accepted'
+  })
+  .populate('requester_id', 'username profile.display_name profile.avatar_url status.is_online')
+  .populate('recipient_id', 'username profile.display_name profile.avatar_url status.is_online');
+
+  // Lọc ra người bạn (không phải chính mình)
+  const userIdStr = String(userId);
+  return friendships.map(f => {
+    const friend = String(f.requester_id._id) === userIdStr
+      ? f.recipient_id
+      : f.requester_id;
+    return friend;
+  });
+};
+
+// Lấy trạng thái quan hệ giữa currentUser và targetUser
+const getFriendshipStatus = async (currentUserId, targetUserId) => {
+  const friendship = await Friendship.findOne({
+    $or: [
+      { requester_id: currentUserId, recipient_id: targetUserId },
+      { requester_id: targetUserId, recipient_id: currentUserId }
+    ]
+  });
+
+  if (!friendship) {
+    return { status: 'none', friendshipId: null };
+  }
+
+  if (friendship.status === 'accepted') {
+    return { status: 'friends', friendshipId: friendship._id };
+  }
+
+  if (friendship.status === 'pending') {
+    // Kiểm tra ai là người gửi
+    if (friendship.requester_id.toString() === currentUserId.toString()) {
+      return { status: 'pending_sent', friendshipId: friendship._id }; // Tôi đã gửi
+    } else {
+      return { status: 'pending_received', friendshipId: friendship._id }; // Tôi nhận được
+    }
+  }
+
+  return { status: 'blocked', friendshipId: friendship._id };
+};
+
 module.exports = {
   searchUsers,
   sendFriendRequest,
   respondToRequest,
   modifyRelation,
   getUserProfile,
-  getPendingRequests
+  getPendingRequests,
+  getFriends,
+  getFriendshipStatus
 };

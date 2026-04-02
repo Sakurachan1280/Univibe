@@ -28,6 +28,7 @@ import SettingsScreen from '../screens/Profile/Setting';
 import PlaylistsScreen from '../screens/Main/PlaylistsScreen';
 import GenrePlaylistScreen from '../screens/ItemsMainMusic/GenrePlaylistScreen';
 import AlbumDetailScreen from '../screens/ItemsMainMusic/AlbumDetailScreen';
+import UserProfileScreen from '../screens/ChatRoom/UserProfileScreen';
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -49,7 +50,11 @@ export default function AppNavigator() {
         <Stack.Screen name="Welcone" component={Welcone} />
         <Stack.Screen name="ChatScreen" component={ChatScreen} />
         <Stack.Screen name="ChatDetail" component={ChatDetailScreen} />
-        <Stack.Screen name="MusicPlayer" component={MusicPlayerScreen} />
+        <Stack.Screen
+          name="MusicPlayer"
+          component={MusicPlayerScreen}
+          options={{ presentation: 'transparentModal', animation: 'none' }}
+        />
         <Stack.Screen name="CreateRoom" component={CreateRoomScreen} />
         <Stack.Screen name="ListeningRoom" component={ListeningRoomScreen} />
         <Stack.Screen name="artist" component={artist} />
@@ -62,6 +67,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Playlists" component={PlaylistsScreen} />
         <Stack.Screen name="GenrePlaylist" component={GenrePlaylistScreen} />
         <Stack.Screen name="AlbumDetail" component={AlbumDetailScreen} />
+        <Stack.Screen name="UserProfile" component={UserProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

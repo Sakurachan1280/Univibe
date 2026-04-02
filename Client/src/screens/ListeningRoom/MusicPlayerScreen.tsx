@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, memo } from "react";
+import { useState, useEffect, useRef, memo, useCallback } from "react";
 import { useRoute } from "@react-navigation/native";
-import { View, Text, TouchableOpacity, Dimensions, ActivityIndicator, Alert, StyleSheet, Modal, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, Dimensions, ActivityIndicator, Alert, StyleSheet, Modal, ScrollView, Animated, PanResponder } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
@@ -91,6 +91,65 @@ export default function MusicPlayerScreen() {
   const [queueModalVisible, setQueueModalVisible] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
 
+  // ── Slide-down dismiss animation ─────────────────────────────────────────
+  const translateY = useRef(new Animated.Value(0)).current;
+  const dismissing = useRef(false);
+
+  const dismissWithAnimation = useCallback(() => {
+    if (dismissing.current) return;
+    dismissing.current = true;
+    Animated.timing(translateY, {
+      toValue: height,
+      duration: 320,
+      useNativeDriver: true,
+    }).start(() => {
+      navigation.goBack();
+    });
+  }, [navigation, translateY]);
+
+  // Slide-in animation khi màn hình mount
+  useEffect(() => {
+    translateY.setValue(height);
+    Animated.spring(translateY, {
+      toValue: 0,
+      useNativeDriver: true,
+      damping: 28,
+      stiffness: 300,
+      mass: 0.8,
+    }).start();
+  }, []);
+
+  // PanResponder: kéo từ header xuống để dismiss
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) =>
+        gestureState.dy > 8 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx),
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) translateY.setValue(gestureState.dy);
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 120 || gestureState.vy > 0.6) {
+          // Dismiss
+          if (dismissing.current) return;
+          dismissing.current = true;
+          Animated.timing(translateY, {
+            toValue: height,
+            duration: 220,
+            useNativeDriver: true,
+          }).start(() => navigation.goBack());
+        } else {
+          // Snap back
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: true,
+            damping: 20,
+            stiffness: 300,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
   useEffect(() => {
     const initialSong = route.params?.song;
     if (initialSong && initialSong._id !== song?._id) {
@@ -171,12 +230,13 @@ export default function MusicPlayerScreen() {
   };
 
   return (
+    <Animated.View style={[{ flex: 1 }, { transform: [{ translateY }] }]}>
     <LinearGradient colors={["#1a0520", "#2d1b3d", "#4a1942", "#000000"]} style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="flex-1 justify-between">
-          {/* HEADER */}
-          <View className="px-6 pt-2 pb-4 flex-row justify-between items-center">
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
+          {/* HEADER — PanResponder để kéo xuống */}
+          <View className="px-6 pt-2 pb-4 flex-row justify-between items-center" {...panResponder.panHandlers}>
+            <TouchableOpacity onPress={dismissWithAnimation} style={styles.headerButton}>
               <Ionicons name="chevron-down" size={28} color="white" />
             </TouchableOpacity>
             <View className="flex-1 mx-4">
@@ -318,6 +378,7 @@ export default function MusicPlayerScreen() {
         </View>
       </Modal>
     </LinearGradient>
+    </Animated.View>
   );
 }
 

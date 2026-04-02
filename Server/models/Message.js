@@ -18,7 +18,8 @@ const messageSchema = new mongoose.Schema({
   },
   
   read_by: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], 
-  is_revoked: { type: Boolean, default: false } 
+  is_revoked: { type: Boolean, default: false },
+  is_edited: { type: Boolean, default: false }
 }, { 
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } 
 });

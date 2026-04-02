@@ -17,8 +17,14 @@ const socketHandler = (io) => {
         'status.last_active': new Date()
       });
 
+      // Báo cho tất cả biết user này online
       io.emit('user_status_change', { userId, status: 'online' });
-      console.log(`User ${userId} is Online`);
+
+      // Gửi snapshot danh sách online hiện tại cho chính client vừa kết nối
+      const onlineUserIds = Array.from(onlineUsers.keys());
+      socket.emit('online_users_list', onlineUserIds);
+
+      console.log(`User ${userId} is Online. Total online: ${onlineUsers.size}`);
     });
 
     socket.on('join_music_room', async ({ roomId, userId }) => {

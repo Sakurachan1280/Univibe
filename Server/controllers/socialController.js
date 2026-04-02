@@ -61,11 +61,32 @@ const getPending = async (req, res) => {
   }
 };
 
+const getFriends = async (req, res) => {
+  try {
+    const friends = await socialService.getFriends(req.user.id);
+    res.json(friends);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const getFriendshipStatus = async (req, res) => {
+  try {
+    const { targetUserId } = req.params;
+    const result = await socialService.getFriendshipStatus(req.user.id, targetUserId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   search,
   sendRequest,
   respondRequest,
   modifyRelation,
   getUserProfile,
-  getPending
+  getPending,
+  getFriends,
+  getFriendshipStatus
 };

@@ -1,0 +1,106 @@
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import { io, Socket } from 'socket.io-client';
+import * as SecureStore from 'expo-secure-store';
+import { BASE_URL } from '../API/axiosClient';
+import { getMeAPI } from '../API/userAPI';
+
+interface SocketContextType {
+  socket: Socket | null;
+  onlineUserIds: Set<string>;
+  currentUserId: string | null;
+}
+
+const SocketContext = createContext<SocketContextType>({
+  socket: null,
+  onlineUserIds: new Set(),
+  currentUserId: null,
+});
+
+export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const socketRef = useRef<Socket | null>(null);
+  const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const connect = async () => {
+      try {
+        const token = await SecureStore.getItemAsync('accessToken');
+        if (!token) return; // Khách chưa đăng nhập
+
+        const me = await getMeAPI();
+        if (!me?._id || !mounted) return;
+
+        setCurrentUserId(me._id);
+
+        // Khởi tạo socket
+        const socket = io(BASE_URL, {
+          transports: ['websocket'],
+          reconnection: true,
+          reconnectionAttempts: 5,
+          reconnectionDelay: 2000,
+        });
+
+        socketRef.current = socket;
+
+        socket.on('connect', () => {
+          console.log('[Socket] Connected:', socket.id);
+          socket.emit('user_connected', me._id);
+        });
+
+        socket.on('disconnect', () => {
+          console.log('[Socket] Disconnected');
+        });
+
+        // Nhận snapshot danh sách online ngay khi kết nối
+        socket.on('online_users_list', (userIds: string[]) => {
+          setOnlineUserIds(new Set(userIds));
+        });
+
+        // Lắng nghe thay đổi trạng thái online/offline
+        socket.on('user_status_change', ({ userId, status }: { userId: string; status: 'online' | 'offline' }) => {
+          setOnlineUserIds(prev => {
+            const next = new Set(prev);
+            if (status === 'online') next.add(userId);
+            else next.delete(userId);
+            return next;
+          });
+        });
+
+      } catch (err) {
+        console.error('[Socket] Connection error:', err);
+      }
+    };
+
+    connect();
+
+    return () => {
+      mounted = false;
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+    };
+  }, []);
+
+  return (
+    <SocketContext.Provider
+      value={{
+        socket: socketRef.current,
+        onlineUserIds,
+        currentUserId,
+      }}
+    >
+      {children}
+    </SocketContext.Provider>
+  );
+};
+
+export const useSocket = () => useContext(SocketContext);

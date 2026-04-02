@@ -14,7 +14,8 @@ export type RootStackParamList = {
   PlaylistDetail: undefined;
   Playlists: { title: string; playlistId?: string; artistId?: string };
   NowPlaying: undefined;
-  ChatDetail: { userId: string };
+  ChatDetail: { userId: string; conversationId?: string };
+  UserProfile: { userId: string };
   MusicPlayer: { song?: any }; // TODO: Replace 'any' with proper Song interface
   CreateRoom: undefined;
   ListeningRoom: undefined;

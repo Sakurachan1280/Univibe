@@ -27,4 +27,10 @@ router.put('/messages/:messageId/revoke', chatController.revoke);
 // Đánh dấu đã xem
 router.put('/:conversationId/read', chatController.markRead);
 
+// Chỉnh sửa tin nhắn
+router.put('/messages/:messageId/edit', chatController.editMsg);
+
+// Xóa tin nhắn
+router.delete('/messages/:messageId', chatController.deleteMsg);
+
 module.exports = router;

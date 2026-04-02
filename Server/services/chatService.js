@@ -71,10 +71,20 @@ const getMessages = async (conversationId, limit = 50, beforeId) => {
 };
 
 const getUserConversations = async (userId) => {
-  return await Conversation.find({ participants: userId })
+  const conversations = await Conversation.find({ participants: userId })
     .sort({ updated_at: -1 })
-    .populate('participants', 'username profile.display_name profile.avatar_url profile.is_online')
+    .populate('participants', 'username profile.display_name profile.avatar_url status.is_online')
     .populate('last_message.sender_id', 'username');
+
+  // Lọc ra người còn lại (không phải mình) trong mỗi conversation
+  return conversations.map(conv => {
+    const convObj = conv.toObject();
+    const userIdStr = String(userId);
+    convObj.otherParticipants = convObj.participants.filter(
+      p => String(p._id) !== userIdStr
+    );
+    return convObj;
+  });
 };
 
 const revokeMessage = async (userId, messageId) => {
@@ -95,11 +105,31 @@ const markAsRead = async (userId, conversationId) => {
   return { success: true };
 };
 
+const editMessage = async (userId, messageId, newContent) => {
+  const message = await Message.findOne({ _id: messageId, sender_id: userId, type: 'text' });
+  if (!message) throw new Error('Message not found or permission denied');
+  if (message.is_revoked) throw new Error('Cannot edit a revoked message');
+
+  message.content = newContent;
+  message.is_edited = true;
+  await message.save();
+  return message;
+};
+
+const deleteMessage = async (userId, messageId) => {
+  const message = await Message.findOne({ _id: messageId, sender_id: userId });
+  if (!message) throw new Error('Message not found or permission denied');
+  await message.deleteOne();
+  return { messageId, conversation_id: message.conversation_id };
+};
+
 module.exports = {
   getOrCreateConversation,
   sendMessage,
   getMessages,
   getUserConversations,
   revokeMessage,
-  markAsRead
+  markAsRead,
+  editMessage,
+  deleteMessage,
 };

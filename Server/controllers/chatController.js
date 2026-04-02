@@ -17,7 +17,7 @@ const send = async (req, res) => {
     let finalType = type || 'text';
 
     if (req.files && req.files.image) {
-      finalContent = `/uploads/${req.files.image[0].filename}`;
+      finalContent = req.files.image[0].path;   // Cloudinary secure URL
       finalType = 'image';
     }
 
@@ -89,4 +89,31 @@ const markRead = async (req, res) => {
   }
 };
 
-module.exports = { startChat, send, getHistory, getConversations, revoke, markRead };
+const editMsg = async (req, res) => {
+  try {
+    const { content } = req.body;
+    const result = await chatService.editMessage(req.user.id, req.params.messageId, content);
+    req.io.in(result.conversation_id.toString()).emit('message_edited', {
+      messageId: result._id,
+      content: result.content,
+      is_edited: true,
+    });
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+const deleteMsg = async (req, res) => {
+  try {
+    const result = await chatService.deleteMessage(req.user.id, req.params.messageId);
+    req.io.in(result.conversation_id.toString()).emit('message_deleted', {
+      messageId: result.messageId,
+    });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+module.exports = { startChat, send, getHistory, getConversations, revoke, markRead, editMsg, deleteMsg };

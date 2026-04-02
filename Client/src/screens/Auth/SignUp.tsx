@@ -34,7 +34,7 @@ export default function SignUp() {
           <TouchableOpacity activeOpacity={0.5} onPress={() => navigation.navigate("Login")} >
           <View className="flex-row items-center border border-white rounded-full py-4 px-5">
             <Ionicons name="logo-google" size={24} color="white" />
-            <View className="flex-1 items-center"> <Text className="text-white text-xl font-bold ">Tiếp tục bằng Google</Text></View>
+            <View className="flex-1 items-center"><Text className="text-white text-xl font-bold ">Tiếp tục bằng Google</Text></View>
             <View className="w-6" />
             </View>
           </TouchableOpacity>
