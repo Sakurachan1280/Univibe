@@ -119,18 +119,6 @@ export default function AdminSong() {
                 <Ionicons name="chevron-forward" size={20} color="white" />
               </View>
             </TouchableOpacity>
-
-            <TouchableOpacity activeOpacity={0.8}>
-              <Animated.View style={{ backgroundColor: theme.animCard, borderRadius: 12, padding: 16, borderWidth: 1, borderColor: theme.bgCardBorder }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Ionicons name="settings-outline" size={20} color={theme.textPrimary} />
-                    <Text style={{ color: theme.textPrimary, fontWeight: '600', marginLeft: 12 }}>Cài đặt hệ thống</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
-                </View>
-              </Animated.View>
-            </TouchableOpacity>
           </View>
         </ScrollView>
       </SafeAreaView>
