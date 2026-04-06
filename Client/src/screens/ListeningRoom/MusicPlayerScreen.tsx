@@ -122,8 +122,14 @@ export default function MusicPlayerScreen() {
   // PanResponder: kéo từ header xuống để dismiss
   const panResponder = useRef(
     PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: (_, gestureState) =>
-        gestureState.dy > 8 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx),
+        gestureState.dy > 12 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx) * 1.5,
+      onMoveShouldSetPanResponderCapture: (_, gestureState) =>
+        gestureState.dy > 12 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx) * 1.5,
+      onPanResponderGrant: () => {
+        translateY.stopAnimation();
+      },
       onPanResponderMove: (_, gestureState) => {
         if (gestureState.dy > 0) translateY.setValue(gestureState.dy);
       },
@@ -230,13 +236,13 @@ export default function MusicPlayerScreen() {
   };
 
   return (
-    <Animated.View style={[{ flex: 1 }, { transform: [{ translateY }] }]}>
+    <Animated.View style={[{ flex: 1 }, { transform: [{ translateY }] }]} {...panResponder.panHandlers}>
     <LinearGradient colors={["#1a0520", "#2d1b3d", "#4a1942", "#000000"]} style={{ flex: 1 }}>
       <SafeAreaView className="flex-1">
         <View className="flex-1 justify-between">
-          {/* HEADER — PanResponder để kéo xuống */}
-          <View className="px-6 pt-2 pb-4 flex-row justify-between items-center" {...panResponder.panHandlers}>
-            <TouchableOpacity onPress={dismissWithAnimation} style={styles.headerButton}>
+          {/* HEADER */}
+          <View className="px-6 pt-2 pb-4 flex-row justify-between items-center" style={{ zIndex: 10 }}>
+            <TouchableOpacity onPress={dismissWithAnimation} style={[styles.headerButton, { zIndex: 100 }]} activeOpacity={0.6}>
               <Ionicons name="chevron-down" size={28} color="white" />
             </TouchableOpacity>
             <View className="flex-1 mx-4">

@@ -14,12 +14,16 @@ interface SocketContextType {
   socket: Socket | null;
   onlineUserIds: Set<string>;
   currentUserId: string | null;
+  connectSocket: () => Promise<void>;
+  disconnectSocket: () => void;
 }
 
 const SocketContext = createContext<SocketContextType>({
   socket: null,
   onlineUserIds: new Set(),
   currentUserId: null,
+  connectSocket: async () => {},
+  disconnectSocket: () => {},
 });
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -27,66 +31,78 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  useEffect(() => {
-    let mounted = true;
+  const connectSocket = async () => {
+    try {
+      const token = await SecureStore.getItemAsync('accessToken');
+      if (!token) return; // Khách chưa đăng nhập
 
-    const connect = async () => {
-      try {
-        const token = await SecureStore.getItemAsync('accessToken');
-        if (!token) return; // Khách chưa đăng nhập
+      const me = await getMeAPI();
+      if (!me?._id || !mountedRef.current) return;
 
-        const me = await getMeAPI();
-        if (!me?._id || !mounted) return;
+      setCurrentUserId(me._id);
 
-        setCurrentUserId(me._id);
-
-        // Khởi tạo socket
-        const socket = io(BASE_URL, {
-          transports: ['websocket'],
-          reconnection: true,
-          reconnectionAttempts: 5,
-          reconnectionDelay: 2000,
-        });
-
-        socketRef.current = socket;
-
-        socket.on('connect', () => {
-          console.log('[Socket] Connected:', socket.id);
-          socket.emit('user_connected', me._id);
-        });
-
-        socket.on('disconnect', () => {
-          console.log('[Socket] Disconnected');
-        });
-
-        // Nhận snapshot danh sách online ngay khi kết nối
-        socket.on('online_users_list', (userIds: string[]) => {
-          setOnlineUserIds(new Set(userIds));
-        });
-
-        // Lắng nghe thay đổi trạng thái online/offline
-        socket.on('user_status_change', ({ userId, status }: { userId: string; status: 'online' | 'offline' }) => {
-          setOnlineUserIds(prev => {
-            const next = new Set(prev);
-            if (status === 'online') next.add(userId);
-            else next.delete(userId);
-            return next;
-          });
-        });
-
-      } catch (err) {
-        console.error('[Socket] Connection error:', err);
+      // Tránh kết nối lại nếu socket đã kết nối với chính user này
+      if (socketRef.current && socketRef.current.connected) {
+         socketRef.current.disconnect();
       }
-    };
 
-    connect();
+      // Khởi tạo socket
+      const socket = io(BASE_URL, {
+        transports: ['websocket'],
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 2000,
+      });
+
+      socketRef.current = socket;
+
+      socket.on('connect', () => {
+        console.log('[Socket] Connected:', socket.id);
+        socket.emit('user_connected', me._id);
+      });
+
+      socket.on('disconnect', () => {
+        console.log('[Socket] Disconnected');
+      });
+
+      // Nhận snapshot danh sách online ngay khi kết nối
+      socket.on('online_users_list', (userIds: string[]) => {
+        setOnlineUserIds(new Set(userIds));
+      });
+
+      // Lắng nghe thay đổi trạng thái online/offline
+      socket.on('user_status_change', ({ userId, status }: { userId: string; status: 'online' | 'offline' }) => {
+        setOnlineUserIds(prev => {
+          const next = new Set(prev);
+          if (status === 'online') next.add(userId);
+          else next.delete(userId);
+          return next;
+        });
+      });
+
+    } catch (err) {
+      console.error('[Socket] Connection error:', err);
+    }
+  };
+
+  const disconnectSocket = () => {
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+    setCurrentUserId(null);
+    setOnlineUserIds(new Set());
+  };
+
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    connectSocket();
 
     return () => {
-      mounted = false;
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
+      mountedRef.current = false;
+      disconnectSocket();
     };
   }, []);
 
@@ -96,6 +112,8 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         socket: socketRef.current,
         onlineUserIds,
         currentUserId,
+        connectSocket,
+        disconnectSocket,
       }}
     >
       {children}

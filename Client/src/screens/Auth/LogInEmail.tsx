@@ -6,9 +6,11 @@ import * as SecureStore from "expo-secure-store";
 import { loginAPI } from "../../API/authAPI";
 import { CommonActions } from "@react-navigation/native";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
+import { useSocket } from "../../context/SocketContext";
 
 export default function LogInEmail() {
   const navigation = useAppNavigation();
+  const { connectSocket } = useSocket();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -25,6 +27,8 @@ export default function LogInEmail() {
       // LƯU TOKEN
       await SecureStore.setItemAsync("accessToken", result.token);
 
+      // KẾT NỐI LẠI SOCKET NGAY SAU KHI LOGIN (để load currentUserId kịp thời)
+      await connectSocket();
 
       // RESET NAVIGATION
       if (result.role === "admin") {

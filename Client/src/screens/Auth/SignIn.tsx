@@ -8,9 +8,11 @@ import { CommonActions } from "@react-navigation/native";
 import { googleLoginAPI } from "../../API/authAPI";
 import { useGoogleAuth } from "../../hooks/useGoogleAuth";
 import * as SecureStore from "expo-secure-store";
+import { useSocket } from "../../context/SocketContext";
 
 export default function SignIn() {
   const navigation = useAppNavigation();
+  const { connectSocket } = useSocket();
   const [googleLoading, setGoogleLoading] = useState(false);
 
   // Xử lý sau khi Google OAuth thành công → nhận code + redirectUri
@@ -21,6 +23,9 @@ export default function SignIn() {
 
       // Lưu token vào SecureStore
       await SecureStore.setItemAsync("accessToken", result.token);
+
+      // Kết nối socket ngay lập tức
+      await connectSocket();
 
       // Navigate theo role
       if (result.role === "admin") {

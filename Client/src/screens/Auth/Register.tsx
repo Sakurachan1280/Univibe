@@ -6,9 +6,12 @@ import { useAppNavigation } from "../../navigation/useAppNavigation";
 import { registerAPI } from "../../API/authAPI";
 import { Alert } from "react-native";
 import { CommonActions } from "@react-navigation/native";
+import * as SecureStore from "expo-secure-store";
+import { useSocket } from "../../context/SocketContext";
 
 export default function RegisterScreen() {
   const navigation = useAppNavigation();
+  const { connectSocket } = useSocket();
   const [step, setStep] = useState(1);
 
   const [email, setEmail] = useState("");
@@ -105,6 +108,13 @@ export default function RegisterScreen() {
                 });
 
                 console.log("REGISTER SUCCESS:", result);
+
+                // LƯU TOKEN của tài khoản mới
+                if (result.token) {
+                  await SecureStore.setItemAsync("accessToken", result.token);
+                  // KẾT NỐI LẠI SOCKET NGAY SAU KHI ĐĂNG KÝ
+                  await connectSocket();
+                }
 
                 Alert.alert("Thành công", "Đăng ký tài khoản thành công");
 
