@@ -235,6 +235,33 @@ export default function HistoryScreen() {
     loadHistory();
   }, [loadHistory]);
 
+  // ── Auto-refresh khi bài hát vừa được phát (server lưu sau ~30 giây) ────────
+
+  // Dùng mảng để theo dõi nhiều timer cùng lúc (mỗi bài 1 timer độc lập)
+  const pendingTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  useEffect(() => {
+    if (!currentSong) return;
+
+    // Tạo timer mới cho bài hiện tại — KHÔNG huỷ timer cũ,
+    // vì bài trước vẫn cần được load vào lịch sử sau 30s của nó.
+    const timer = setTimeout(() => {
+      loadHistory(true);
+      // Dọn dẹp timer này khỏi mảng sau khi đã chạy xong
+      pendingTimersRef.current = pendingTimersRef.current.filter((t) => t !== timer);
+    }, 30_000);
+
+    pendingTimersRef.current.push(timer);
+  }, [currentSong?._id, loadHistory]); // trigger mỗi khi chuyển sang bài mới
+
+  // Huỷ TẤT CẢ timer đang chờ khi người dùng rời khỏi màn hình
+  useEffect(() => {
+    return () => {
+      pendingTimersRef.current.forEach(clearTimeout);
+      pendingTimersRef.current = [];
+    };
+  }, []);
+
   // ── Play logic ─────────────────────────────────────────────────────────────
 
   /**
