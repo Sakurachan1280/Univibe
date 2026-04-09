@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
 import { BASE_URL } from '../../API/axiosClient';
+import { useSocket } from '../../context/SocketContext';
 import {
   UserProfileData,
   FriendshipStatus,
@@ -30,6 +31,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'UserProfile'>;
 
 export default function UserProfileScreen({ route, navigation }: Props) {
   const { userId } = route.params;
+  const { onlineUserIds } = useSocket();
 
   const [profileData, setProfileData] = useState<UserProfileData | null>(null);
   const [friendshipStatus, setFriendshipStatus] = useState<FriendshipStatus | null>(null);
@@ -81,6 +83,23 @@ export default function UserProfileScreen({ route, navigation }: Props) {
       'Người dùng'
     );
   };
+
+  // Tính thời gian offline
+  const formatLastSeen = (lastActiveStr?: string): string => {
+    if (!lastActiveStr) return 'Không rõ';
+    const diff = Date.now() - new Date(lastActiveStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Vừa xong';
+    if (mins < 60) return `${mins} phút trước`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours} giờ trước`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days} ngày trước`;
+    return `${Math.floor(days / 7)} tuần trước`;
+  };
+
+  const isOnline = onlineUserIds.has(userId);
+  const lastSeen = profileData?.profile?.status?.last_active;
 
   // ===================== ACTIONS =====================
 
@@ -358,9 +377,26 @@ export default function UserProfileScreen({ route, navigation }: Props) {
                 <Text className="text-white text-2xl font-bold mb-0.5">
                   {getDisplayName()}
                 </Text>
-                <Text className="text-gray-400 text-sm">
+                <Text className="text-gray-400 text-sm mb-2">
                   @{profileData?.profile?.username}
                 </Text>
+                {/* Online / Offline status */}
+                <View className="flex-row items-center gap-1.5">
+                  <View
+                    className={`w-2.5 h-2.5 rounded-full ${
+                      isOnline ? 'bg-green-400' : 'bg-red-500'
+                    }`}
+                  />
+                  <Text
+                    className={`text-xs font-medium ${
+                      isOnline ? 'text-green-400' : 'text-red-400'
+                    }`}
+                  >
+                    {isOnline
+                      ? 'Đang hoạt động'
+                      : `Offline · ${formatLastSeen(lastSeen)}`}
+                  </Text>
+                </View>
               </View>
 
               {/* Bio */}

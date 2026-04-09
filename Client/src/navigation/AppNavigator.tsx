@@ -29,6 +29,10 @@ import PlaylistsScreen from '../screens/Main/PlaylistsScreen';
 import GenrePlaylistScreen from '../screens/ItemsMainMusic/GenrePlaylistScreen';
 import AlbumDetailScreen from '../screens/ItemsMainMusic/AlbumDetailScreen';
 import UserProfileScreen from '../screens/ChatRoom/UserProfileScreen';
+import ViewProfileScreen from '../screens/Profile/ViewProfile';
+import AppDeviceScreen from '../screens/Setting/AppDeviceScreen';
+import AboutScreen from '../screens/Setting/AboutScreen';
+import HelpScreen from '../screens/Setting/HelpScreen';
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -68,6 +72,11 @@ export default function AppNavigator() {
         <Stack.Screen name="GenrePlaylist" component={GenrePlaylistScreen} />
         <Stack.Screen name="AlbumDetail" component={AlbumDetailScreen} />
         <Stack.Screen name="UserProfile" component={UserProfileScreen} />
+        <Stack.Screen name="ViewProfile" component={ViewProfileScreen} />
+        <Stack.Screen name="AccountScreen" component={AccountScreen} />
+        <Stack.Screen name="AppDeviceScreen" component={AppDeviceScreen} />
+        <Stack.Screen name="AboutScreen" component={AboutScreen} />
+        <Stack.Screen name="HelpScreen" component={HelpScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

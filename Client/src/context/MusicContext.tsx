@@ -51,6 +51,18 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const isSeekingRef = useRef(false);
     const repeatModeRef = useRef<'off' | 'all' | 'one'>('off');
 
+    // ── 30-second listen threshold tracking ──────────────────────────────
+    /** Accumulated playback milliseconds for the current song (excludes paused time) */
+    const accumulatedListenMsRef = useRef(0);
+    /** Last known positionMillis from status update, used to compute deltas */
+    const lastPositionMillisRef = useRef<number | null>(null);
+    /** Whether we've already fired logAction("play") for the current song */
+    const hasLoggedPlayRef = useRef(false);
+    /** Ref copy of currentSong so onPlaybackStatusUpdate can read it without deps */
+    const currentSongRef = useRef<Song | null>(null);
+
+    const MIN_LISTEN_MS = 30_000; // 30 seconds
+
     useEffect(() => {
         repeatModeRef.current = repeatMode;
     }, [repeatMode]);
@@ -75,6 +87,35 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 setCurrentTime(s.positionMillis / 1000);
             }
 
+            // ── Accumulate listen time (only while actually playing, not seeking) ──
+            if (s.isPlaying && !isSeekingRef.current) {
+                const last = lastPositionMillisRef.current;
+                if (last !== null) {
+                    const delta = s.positionMillis - last;
+                    // Only count forward progress within a sensible range (0 – 2s per tick)
+                    if (delta > 0 && delta <= 2000) {
+                        accumulatedListenMsRef.current += delta;
+                    }
+                }
+                lastPositionMillisRef.current = s.positionMillis;
+
+                // Log to history the first time we cross the 30-second threshold
+                if (!hasLoggedPlayRef.current && accumulatedListenMsRef.current >= MIN_LISTEN_MS) {
+                    hasLoggedPlayRef.current = true;
+                    const song = currentSongRef.current;
+                    if (song) {
+                        musicAPI.logAction({
+                            song_id: song._id,
+                            action_type: "play",
+                            duration_listened: accumulatedListenMsRef.current / 1000,
+                        }).catch(console.error);
+                    }
+                }
+            } else if (!s.isPlaying) {
+                // Reset lastPosition when paused so next resume doesn't produce a huge delta
+                lastPositionMillisRef.current = null;
+            }
+
             setIsPlaying(s.isPlaying);
 
             if (s.didJustFinish) {
@@ -90,6 +131,12 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         try {
             setLoading(true);
             setCurrentSong(songData);
+            currentSongRef.current = songData;
+
+            // Reset 30-second threshold tracking for the new song
+            accumulatedListenMsRef.current = 0;
+            lastPositionMillisRef.current = null;
+            hasLoggedPlayRef.current = false;
 
             if (soundRef.current) {
                 await soundRef.current.unloadAsync();
@@ -106,15 +153,11 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             setLoading(false);
             setMiniPlayerVisible(true); // Always show mini player when a song is loaded
 
-            if (shouldPlay) {
-                await musicAPI.logAction({
-                    song_id: songData._id,
-                    action_type: "play",
-                });
-            }
+            // NOTE: We no longer log "play" immediately here.
+            // The history entry is only created after 30 seconds of actual playback
+            // (handled in onPlaybackStatusUpdate via the threshold check).
         } catch (error) {
             console.error("Error loading song:", error);
-            // Alert.alert("Lỗi", "Không thể phát bài hát này");
             setLoading(false);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -151,21 +194,18 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         try {
             if (isPlaying) {
                 await soundRef.current.pauseAsync();
+                // Log pause for analytics (not for history creation)
                 if (currentSong) {
                     await musicAPI.logAction({
                         song_id: currentSong._id,
                         action_type: "pause",
-                        duration_listened: currentTime,
+                        duration_listened: accumulatedListenMsRef.current / 1000,
                     });
                 }
             } else {
                 await soundRef.current.playAsync();
-                if (currentSong) {
-                    await musicAPI.logAction({
-                        song_id: currentSong._id,
-                        action_type: "play",
-                    });
-                }
+                // Reset lastPosition so the next delta starts clean from resume point
+                lastPositionMillisRef.current = null;
             }
         } catch (error) {
             console.error("Error toggling play/pause:", error);
@@ -194,6 +234,38 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
     };
 
+    /**
+     * Commit listen session for the current song before changing tracks.
+     * If < 30s listened → log "skip" (no history entry created).
+     * If ≥ 30s but not yet logged → log "play" now (threshold just reached on skip).
+     */
+    const commitCurrentListenSession = useCallback(async () => {
+        const song = currentSongRef.current;
+        if (!song) return;
+
+        const listenedMs = accumulatedListenMsRef.current;
+
+        if (!hasLoggedPlayRef.current) {
+            // Didn't reach 30s → this is a skip, do NOT create history entry
+            if (listenedMs < MIN_LISTEN_MS) {
+                await musicAPI.logAction({
+                    song_id: song._id,
+                    action_type: "skip",
+                    duration_listened: listenedMs / 1000,
+                }).catch(console.error);
+            } else {
+                // Edge case: reached 30s right at the moment of skip before callback fired
+                hasLoggedPlayRef.current = true;
+                await musicAPI.logAction({
+                    song_id: song._id,
+                    action_type: "play",
+                    duration_listened: listenedMs / 1000,
+                }).catch(console.error);
+            }
+        }
+        // If hasLoggedPlayRef is true, the play was already logged; nothing more to do.
+    }, []);
+
     const handleNext = async () => {
         if (repeatMode === 'one') {
             if (soundRef.current) {
@@ -202,6 +274,8 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             }
             return;
         }
+
+        await commitCurrentListenSession();
 
         if (currentIndex < queue.length - 1) {
             setCurrentIndex(currentIndex + 1);
@@ -218,6 +292,8 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             }
             return;
         }
+
+        await commitCurrentListenSession();
 
         if (currentIndex > 0) {
             setCurrentIndex(currentIndex - 1);

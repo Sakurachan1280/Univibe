@@ -311,7 +311,7 @@ export default function LibraryScreen() {
                                 colors={["#EC4899", "#06B6D4"] as const}
                                 start={{ x: 0, y: 0 }}
                                 end={{ x: 1, y: 0 }}
-                                className="flex-row items-center justify-center py-4 px-6"
+                                className="flex-row items-center justify-between py-4 px-4"
                             >
                                 <Ionicons name="add-circle-outline" size={24} color="white" />
                                 <Text className="text-white font-bold text-lg ml-3">Tạo Playlist Mới</Text>

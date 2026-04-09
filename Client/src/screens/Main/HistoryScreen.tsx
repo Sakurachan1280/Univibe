@@ -1,113 +1,427 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import React, { useEffect, useState, useCallback, useRef } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  SectionList,
+  Animated,
+  PanResponder,
+  Alert,
+} from "react-native";
 import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
 import { getListeningHistory, ListeningHistoryItem } from "../../API/libraryAPI";
 import { useMusic } from "../../context/MusicContext";
-import { format } from "date-fns";
+import { format, isToday, isYesterday, isThisWeek, differenceInMinutes } from "date-fns";
 import { vi } from "date-fns/locale";
+import { Song } from "../../API/musicAPI";
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+interface SectionData {
+  title: string;
+  data: ListeningHistoryItem[];
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/**
+ * Format thời gian nghe một cách thân thiện (giống Spotify)
+ */
+function formatRelativeTime(timestamp: string): string {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffMins = differenceInMinutes(now, date);
+
+  if (diffMins < 1) return "Vừa xong";
+  if (diffMins < 60) return `${diffMins} phút trước`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours} giờ trước`;
+  return format(date, "HH:mm", { locale: vi });
+}
+
+/**
+ * Format nhãn section theo ngày (hôm nay, hôm qua, thứ, ngày tháng)
+ */
+function getSectionLabel(timestamp: string): string {
+  const date = new Date(timestamp);
+  if (isToday(date)) return "Hôm nay";
+  if (isYesterday(date)) return "Hôm qua";
+  if (isThisWeek(date)) return format(date, "EEEE", { locale: vi });
+  return format(date, "dd MMMM yyyy", { locale: vi });
+}
+
+/**
+ * Format duration bài hát (giây → mm:ss)
+ */
+function formatDuration(seconds?: number): string {
+  if (!seconds) return "";
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+/**
+ * Deduplicate: loại bỏ các lần nghe liền kề cùng bài trong vòng 5 phút
+ */
+function deduplicateHistory(items: ListeningHistoryItem[]): ListeningHistoryItem[] {
+  const result: ListeningHistoryItem[] = [];
+  for (let i = 0; i < items.length; i++) {
+    const current = items[i];
+    const prev = result[result.length - 1];
+    if (
+      prev &&
+      prev.song_id?._id === current.song_id?._id &&
+      differenceInMinutes(new Date(prev.timestamp), new Date(current.timestamp)) < 5
+    ) {
+      continue; // skip duplicate
+    }
+    result.push(current);
+  }
+  return result;
+}
+
+/**
+ * Group lịch sử theo ngày thành SectionList sections
+ */
+function groupByDate(items: ListeningHistoryItem[]): SectionData[] {
+  const map = new Map<string, ListeningHistoryItem[]>();
+
+  for (const item of items) {
+    if (!item.song_id) continue;
+    const label = getSectionLabel(item.timestamp);
+    if (!map.has(label)) map.set(label, []);
+    map.get(label)!.push(item);
+  }
+
+  const sections: SectionData[] = [];
+  map.forEach((data, title) => {
+    sections.push({ title, data });
+  });
+  return sections;
+}
+
+// ─── Song Row (with swipe-to-reveal) ─────────────────────────────────────────
+
+interface SongRowProps {
+  item: ListeningHistoryItem;
+  isCurrentlyPlaying: boolean;
+  onPress: () => void;
+}
+
+function SongRow({ item, isCurrentlyPlaying, onPress }: SongRowProps) {
+  const song = item.song_id as Song & { artist_ids?: any[] };
+  const artistNames =
+    song.artist_ids?.map((a: any) => a.name).join(", ") || "Unknown Artist";
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        backgroundColor: isCurrentlyPlaying ? "rgba(236,72,153,0.08)" : "transparent",
+      }}
+    >
+      {/* Album art */}
+      <View style={{ position: "relative" }}>
+        <Image
+          source={song.cover_image || "https://via.placeholder.com/48"}
+          style={{ width: 52, height: 52, borderRadius: 6 }}
+          cachePolicy="memory-disk"
+        />
+        {isCurrentlyPlaying && (
+          <View
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundColor: "rgba(0,0,0,0.45)",
+              borderRadius: 6,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Ionicons name="musical-notes" size={18} color="#ec4899" />
+          </View>
+        )}
+      </View>
+
+      {/* Song info */}
+      <View style={{ flex: 1, marginLeft: 12 }}>
+        <Text
+          numberOfLines={1}
+          style={{
+            color: isCurrentlyPlaying ? "#ec4899" : "#fff",
+            fontSize: 15,
+            fontWeight: "600",
+          }}
+        >
+          {song.title}
+        </Text>
+        <Text numberOfLines={1} style={{ color: "#9ca3af", fontSize: 13, marginTop: 2 }}>
+          {artistNames}
+        </Text>
+      </View>
+
+      {/* Right side: time + duration */}
+      <View style={{ alignItems: "flex-end", marginLeft: 8 }}>
+        <Text style={{ color: "#6b7280", fontSize: 11 }}>
+          {formatRelativeTime(item.timestamp)}
+        </Text>
+        {song.duration ? (
+          <Text style={{ color: "#4b5563", fontSize: 11, marginTop: 2 }}>
+            {formatDuration(song.duration)}
+          </Text>
+        ) : null}
+      </View>
+
+      {/* Chevron / play indicator */}
+      <Ionicons
+        name={isCurrentlyPlaying ? "pause-circle" : "play-circle-outline"}
+        size={28}
+        color={isCurrentlyPlaying ? "#ec4899" : "#374151"}
+        style={{ marginLeft: 8 }}
+      />
+    </TouchableOpacity>
+  );
+}
+
+// ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function HistoryScreen() {
   const navigation = useNavigation();
-  const { playSong } = useMusic();
-  const [history, setHistory] = useState<ListeningHistoryItem[]>([]);
+  const { playSong, currentSong } = useMusic();
+  const [sections, setSections] = useState<SectionData[]>([]);
+  const [rawHistory, setRawHistory] = useState<ListeningHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // ── Load data ──────────────────────────────────────────────────────────────
+
+  const loadHistory = useCallback(async (isRefresh = false) => {
+    try {
+      if (isRefresh) setRefreshing(true);
+      else setLoading(true);
+
+      const data = await getListeningHistory();
+
+      // Sort newest first (server might not guarantee order)
+      const sorted = [...data].sort(
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+
+      // Deduplicate consecutive same-song plays within 5 min
+      const deduped = deduplicateHistory(sorted);
+
+      setRawHistory(deduped);
+      setSections(groupByDate(deduped));
+    } catch (error) {
+      console.error("Error loading history:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
     loadHistory();
-  }, []);
+  }, [loadHistory]);
 
-  const loadHistory = async () => {
-    try {
-      setLoading(true);
-      const data = await getListeningHistory();
-      setHistory(data);
-    } catch (error) {
-      console.error("Error loading history:", error);
-      Alert.alert("Lỗi", "Không thể tải lịch sử nghe nhạc");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // ── Play logic ─────────────────────────────────────────────────────────────
 
-  const handlePlaySong = async (item: ListeningHistoryItem) => {
-    if (item.song_id) {
-        // Create a queue from the history list, filtering out items without valid songs
-        const queue = history
-            .map(h => h.song_id)
-            .filter(s => s != null);
-        
-        // Find the index of the selected song in the new queue to play correctly
-        // However, history might have duplicate songs. 
-        // For simplicity, just play the selected song and set the queue as the history list (unique songs might be better but let's stick to simple first)
-        // Actually, playing from history usually just plays that song. 
-        // Let's play that song and set the queue to include this song and maybe some context.
-        // For now, just play the song and maybe set queue to just this song or all distinct songs in history.
-        // Let's just play the song with itself as queue for now to avoid complexity with duplicates in history.
-        await playSong(item.song_id, [item.song_id]);
+  /**
+   * Play từ history: tạo queue là toàn bộ lịch sử (unique songs), bắt đầu từ bài được chọn
+   */
+  const handlePlaySong = useCallback(
+    async (selectedItem: ListeningHistoryItem) => {
+      if (!selectedItem.song_id) return;
+
+      // Build deduplicated song queue from history (unique by song ID, preserve order)
+      const seen = new Set<string>();
+      const queue: Song[] = [];
+      for (const item of rawHistory) {
+        if (item.song_id && !seen.has((item.song_id as Song)._id)) {
+          seen.add((item.song_id as Song)._id);
+          queue.push(item.song_id as Song);
+        }
+      }
+
+      const targetSong = selectedItem.song_id as Song;
+      await playSong(targetSong, queue);
+    },
+    [rawHistory, playSong]
+  );
+
+  /**
+   * Play tất cả lịch sử từ đầu
+   */
+  const handlePlayAll = useCallback(async () => {
+    if (rawHistory.length === 0) return;
+
+    const seen = new Set<string>();
+    const queue: Song[] = [];
+    for (const item of rawHistory) {
+      if (item.song_id && !seen.has((item.song_id as Song)._id)) {
+        seen.add((item.song_id as Song)._id);
+        queue.push(item.song_id as Song);
+      }
     }
-  };
+
+    if (queue.length > 0) {
+      await playSong(queue[0], queue);
+    }
+  }, [rawHistory, playSong]);
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+
+  const totalSongs = rawHistory.length;
+
+  const renderSectionHeader = ({ section }: { section: SectionData }) => (
+    <View
+      style={{
+        paddingHorizontal: 16,
+        paddingTop: 20,
+        paddingBottom: 8,
+        backgroundColor: "#000",
+      }}
+    >
+      <Text style={{ color: "#9ca3af", fontSize: 12, fontWeight: "700", letterSpacing: 1, textTransform: "uppercase" }}>
+        {section.title}
+      </Text>
+    </View>
+  );
 
   const renderItem = ({ item }: { item: ListeningHistoryItem }) => {
-    if (!item.song_id) return null; // Skip if song data is missing
-
-    const song = item.song_id;
-    const artistNames = song.artist_ids?.map((a: any) => a.name).join(", ") || "Unknown Artist";
-
+    if (!item.song_id) return null;
+    const isPlaying = currentSong?._id === (item.song_id as Song)._id;
     return (
-      <TouchableOpacity
-        className="flex-row items-center p-3 mb-2 bg-neutral-900/50 rounded-xl"
+      <SongRow
+        item={item}
+        isCurrentlyPlaying={isPlaying}
         onPress={() => handlePlaySong(item)}
-      >
-        <Image
-          source={song.cover_image || "https://via.placeholder.com/50"}
-          style={{ width: 56, height: 56, borderRadius: 8 }}
-          cachePolicy="memory-disk"
-        />
-        <View className="flex-1 ml-3">
-            <Text className="text-white font-semibold text-base" numberOfLines={1}>
-                {song.title}
-            </Text>
-            <Text className="text-gray-400 text-sm" numberOfLines={1}>
-                {artistNames}
-            </Text>
-            <Text className="text-gray-500 text-xs mt-1">
-                {format(new Date(item.timestamp), "HH:mm dd/MM/yyyy", { locale: vi })}
-            </Text>
-        </View>
-        <Ionicons name="play-circle-outline" size={32} color="#ec4899" />
-      </TouchableOpacity>
+      />
     );
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-black" edges={["top"]}>
-      {/* HEADER */}
-      <View className="flex-row items-center px-4 py-3 border-b border-neutral-800">
-        <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-          <Ionicons name="arrow-back" size={24} color="white" />
-        </TouchableOpacity>
-        <Text className="text-white text-xl font-bold ml-4">Lịch sử nghe nhạc</Text>
-      </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }} edges={["top"]}>
+      {/* ── Header ───────────────────────────────────────────────────────── */}
+      <LinearGradient
+        colors={["#1a0a23", "#000"]}
+        style={{ paddingBottom: 0 }}
+      >
+        {/* Back + title row */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            paddingHorizontal: 16,
+            paddingTop: 8,
+            paddingBottom: 12,
+          }}
+        >
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={{ padding: 6, marginRight: 8 }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="chevron-back" size={26} color="#fff" />
+          </TouchableOpacity>
 
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: "#fff", fontSize: 22, fontWeight: "700" }}>
+              Nghe gần đây
+            </Text>
+            {totalSongs > 0 && (
+              <Text style={{ color: "#6b7280", fontSize: 13, marginTop: 2 }}>
+                {totalSongs} bài đã nghe
+              </Text>
+            )}
+          </View>
+        </View>
+
+        {/* Play All bar */}
+        {totalSongs > 0 && (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingHorizontal: 16,
+              paddingBottom: 16,
+            }}
+          >
+            <Text style={{ color: "#9ca3af", fontSize: 13 }}>
+              Phát theo thứ tự đã nghe
+            </Text>
+            <TouchableOpacity
+              onPress={handlePlayAll}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: "#ec4899",
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                borderRadius: 20,
+                gap: 6,
+              }}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="play" size={14} color="#fff" />
+              <Text style={{ color: "#fff", fontSize: 13, fontWeight: "600" }}>
+                Phát tất cả
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </LinearGradient>
+
+      {/* ── Content ──────────────────────────────────────────────────────── */}
       {loading ? (
-        <View className="flex-1 justify-center items-center">
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <ActivityIndicator size="large" color="#ec4899" />
+          <Text style={{ color: "#6b7280", marginTop: 12, fontSize: 14 }}>
+            Đang tải lịch sử...
+          </Text>
+        </View>
+      ) : sections.length === 0 ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingBottom: 80 }}>
+          <Ionicons name="time-outline" size={72} color="#1f2937" />
+          <Text style={{ color: "#6b7280", fontSize: 17, fontWeight: "600", marginTop: 16 }}>
+            Chưa có lịch sử
+          </Text>
+          <Text style={{ color: "#4b5563", fontSize: 14, marginTop: 8, textAlign: "center", paddingHorizontal: 40 }}>
+            Bắt đầu nghe nhạc để lịch sử của bạn xuất hiện ở đây
+          </Text>
         </View>
       ) : (
-        <FlatList
-          data={history}
+        <SectionList
+          sections={sections}
           keyExtractor={(item) => item._id}
           renderItem={renderItem}
-          contentContainerStyle={{ padding: 16 }}
-          ListEmptyComponent={
-            <View className="items-center mt-20">
-              <Ionicons name="time-outline" size={64} color="#333" />
-              <Text className="text-gray-500 mt-4 text-center">Chưa có lịch sử nghe nhạc</Text>
-            </View>
-          }
+          renderSectionHeader={renderSectionHeader}
+          onRefresh={() => loadHistory(true)}
+          refreshing={refreshing}
+          stickySectionHeadersEnabled
+          contentContainerStyle={{ paddingBottom: 120 }}
+          ItemSeparatorComponent={() => (
+            <View
+              style={{
+                height: 1,
+                backgroundColor: "rgba(255,255,255,0.04)",
+                marginLeft: 80,
+              }}
+            />
+          )}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </SafeAreaView>

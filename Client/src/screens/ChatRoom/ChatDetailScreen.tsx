@@ -42,10 +42,12 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ChatDetail'>;
 
 export default function ChatDetailScreen({ route, navigation }: Props) {
   const { userId, conversationId: initialConvId } = route.params;
-  const { socket, currentUserId } = useSocket();
+  const { socket, currentUserId, onlineUserIds } = useSocket();
 
-  // Trạng thái online của người kia — seed từ DB, cập nhật realtime qua socket
-  const [isOtherOnline, setIsOtherOnline] = useState(false);
+  const [lastActive, setLastActive] = useState<string | undefined>(undefined);
+
+  // Trạng thái realtime: lấy từ onlineUserIds (SocketContext) — chính xác nhất
+  const isOtherOnline = onlineUserIds.has(userId);
 
   // ===== State =====
   const [otherUser, setOtherUser] = useState<{
@@ -96,13 +98,27 @@ export default function ChatDetailScreen({ route, navigation }: Props) {
         display_name: profile?.display_name,
         avatar_url: profile?.avatar_url,
       });
-      // Seed trạng thái online từ DB
-      setIsOtherOnline(isOnline);
+      // Không cần seed is_online nữa, dùng onlineUserIds realtime
+      setLastActive(data?.profile?.status?.last_active);
     } catch (e) {
       setOtherUser({ username: 'Người dùng' });
     } finally {
       setLoadingUser(false);
     }
+  };
+
+  // Tính thời gian offline
+  const formatLastSeen = (lastActiveStr?: string): string => {
+    if (!lastActiveStr) return 'lâu rồi';
+    const diff = Date.now() - new Date(lastActiveStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'vừa xong';
+    if (mins < 60) return `${mins} phút trước`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours} giờ trước`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days} ngày trước`;
+    return `${Math.floor(days / 7)} tuần trước`;
   };
 
   // ===== Lấy conversation =====
@@ -172,19 +188,7 @@ export default function ChatDetailScreen({ route, navigation }: Props) {
     };
   }, [socket, conversationId, currentUserId]);
 
-  // ===== Socket: theo dõi online/offline người đang chat (tách riêng để active ngay từ đầu) =====
-  useEffect(() => {
-    if (!socket) return;
-    const handleStatusChange = ({ userId: changedId, status }: { userId: string; status: 'online' | 'offline' }) => {
-      if (changedId === userId) {
-        setIsOtherOnline(status === 'online');
-      }
-    };
-    socket.on('user_status_change', handleStatusChange);
-    return () => {
-      socket.off('user_status_change', handleStatusChange);
-    };
-  }, [socket, userId]);
+  // (Không cần socket listener riêng cho user_status — dùng onlineUserIds từ SocketContext)
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -591,7 +595,11 @@ export default function ChatDetailScreen({ route, navigation }: Props) {
           <View>
             <Text style={styles.headerName}>{getDisplayName()}</Text>
             <Text style={[styles.headerSub, isOtherOnline && !isTyping ? styles.headerSubOnline : {}]}>
-              {isTyping ? 'Đang nhập...' : isOtherOnline ? 'Đang hoạt động' : 'Ngoại tuyến'}
+              {isTyping
+                ? 'Đang nhập...'
+                : isOtherOnline
+                ? 'Đang hoạt động'
+                : `Offline · ${formatLastSeen(lastActive)}`}
             </Text>
           </View>
         </TouchableOpacity>

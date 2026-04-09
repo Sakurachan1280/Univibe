@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Modal, TouchableWithoutFeedback } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { useSocket } from "../../context/SocketContext";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../navigation/types";
 import { QUICK_PLAY, QuickPlayItem } from "../../constants/quickPlay";
@@ -13,6 +14,7 @@ import { useMusic } from "../../context/MusicContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { getAllArtists, Artist } from "../../API/artistAPI";
 import { getAdminAlbums, Playlist } from "../../API/playlistAPI";
+import { getNotificationsAPI } from "../../API/notificationAPI";
 import { Image } from "expo-image";
 
 
@@ -21,8 +23,16 @@ export default function HomeScreen() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showSleepTimer, setShowSleepTimer] = useState(false);
   const { startSleepTimer, cancelSleepTimer, sleepTimer } = useMusic();
+  const { unreadNotificationCount, setUnreadNotificationCount } = useSocket();
   const [quickPlayItems, setQuickPlayItems] = useState<QuickPlayItem[]>(QUICK_PLAY);
   const [adminAlbums, setAdminAlbums] = useState<Playlist[]>([]);
+
+  // Seed badge thông báo 1 lần khi mở app, socket tự cập nhật realtime sau đó
+  useEffect(() => {
+    getNotificationsAPI()
+      .then(data => setUnreadNotificationCount(data.unreadCount ?? 0))
+      .catch(() => {});
+  }, []);
 
   // Fetch artists và chọn ngẫu nhiên 1 artist
   useEffect(() => {
@@ -121,8 +131,36 @@ export default function HomeScreen() {
           <Text className="text-white text-2xl font-bold ml-4">Welcome back</Text>
         </View>
 
-        <View className="flex-row gap-4">
-          <Ionicons name="notifications-outline" size={22} color="white" />
+        <View className="flex-row gap-4 items-center">
+          {/* Notification Bell Button */}
+          <TouchableOpacity
+            onPress={() => navigation.navigate("NotificationScreen")}
+            style={{ position: 'relative' }}
+          >
+            <Ionicons name="notifications-outline" size={22} color="white" />
+            {unreadNotificationCount > 0 && (
+              <View
+                style={{
+                  position: 'absolute',
+                  top: -5,
+                  right: -6,
+                  backgroundColor: '#EC4899',
+                  borderRadius: 9,
+                  minWidth: 18,
+                  height: 18,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 2,
+                  borderColor: '#000',
+                  paddingHorizontal: 3,
+                }}
+              >
+                <Text style={{ color: '#fff', fontSize: 10, fontWeight: 'bold' }}>
+                  {unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => setShowSleepTimer(true)}>
             <Ionicons
               name={sleepTimer ? "time" : "time-outline"}

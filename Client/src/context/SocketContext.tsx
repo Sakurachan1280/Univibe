@@ -16,6 +16,8 @@ interface SocketContextType {
   currentUserId: string | null;
   connectSocket: () => Promise<void>;
   disconnectSocket: () => void;
+  unreadNotificationCount: number;
+  setUnreadNotificationCount: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const SocketContext = createContext<SocketContextType>({
@@ -24,12 +26,15 @@ const SocketContext = createContext<SocketContextType>({
   currentUserId: null,
   connectSocket: async () => {},
   disconnectSocket: () => {},
+  unreadNotificationCount: 0,
+  setUnreadNotificationCount: () => {},
 });
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const socketRef = useRef<Socket | null>(null);
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
 
   const connectSocket = async () => {
     try {
@@ -80,6 +85,17 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         });
       });
 
+      // Nhận thông báo mới realtime → tăng badge
+      socket.on('new_notification', () => {
+        setUnreadNotificationCount(prev => prev + 1);
+      });
+
+      // Khi có tin nhắn mới trong bất kỳ conversation nào
+      socket.on('conversation_updated', () => {
+        // Chỉ tăng badge notification nếu đang không ở ChatScreen (ChatScreen tự handle)
+        // Event này ChatScreen sẽ lắng nghe riêng
+      });
+
     } catch (err) {
       console.error('[Socket] Connection error:', err);
     }
@@ -114,6 +130,8 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         currentUserId,
         connectSocket,
         disconnectSocket,
+        unreadNotificationCount,
+        setUnreadNotificationCount,
       }}
     >
       {children}

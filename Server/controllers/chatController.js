@@ -31,6 +31,23 @@ const send = async (req, res) => {
     const populatedMessage = await message.populate('sender_id', 'username profile.avatar_url profile.display_name');
     
     req.io.in(conversationId).emit('new_message', populatedMessage);
+
+    // Notify tất cả participants để cập nhật conversation list (realtime)
+    const conversation = await require('../models/Conversation').findById(conversationId).select('participants');
+    if (conversation) {
+      const preview = {
+        conversationId,
+        lastMessage: {
+          content: populatedMessage.content,
+          type: populatedMessage.type,
+          created_at: populatedMessage.created_at,
+          sender_id: populatedMessage.sender_id,
+        },
+      };
+      conversation.participants.forEach(participantId => {
+        req.io.to(participantId.toString()).emit('conversation_updated', preview);
+      });
+    }
     
     res.status(201).json(message);
   } catch (err) {

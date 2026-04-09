@@ -15,6 +15,10 @@ const sendRequest = async (req, res) => {
   try {
     const { recipientId } = req.body;
     const result = await socialService.sendFriendRequest(req.user.id, recipientId);
+
+    // Thông báo realtime cho người nhận
+    req.io.to(recipientId).emit('new_notification', { type: 'friend_request' });
+
     res.status(201).json(result);
   } catch (err) {
     res.status(400).json({ message: err.message });

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
 import {
@@ -25,6 +25,7 @@ import {
 } from '../../API/socialAPI';
 import { BASE_URL } from '../../API/axiosClient';
 import { getMeAPI } from '../../API/userAPI';
+import { useSocket } from '../../context/SocketContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -37,6 +38,7 @@ const getAvatarUri = (url?: string) => {
 
 export default function ChatScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const { onlineUserIds, socket } = useSocket();
 
   const [searchText, setSearchText] = useState('');
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -60,13 +62,24 @@ export default function ChatScreen() {
     }).catch(() => {});
   }, []);
 
-  // Load friends và conversations khi màn hình focus
-  useFocusEffect(
-    useCallback(() => {
-      fetchFriends();
+  // Load friends và conversations 1 lần khi mở màn hình
+  // Conversations sẽ được cập nhật realtime qua socket 'conversation_updated'
+  useEffect(() => {
+    fetchFriends();
+    fetchConversations();
+  }, []);
+
+  // Cập nhật conversation list realtime khi có tin nhắn mới
+  useEffect(() => {
+    if (!socket) return;
+    const handleConversationUpdated = () => {
       fetchConversations();
-    }, [])
-  );
+    };
+    socket.on('conversation_updated', handleConversationUpdated);
+    return () => {
+      socket.off('conversation_updated', handleConversationUpdated);
+    };
+  }, [socket]);
 
   const fetchFriends = async () => {
     try {
@@ -189,39 +202,43 @@ export default function ChatScreen() {
     </TouchableOpacity>
   );
 
-  const renderActiveFriend = (user: SearchUser) => (
-    <TouchableOpacity
-      key={user._id}
-      className="mr-5 items-center"
-      onPress={() => navigation.navigate('UserProfile', { userId: user._id })}
-      activeOpacity={0.7}
-    >
-      <View className="relative">
-        <View className="w-[72px] h-[72px] rounded-full border-2 border-pink-500 p-0.5">
-          <Image
-            source={getAvatarUri(user.profile?.avatar_url)}
-            className="w-full h-full rounded-full"
-            resizeMode="cover"
+  const renderActiveFriend = (user: SearchUser) => {
+    const isOnline = onlineUserIds.has(user._id);
+    return (
+      <TouchableOpacity
+        key={user._id}
+        className="mr-5 items-center"
+        onPress={() => navigation.navigate('UserProfile', { userId: user._id })}
+        activeOpacity={0.7}
+      >
+        <View className="relative">
+          <View className="w-[72px] h-[72px] rounded-full border-2 border-pink-500 p-0.5">
+            <Image
+              source={getAvatarUri(user.profile?.avatar_url)}
+              className="w-full h-full rounded-full"
+              resizeMode="cover"
+            />
+          </View>
+          <View
+            className={`absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full border-2 border-black ${
+              isOnline ? 'bg-green-500' : 'bg-red-500'
+            }`}
           />
         </View>
-        {user.status?.is_online && (
-          <View className="absolute bottom-0.5 right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-black" />
-        )}
-      </View>
-      <Text
-        className="text-white text-xs mt-2 text-center font-medium"
-        style={{ width: 72 }}
-        numberOfLines={1}
-      >
-        {getDisplayName(user)}
-      </Text>
-    </TouchableOpacity>
-  );
+        <Text
+          className="text-white text-xs mt-2 text-center font-medium"
+          style={{ width: 72 }}
+          numberOfLines={1}
+        >
+          {getDisplayName(user)}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   const renderConversationItem = ({ item }: { item: Conversation }) => {
     const other = getOtherParticipant(item);
     const lastMsg = item.last_message?.content || 'Bắt đầu cuộc trò chuyện';
-    const timeStr = formatTime(item.last_message?.created_at || item.updated_at);
 
     return (
       <TouchableOpacity
@@ -241,16 +258,19 @@ export default function ChatScreen() {
               className="w-14 h-14 rounded-full border border-pink-500/30"
               resizeMode="cover"
             />
-            {other?.status?.is_online && (
-              <View className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-black" />
+            {other && (
+              <View
+                className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-black ${
+                  onlineUserIds.has(other._id) ? 'bg-green-500' : 'bg-red-500'
+                }`}
+              />
             )}
           </View>
           <View className="flex-1 ml-4">
-            <View className="flex-row items-center justify-between mb-1">
+            <View className="mb-1">
               <Text className="text-white text-base font-bold" numberOfLines={1}>
                 {other ? (other.profile?.display_name || other.username) : 'Người dùng'}
               </Text>
-              <Text className="text-gray-500 text-xs">{timeStr}</Text>
             </View>
             <Text className="text-gray-400 text-sm" numberOfLines={1}>
               {lastMsg}
