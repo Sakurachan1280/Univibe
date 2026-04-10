@@ -232,6 +232,10 @@ export default function MusicPlayerScreen() {
   const artistNames = song?.artist_ids?.map(a => a.name).join(", ") || "Unknown Artist";
 
   const handleArtistPress = (artistId: string, artistName: string) => {
+    if (artistId === 'UNKNOWN') {
+      Alert.alert('Chưa rõ', 'Dữ liệu ca sĩ không khả dụng cho tin nhắn cũ này. Vui lòng tìm kiếm bài hát theo tên.');
+      return;
+    }
     navigation.navigate("ArtistDetail", { artistId, artistName });
   };
 

@@ -42,7 +42,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ChatDetail'>;
 
 export default function ChatDetailScreen({ route, navigation }: Props) {
   const { userId, conversationId: initialConvId } = route.params;
-  const { socket, currentUserId, onlineUserIds } = useSocket();
+  const { socket, currentUserId, onlineUserIds, refreshNotificationCount } = useSocket();
 
   const [lastActive, setLastActive] = useState<string | undefined>(undefined);
 
@@ -142,7 +142,10 @@ export default function ChatDetailScreen({ route, navigation }: Props) {
       setLoadingMessages(true);
       const data = await getMessagesAPI(convId, 50);
       setMessages([...data].reverse());
-      markReadAPI(convId).catch(() => {});
+      
+      // Mark as read and refresh bell
+      await markReadAPI(convId);
+      refreshNotificationCount();
     } catch (e) {
       console.error('Load messages error:', e);
     } finally {
@@ -158,6 +161,13 @@ export default function ChatDetailScreen({ route, navigation }: Props) {
     const handleNewMessage = (msg: ChatMessage) => {
       setMessages(prev => [...prev, msg]);
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      
+      const senderId = typeof msg.sender_id === 'object' ? msg.sender_id._id : msg.sender_id;
+      if (senderId !== currentUserId) {
+         markReadAPI(conversationId).then(() => {
+            refreshNotificationCount();
+         }).catch(() => {});
+      }
     };
     const handleRevoked = ({ messageId }: { messageId: string }) => {
       setMessages(prev => prev.map(m => m._id === messageId ? { ...m, is_revoked: true } : m));
@@ -452,7 +462,7 @@ export default function ChatDetailScreen({ route, navigation }: Props) {
                 song: {
                   _id: card.song_id,
                   title: card.song_title,
-                  artist_ids: [{ _id: card.song_id, name: card.artist_name }],
+                  artist_ids: [{ _id: card.artist_id || 'UNKNOWN', name: card.artist_name }],
                   cover_image: card.cover_url,
                   file_url: card.preview_url,
                 }

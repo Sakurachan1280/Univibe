@@ -72,10 +72,10 @@ export default function SignIn() {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity activeOpacity={0.5} onPress={() => navigation.navigate("LogInSDT")} >
+        <TouchableOpacity activeOpacity={0.5} onPress={() => navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: "MainTabs" }], }))}>
           <View className="flex-row items-center border border-white rounded-full py-4 px-5">
-            <Ionicons name="call-outline" size={24} color="white" />
-            <View className="flex-1 items-center"><Text className="text-white text-xl font-bold">Tiếp tục bằng Số điện thoại</Text></View>
+            <Ionicons name="person-outline" size={24} color="white" />
+            <View className="flex-1 items-center"><Text className="text-white text-xl font-bold">Tiếp tục bằng Tài khoản khách</Text></View>
           </View>
           <View className="w-6" />
         </TouchableOpacity>

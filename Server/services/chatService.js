@@ -38,6 +38,7 @@ const sendMessage = async (senderId, data) => {
       song_id: song._id,
       song_title: song.title,
       artist_name: song.artist_ids.map(a => a.name).join(', '),
+      artist_id: song.artist_ids.length > 0 ? song.artist_ids[0]._id : null,
       cover_url: song.cover_image,
       preview_url: song.file_url
     };

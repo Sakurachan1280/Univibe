@@ -9,6 +9,7 @@ import { io, Socket } from 'socket.io-client';
 import * as SecureStore from 'expo-secure-store';
 import { BASE_URL } from '../API/axiosClient';
 import { getMeAPI } from '../API/userAPI';
+import { getNotificationsAPI } from '../API/notificationAPI';
 
 interface SocketContextType {
   socket: Socket | null;
@@ -18,6 +19,7 @@ interface SocketContextType {
   disconnectSocket: () => void;
   unreadNotificationCount: number;
   setUnreadNotificationCount: React.Dispatch<React.SetStateAction<number>>;
+  refreshNotificationCount: () => Promise<void>;
 }
 
 const SocketContext = createContext<SocketContextType>({
@@ -28,6 +30,7 @@ const SocketContext = createContext<SocketContextType>({
   disconnectSocket: () => {},
   unreadNotificationCount: 0,
   setUnreadNotificationCount: () => {},
+  refreshNotificationCount: async () => {},
 });
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -87,19 +90,34 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       // Nhận thông báo mới realtime → tăng badge
       socket.on('new_notification', () => {
-        setUnreadNotificationCount(prev => prev + 1);
+        refreshNotificationCount();
       });
 
       // Khi có tin nhắn mới trong bất kỳ conversation nào
-      socket.on('conversation_updated', () => {
-        // Chỉ tăng badge notification nếu đang không ở ChatScreen (ChatScreen tự handle)
-        // Event này ChatScreen sẽ lắng nghe riêng
+      socket.on('conversation_updated', (preview: any) => {
+        const senderId = preview?.lastMessage?.sender_id?._id || preview?.lastMessage?.sender_id;
+        if (senderId && senderId !== me._id) {
+           // Cập nhật optimistic (ngay lập tức) để UI phản hồi nhanh
+           setUnreadNotificationCount(prev => prev + 1);
+           refreshNotificationCount();
+        }
       });
 
     } catch (err) {
       console.error('[Socket] Connection error:', err);
     }
   };
+
+  const refreshNotificationCount = async () => {
+    try {
+      const data = await getNotificationsAPI();
+      setUnreadNotificationCount(data.unreadCount ?? 0);
+    } catch (err) {
+      console.error('[Socket] Update notification count error:', err);
+    }
+  };
+
+  // Removed useEffect as we moved listeners directly into connectSocket
 
   const disconnectSocket = () => {
     if (socketRef.current) {
@@ -132,6 +150,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         disconnectSocket,
         unreadNotificationCount,
         setUnreadNotificationCount,
+        refreshNotificationCount,
       }}
     >
       {children}

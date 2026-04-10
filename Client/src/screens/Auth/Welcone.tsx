@@ -41,10 +41,6 @@ export default function Login() {
           </View>
         </TouchableOpacity>
       </View>
-
-      <TouchableOpacity className="self-center" activeOpacity={0.5} onPress={() => navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: "MainTabs" }], }))}>
-        <Text className="text-white mt-4">Đăng nhập</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }

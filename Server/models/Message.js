@@ -13,6 +13,7 @@ const messageSchema = new mongoose.Schema({
     song_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Song' },
     song_title: String,
     artist_name: String,
+    artist_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Artist' },
     cover_url: String,
     preview_url: String
   },

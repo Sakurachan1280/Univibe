@@ -19,6 +19,7 @@ export interface ChatMessage {
     song_id: string;
     song_title: string;
     artist_name: string;
+    artist_id?: string;
     cover_url: string;
     preview_url: string;
   };
