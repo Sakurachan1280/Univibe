@@ -8,6 +8,7 @@ import {
     ScrollView,
     Pressable,
     Alert,
+    StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AddSongModal from './AddSongModel';
@@ -15,6 +16,7 @@ import { useMusic } from '../../context/MusicContext';
 import { Song } from '../../API/musicAPI';
 import { usePlaybackProgress } from '../../context/PlaybackProgressContext';
 import { useSocket } from '../../context/SocketContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface ListenModalProps {
     isVisible: boolean;
@@ -78,6 +80,7 @@ export default function ListenModal({
 
     const { currentTime, duration } = usePlaybackProgress();
     const { socket } = useSocket();
+    const insets = useSafeAreaInsets();
 
     // Lắng nghe quyền điều khiển nhạc của khách (default: tắt)
     const [guestCanControl, setGuestCanControl] = useState(false);
@@ -427,7 +430,12 @@ export default function ListenModal({
                     )}
 
                     {/* ── Bottom Controls ── */}
-                    <View className="flex-row px-4 pb-8 pt-4 justify-between gap-3 bg-[#121212]">
+                    <View
+                        style={[
+                            localStyles.bottomControls,
+                            { paddingBottom: Math.max(insets.bottom, 16) + 8 },
+                        ]}
+                    >
                         {/* Shuffle */}
                         <TouchableOpacity
                             onPress={toggleShuffle}
@@ -496,3 +504,14 @@ export default function ListenModal({
         </Modal>
     );
 }
+
+const localStyles = StyleSheet.create({
+    bottomControls: {
+        flexDirection: 'row',
+        paddingHorizontal: 16,
+        paddingTop: 16,
+        justifyContent: 'space-between',
+        gap: 12,
+        backgroundColor: '#121212',
+    },
+});

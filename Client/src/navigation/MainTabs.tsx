@@ -19,6 +19,7 @@ import CreatePlaylistModal from "../components/Playlist/CreatePlaylistModal";
 import { createRoomAPI } from "../API/roomAPI";
 import { Song } from "../API/musicAPI";
 import { getMeAPI } from "../API/userAPI";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -27,6 +28,10 @@ export default function MainTabNavigator() {
   const [showListenModal, setShowListenModal] = useState(false);
   const [showJamInfo, setShowJamInfo] = useState(false);
   const [showCreatePlaylist, setShowCreatePlaylist] = useState(false);
+  // SafeArea để đặt JamBar đúng vị trí trên iPhone
+  const insets = useSafeAreaInsets();
+  // Tab bar height = 80 + safe area bottom
+  const TAB_BAR_HEIGHT = 80 + insets.bottom;
 
   // ── Jam Room state ─────────────────────────────────────────────────────
   const [roomId, setRoomId] = useState<string | undefined>(undefined);
@@ -316,7 +321,8 @@ export default function MainTabNavigator() {
           tabBarStyle: {
             backgroundColor: "#000",
             borderTopColor: "#222",
-            height: 80,
+            height: 80 + insets.bottom,
+            paddingBottom: insets.bottom,
           },
           tabBarLabelStyle: {
             fontSize: 12,
@@ -378,7 +384,7 @@ export default function MainTabNavigator() {
         <TouchableOpacity
           style={[
             styles.jamBar,
-            { bottom: 70 }, // Luôn ghim ngang tab bar vì MiniPlayer không hiển thị
+            { bottom: TAB_BAR_HEIGHT + 8 },
           ]}
           onPress={() => setShowListenModal(true)}
           activeOpacity={0.85}
@@ -437,7 +443,8 @@ export default function MainTabNavigator() {
 const styles = StyleSheet.create({
   jamBar: {
     position: 'absolute',
-    bottom: 70,            // ngay trên tab bar
+    // bottom được set động theo TAB_BAR_HEIGHT + 8 (inline style)
+    bottom: 78,            // fallback, overridden inline
     left: 16,
     right: 16,
     flexDirection: 'row',

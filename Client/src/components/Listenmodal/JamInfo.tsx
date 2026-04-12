@@ -8,6 +8,7 @@ import {
   Pressable,
   ActivityIndicator,
   ScrollView,
+  StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import GuestSettingsModal from './GuessModel';
@@ -15,6 +16,7 @@ import JamInviteModal from './InviteModel';
 import { useSocket } from '../../context/SocketContext';
 import { getMeAPI } from '../../API/userAPI';
 import { getRoomAPI } from '../../API/roomAPI';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Participant {
   _id: string;
@@ -41,6 +43,7 @@ export default function JamInfoModal({
   isHost = true,
 }: JamInfoModalProps) {
   const { socket, currentUserId } = useSocket();
+  const insets = useSafeAreaInsets();
 
   // ── Local state ─────────────────────────────────────────────────────────
   const [showGuestSettings, setShowGuestSettings] = useState(false);
@@ -286,7 +289,12 @@ export default function JamInfoModal({
           </ScrollView>
 
           {/* BOTTOM BUTTONS — tùy role */}
-          <View className="px-4 pb-6 pt-4 border-t border-gray-800">
+          <View
+            style={[
+              jamInfoStyles.bottomBtns,
+              { paddingBottom: Math.max(insets.bottom, 16) + 4 },
+            ]}
+          >
             {isHost ? (
               /* Host: Kết thúc Jam + Cài đặt khách */
               <View className="flex-row gap-3">
@@ -346,3 +354,12 @@ export default function JamInfoModal({
     </>
   );
 }
+
+const jamInfoStyles = StyleSheet.create({
+  bottomBtns: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(75,85,99,0.4)', // gray-800
+  },
+});

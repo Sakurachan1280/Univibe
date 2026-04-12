@@ -15,6 +15,7 @@ import { usePlaybackProgress } from '../../context/PlaybackProgressContext';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Song } from '../../API/musicAPI';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -42,6 +43,7 @@ interface ContentProps {
     handlePrevious: () => void;
     onPress: () => void;
     onDismiss: () => void;
+    bottomOffset?: number;
 }
 
 const MiniPlayerContent = memo(({
@@ -52,6 +54,7 @@ const MiniPlayerContent = memo(({
     handlePrevious,
     onPress,
     onDismiss,
+    bottomOffset,
 }: ContentProps) => {
     const artistNames = currentSong.artist_ids?.map(a => a.name).join(', ') || 'Unknown Artist';
 
@@ -103,7 +106,12 @@ const MiniPlayerContent = memo(({
         <Animated.View
             style={[
                 styles.container,
-                { transform: [{ translateX }, { translateY }], opacity },
+                {
+                    transform: [{ translateX }, { translateY }],
+                    opacity,
+                    // Dùng bottomOffset từ prop nếu có (cho phép tính SafeArea động)
+                    ...(bottomOffset !== undefined ? { bottom: bottomOffset } : {}),
+                },
             ]}
             {...panResponder.panHandlers}
         >
@@ -190,6 +198,10 @@ const MiniPlayer = () => {
     } = useMusic();
     const navigation = useAppNavigation();
     const [dismissed, setDismissed] = useState(false);
+    // SafeArea để tính bottom chính xác trên iPhone (có home indicator)
+    const insets = useSafeAreaInsets();
+    // Tab bar height = 80, thêm safe area bottom để không bị chồng lên
+    const miniPlayerBottom = 80 + Math.max(insets.bottom, 0) + 8;
 
     // Reset dismissed khi bài hát đổi
     React.useEffect(() => {
@@ -211,6 +223,7 @@ const MiniPlayer = () => {
                 setDismissed(true);
                 setMiniPlayerVisible(false);
             }}
+            bottomOffset={miniPlayerBottom}
         />
     );
 };
@@ -220,6 +233,7 @@ export default MiniPlayer;
 const styles = StyleSheet.create({
     container: {
         position: 'absolute',
+        // Fallback bottom (overridden by bottomOffset prop khi có SafeArea)
         bottom: 90,
         left: 10,
         right: 10,

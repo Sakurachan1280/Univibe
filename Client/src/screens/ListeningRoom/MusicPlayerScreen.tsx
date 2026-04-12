@@ -5,7 +5,7 @@ import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
 import Slider from "@react-native-community/slider";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import musicAPI, { Song } from "../../API/musicAPI";
 import { LinearGradient } from "expo-linear-gradient";
 import { useMusic } from "../../context/MusicContext";
@@ -90,6 +90,7 @@ export default function MusicPlayerScreen() {
 
   const [queueModalVisible, setQueueModalVisible] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const insets = useSafeAreaInsets();
 
   // ── Slide-down dismiss animation ─────────────────────────────────────────
   const translateY = useRef(new Animated.Value(0)).current;
@@ -221,10 +222,10 @@ export default function MusicPlayerScreen() {
   if (loading && !song) {
     return (
       <LinearGradient colors={["#1a0520", "#0f0314", "#000000"]} style={{ flex: 1 }}>
-        <SafeAreaView className="flex-1 items-center justify-center">
+        <View style={{ flex: 1, paddingTop: insets.top, alignItems: 'center', justifyContent: 'center' }}>
           <ActivityIndicator size="large" color="#ec4899" />
           <Text className="text-white mt-4 text-lg">Đang tải bài hát...</Text>
-        </SafeAreaView>
+        </View>
       </LinearGradient>
     );
   }
@@ -242,10 +243,10 @@ export default function MusicPlayerScreen() {
   return (
     <Animated.View style={[{ flex: 1 }, { transform: [{ translateY }] }]} {...panResponder.panHandlers}>
     <LinearGradient colors={["#1a0520", "#2d1b3d", "#4a1942", "#000000"]} style={{ flex: 1 }}>
-      <SafeAreaView className="flex-1">
-        <View className="flex-1 justify-between">
-          {/* HEADER */}
-          <View className="px-6 pt-2 pb-4 flex-row justify-between items-center" style={{ zIndex: 10 }}>
+      {/* Dùng insets trực tiếp: đảm bảo tránh notch/Dynamic Island (top) và home indicator (bottom) */}
+      <View style={{ flex: 1, paddingTop: insets.top }}>
+        {/* HEADER */}
+        <View className="px-6 pt-2 pb-4 flex-row justify-between items-center" style={{ zIndex: 10 }}>
             <TouchableOpacity onPress={dismissWithAnimation} style={[styles.headerButton, { zIndex: 100 }]} activeOpacity={0.6}>
               <Ionicons name="chevron-down" size={28} color="white" />
             </TouchableOpacity>
@@ -328,8 +329,16 @@ export default function MusicPlayerScreen() {
             </View>
           </View>
 
-          {/* BOTTOM ACTIONS */}
-          <View className="flex-row justify-between items-center px-8 pb-6">
+          {/* Spacer: đẩy bottom actions xuống đúng đáy */}
+          <View style={{ flex: 1 }} />
+
+          {/* BOTTOM ACTIONS - ghìm sát đáy, có safe area */}
+          <View
+            style={[
+              styles.bottomActionsRow,
+              { paddingBottom: Math.max(insets.bottom, 12) + 4 },
+            ]}
+          >
             <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate("CreateRoom")} style={styles.bottomAction}>
               <Ionicons name="tv-outline" size={26} color="white" />
             </TouchableOpacity>
@@ -341,7 +350,6 @@ export default function MusicPlayerScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </SafeAreaView>
 
       {/* QUEUE MODAL */}
       <Modal visible={queueModalVisible} animationType="slide" transparent={true} onRequestClose={() => setQueueModalVisible(false)}>
@@ -406,6 +414,7 @@ const styles = StyleSheet.create({
   repeatOneBadge: { position: "absolute", top: -2, right: -2, width: 14, height: 14, borderRadius: 7, backgroundColor: "#ec4899", justifyContent: "center", alignItems: "center" },
   repeatOneText: { color: "white", fontSize: 9, fontWeight: "bold" },
   bottomAction: { width: 44, height: 44, borderRadius: 22, backgroundColor: "rgba(255, 255, 255, 0.1)", justifyContent: "center", alignItems: "center" },
+  bottomActionsRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 32, paddingTop: 8 },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0, 0, 0, 0.8)", justifyContent: "flex-end" },
   modalContent: { backgroundColor: "#1a0a2e", borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: height * 0.7, paddingBottom: 20 },
   modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: "rgba(255, 255, 255, 0.1)" },
