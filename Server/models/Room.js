@@ -19,6 +19,21 @@ const roomSchema = new mongoose.Schema({
     updated_at: { type: Date, default: Date.now } 
   },
 
+  settings: {
+    guest_can_control: { type: Boolean, default: true },
+  },
+
+  /** Hàng đợi bài hát (append khi thành viên add_to_queue) */
+  queue: [
+    {
+      song_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Song' },
+      title: String,
+      cover_image: String,
+      file_url: String,
+      artist_ids: [{ _id: String, name: String }],
+    },
+  ],
+
   is_active: { type: Boolean, default: true },
   created_at: { type: Date, default: Date.now }
 });

@@ -39,3 +39,9 @@ export const updateProfileAPI = async (formData: FormData): Promise<User> => {
     });
     return res.data;
 };
+
+/** Lấy thông tin public của một user theo ID (dùng cho JamInfo host info) */
+export const getUserByIdAPI = async (userId: string): Promise<User | null> => {
+    const res = await axiosClient.get(`/users/${userId}`);
+    return res.data;
+};

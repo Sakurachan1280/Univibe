@@ -4,6 +4,7 @@ import { ThemeProvider } from "./src/components/ModalSetting/Darkmode";
 import { MusicProvider } from "./src/context/MusicContext";
 import { PlaybackProgressProvider } from "./src/context/PlaybackProgressContext";
 import { SocketProvider } from "./src/context/SocketContext";
+import { JamInviteProvider } from "./src/context/JamInviteContext";
 
 export default function App() {
   return (
@@ -11,7 +12,9 @@ export default function App() {
       <PlaybackProgressProvider>
         <MusicProvider>
           <SocketProvider>
-            <AppNavigator />
+            <JamInviteProvider>
+              <AppNavigator />
+            </JamInviteProvider>
           </SocketProvider>
         </MusicProvider>
       </PlaybackProgressProvider>

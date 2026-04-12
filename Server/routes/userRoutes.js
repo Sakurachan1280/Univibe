@@ -8,6 +8,7 @@ const upload = require('../middlewares/uploadMiddleware');
 router.use(protect);
 
 router.get('/me', userController.getMe);
+router.get('/:id', userController.getUserById);
 router.put('/profile', 
   upload.fields([
     { name: 'avatar', maxCount: 1 }, 

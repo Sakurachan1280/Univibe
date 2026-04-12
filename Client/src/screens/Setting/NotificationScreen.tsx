@@ -22,14 +22,18 @@ import {
 } from '../../API/notificationAPI';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSocket } from '../../context/SocketContext';
+import { useJamInvite, JamInviteNotif } from '../../context/JamInviteContext';
 
 export default function NotificationScreen() {
   const navigation = useAppNavigation();
   const { setUnreadNotificationCount } = useSocket();
+  const { inviteNotifs, expireInvite, onJoinJam } = useJamInvite();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [respondingId, setRespondingId] = useState<string | null>(null);
+  // tick để re-render mỗi giây (cập nhật đồng hồ đếm ngược)
+  const [tick, setTick] = useState(0);
 
   // ─── Fetch ────────────────────────────────────────────────────────────────
   const fetchNotifications = useCallback(async () => {
@@ -49,6 +53,23 @@ export default function NotificationScreen() {
     // Reset badge khi user mở trang thông báo
     setUnreadNotificationCount(0);
   }, [fetchNotifications]);
+
+  // Interval tick mỗi giây để cập nhật countdown
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Tự động đánh dấu expired khi đồng hồ kết thúc
+  useEffect(() => {
+    const now = Date.now();
+    inviteNotifs.forEach(n => {
+      if (!n.expired && now >= n.expiresAt) {
+        expireInvite(n.id);
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tick]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -122,13 +143,100 @@ export default function NotificationScreen() {
     }
   };
 
-  const unreadCount = notifications.filter(n => n.unread).length;
+  const activeInviteCount = inviteNotifs.filter(n => !n.expired).length;
+  const unreadCount = notifications.filter(n => n.unread).length + activeInviteCount;
 
   const markAllRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
   };
 
-  // ─── Render helpers ───────────────────────────────────────────────────────
+  // ─── Render lời mời Jam ───────────────────────────────────────────────────
+  const renderJamInvite = (notif: JamInviteNotif) => {
+    const remaining = Math.max(0, Math.ceil((notif.expiresAt - Date.now()) / 1000));
+    const isExpired = notif.expired || remaining === 0;
+    const mins = Math.floor(remaining / 60);
+    const secs = remaining % 60;
+    const countdownText = `${mins}:${secs.toString().padStart(2, '0')}`;
+
+    return (
+      <View
+        key={notif.id}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'flex-start',
+          paddingHorizontal: 16,
+          paddingVertical: 14,
+          borderBottomWidth: 1,
+          borderBottomColor: 'rgba(255,255,255,0.05)',
+          backgroundColor: isExpired ? 'transparent' : 'rgba(236,72,153,0.06)',
+        }}
+      >
+        {/* Avatar host */}
+        <View style={{ marginRight: 12 }}>
+          <View style={{ position: 'relative' }}>
+            {notif.hostAvatar ? (
+              <Image
+                source={{ uri: notif.hostAvatar }}
+                style={{ width: 52, height: 52, borderRadius: 26 }}
+              />
+            ) : (
+              <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: '#2a1325', alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name="musical-notes" size={26} color="#EC4899" />
+              </View>
+            )}
+            <View style={{ position: 'absolute', bottom: -2, right: -2, width: 20, height: 20, borderRadius: 10, backgroundColor: isExpired ? '#555' : '#EC4899', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#000' }}>
+              <Ionicons name="musical-notes" size={10} color="#fff" />
+            </View>
+          </View>
+        </View>
+
+        {/* Nội dung */}
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 3 }}>
+            <Text
+              style={{ flex: 1, fontSize: 15, color: isExpired ? '#9CA3AF' : '#fff', fontWeight: isExpired ? '500' : '700' }}
+              numberOfLines={2}
+            >
+              Bạn được mời vào Jam
+            </Text>
+            <Text style={{ fontSize: 11, color: '#6B7280', marginLeft: 8, marginTop: 2 }}>
+              {formatTimeAgo(new Date(notif.receivedAt).toISOString())}
+            </Text>
+          </View>
+
+          {isExpired ? (
+            <Text style={{ fontSize: 13, color: '#6B7280' }}>
+              Lời mời hết hạn
+            </Text>
+          ) : (
+            <>
+              <Text style={{ fontSize: 13, color: '#D1D5DB', marginBottom: 10 }}>
+                {notif.hostName} mời bạn tham gia «{notif.jamName}»
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <TouchableOpacity
+                  onPress={() => onJoinJam?.(notif)}
+                  style={{ backgroundColor: '#EC4899', borderRadius: 20, paddingHorizontal: 18, paddingVertical: 7 }}
+                >
+                  <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Tham gia</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => expireInvite(notif.id)}
+                  style={{ backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7 }}
+                >
+                  <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Từ chối</Text>
+                </TouchableOpacity>
+                <Text style={{ color: '#EC4899', fontSize: 12, fontWeight: '600', marginLeft: 4 }}>
+                  ⏱ {countdownText}
+                </Text>
+              </View>
+            </>
+          )}
+        </View>
+      </View>
+    );
+  };
+
   const renderAvatar = (notif: AppNotification) => {
     const avatarUrl = resolveAvatarUrl(notif.avatar);
     const icon = getIconInfo(notif.type);
@@ -410,6 +518,18 @@ export default function NotificationScreen() {
             />
           }
         >
+          {/* ── Section lời mời Jam ── */}
+          {inviteNotifs.length > 0 && (
+            <>
+              <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 }}>
+                <Text style={{ color: '#EC4899', fontSize: 12, fontWeight: '700', letterSpacing: 0.5 }}>
+                  LỜI MỜI JAM
+                </Text>
+              </View>
+              {inviteNotifs.map(renderJamInvite)}
+            </>
+          )}
+
           {/* Section labels */}
           {notifications.filter(n => n.unread).length > 0 && (
             <>

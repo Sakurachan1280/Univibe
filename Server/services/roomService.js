@@ -23,9 +23,11 @@ const createRoom = async (userId, roomName, initialSong) => {
   return room;
 };
 
-// Lấy thông tin phòng
+// Lấy thông tin phòng (kèm populate host và participants)
 const getRoom = async (roomId) => {
-  return await Room.findById(roomId).populate('host_id', 'username profile.avatar_url');
+  return await Room.findById(roomId)
+    .populate('host_id', 'username profile.avatar_url')
+    .populate('participants', 'username profile.avatar_url');
 };
 
 // Đóng phòng (Khi chủ thoát)

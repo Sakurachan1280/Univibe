@@ -45,6 +45,17 @@ const updateProfile = async (req, res) => {
 const getMe = async (req, res) => {
   console.log('>> [GET ME] Request received for user:', req.user.id);
   res.json(req.user);
-}
+};
 
-module.exports = { updateProfile, getMe };
+/** Lấy thông tin public của user theo :id (dùng trong JamInfo để hiển thị host) */
+const getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+module.exports = { updateProfile, getMe, getUserById };

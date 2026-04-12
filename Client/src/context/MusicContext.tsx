@@ -14,10 +14,11 @@ interface MusicContextType {
     isShuffle: boolean;
     repeatMode: 'off' | 'all' | 'one';
     miniPlayerVisible: boolean;
-    sleepTimer: number | null; // minutes
+    sleepTimer: number | null;
     startSleepTimer: (minutes: number) => void;
     cancelSleepTimer: () => void;
-    playSong: (song: Song, newQueue?: Song[]) => Promise<void>;
+    /** isJamPlay = true → bỏ qua jam lock, chỉ dùng cho Jam player nội bộ */
+    playSong: (song: Song, newQueue?: Song[], isJamPlay?: boolean) => Promise<void>;
     togglePlayPause: () => Promise<void>;
     handleNext: () => Promise<void>;
     handlePrevious: () => Promise<void>;
@@ -26,8 +27,15 @@ interface MusicContextType {
     toggleRepeat: () => void;
     setMiniPlayerVisible: (visible: boolean) => void;
     setCurrentIndex: (index: number) => void;
+    appendToQueue: (song: Song) => void;
     loadLastPlayed: () => Promise<void>;
     stopMusic: () => Promise<void>;
+    /** Khóa không cho phát nhạc bên ngoài Jam */
+    enterJamMode: () => void;
+    /** Mở khóa khi thoát Jam */
+    exitJamMode: () => void;
+    /** Đăng ký callback được gọi khi jam queue cạn đến bài cuối cùng */
+    registerOnQueueExhausted: (cb: (() => void) | null) => void;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
@@ -50,6 +58,19 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const soundRef = useRef<Audio.Sound | null>(null);
     const isSeekingRef = useRef(false);
     const repeatModeRef = useRef<'off' | 'all' | 'one'>('off');
+    /** Refs để tránh stale closure trong handleSongFinish */
+    const currentIndexRef = useRef(0);
+    const queueRef = useRef<Song[]>([]);
+    /** Jam mode: nếu true, phát nhạc bên ngoài bị chặn */
+    const jamModeRef = useRef(false);
+    /** Callback được gọi khi jam queue hết bài */
+    const onQueueExhaustedRef = useRef<(() => void) | null>(null);
+
+    const enterJamMode = useCallback(() => { jamModeRef.current = true; }, []);
+    const exitJamMode = useCallback(() => { jamModeRef.current = false; }, []);
+    const registerOnQueueExhausted = useCallback((cb: (() => void) | null) => {
+        onQueueExhaustedRef.current = cb;
+    }, []);
 
     // ── 30-second listen threshold tracking ──────────────────────────────
     /** Accumulated playback milliseconds for the current song (excludes paused time) */
@@ -66,6 +87,14 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     useEffect(() => {
         repeatModeRef.current = repeatMode;
     }, [repeatMode]);
+
+    useEffect(() => {
+        currentIndexRef.current = currentIndex;
+    }, [currentIndex]);
+
+    useEffect(() => {
+        queueRef.current = queue;
+    }, [queue]);
 
     useEffect(() => {
         return () => {
@@ -163,13 +192,20 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [onPlaybackStatusUpdate]);
 
-    const playSong = useCallback(async (song: Song, newQueue?: Song[]) => {
+    const playSong = useCallback(async (song: Song, newQueue?: Song[], isJamPlay = false) => {
+        // Nếu đang trong Jam và đây không phải lần phát của Jam: chặn và thông báo
+        if (jamModeRef.current && !isJamPlay) {
+            Alert.alert(
+                'Đang trong Jam',
+                'Bạn đang trong phiên Jam.\nVui lòng kết thúc Jam trước khi phát nhạc khác.'
+            );
+            return;
+        }
         if (newQueue) {
             setQueue(newQueue);
             const index = newQueue.findIndex(s => s._id === song._id);
             setCurrentIndex(index !== -1 ? index : 0);
         } else {
-            // If no new queue, check if song is in current queue
             const index = queue.findIndex(s => s._id === song._id);
             if (index !== -1) {
                 setCurrentIndex(index);
@@ -304,6 +340,9 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const handleSongFinish = async () => {
         const currentRepeatMode = repeatModeRef.current;
+        // Dùng refs để tránh stale closure (onPlaybackStatusUpdate có empty deps)
+        const idx = currentIndexRef.current;
+        const q = queueRef.current;
 
         if (currentRepeatMode === 'one') {
             if (soundRef.current) {
@@ -311,22 +350,24 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 await soundRef.current.playAsync();
             }
         } else if (currentRepeatMode === 'all') {
-            if (currentIndex < queue.length - 1) {
-                setCurrentIndex(currentIndex + 1);
+            if (idx < q.length - 1) {
+                setCurrentIndex(idx + 1);
             } else {
                 setCurrentIndex(0);
             }
         } else {
-            if (currentIndex < queue.length - 1) {
-                setCurrentIndex(currentIndex + 1);
+            if (idx < q.length - 1) {
+                setCurrentIndex(idx + 1);
             } else {
                 setIsPlaying(false);
+                // Thông báo cho Jam rằng queue đã hết (bài cuối kết thúc)
+                onQueueExhaustedRef.current?.();
             }
         }
 
-        if (currentSong) {
+        if (currentSongRef.current) {
             await musicAPI.logAction({
-                song_id: currentSong._id,
+                song_id: currentSongRef.current._id,
                 action_type: "complete",
                 duration_listened: duration,
             });
@@ -343,7 +384,22 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const currentModeIndex = modes.indexOf(repeatMode);
         const nextMode = modes[(currentModeIndex + 1) % modes.length];
         setRepeatMode(nextMode);
+    };
 
+    /**
+     * Thêm bài hát vào cuối queue mà KHÔNG restart bài đang phát.
+     * Nếu queue đang rỗng sẽ tự động phát ngay.
+     */
+    const appendToQueue = (song: Song) => {
+        setQueue(prev => {
+            if (prev.some(s => s._id === song._id)) return prev; // đã có → bỏ qua
+            const next = [...prev, song];
+            // Nếu queue rỗng → phát ngay
+            if (prev.length === 0) {
+                loadSong(song);
+            }
+            return next;
+        });
     };
 
     const loadLastPlayed = async () => {
@@ -428,17 +484,21 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         toggleRepeat,
         setMiniPlayerVisible,
         setCurrentIndex,
+        appendToQueue,
         loadLastPlayed,
         startSleepTimer,
         cancelSleepTimer,
         stopMusic,
+        enterJamMode,
+        exitJamMode,
+        registerOnQueueExhausted,
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }), [
         isPlaying, currentSong, queue, currentIndex,
         loading, isShuffle, repeatMode, miniPlayerVisible, sleepTimer,
         playSong, togglePlayPause, handleNext, handlePrevious, handleSeek,
-        toggleShuffle, toggleRepeat, loadLastPlayed, startSleepTimer, cancelSleepTimer,
-        stopMusic,
+        toggleShuffle, toggleRepeat, appendToQueue, loadLastPlayed, startSleepTimer, cancelSleepTimer,
+        stopMusic, enterJamMode, exitJamMode, registerOnQueueExhausted,
     ]);
 
     return (
