@@ -16,6 +16,7 @@ import {
   getNotificationsAPI,
   markConversationReadAPI,
   respondFriendNotifAPI,
+  markAlbumReadAPI,
   resolveAvatarUrl,
   formatTimeAgo,
   AppNotification,
@@ -119,14 +120,15 @@ export default function NotificationScreen() {
     }
   };
 
-  /** Bấm vào thông báo album → mở album */
-  const handleAlbumPress = (notif: AppNotification) => {
-    setNotifications(prev =>
-      prev.map(n => n.id === notif.id ? { ...n, unread: false } : n)
-    );
-    if (notif.albumId) {
-      navigation.navigate('AlbumDetail', { albumId: notif.albumId });
-    }
+  /** Bấm vào thông báo album → đánh dấu đã xem trên server + xóa khỏi list (giống kết bạn) */
+  const handleAlbumPress = async (notif: AppNotification) => {
+    if (!notif.albumId) return;
+    // Xóa khỏi list local ngay lập tức
+    setNotifications(prev => prev.filter(n => n.id !== notif.id));
+    // Gọi server để không hiện lại lần sau
+    markAlbumReadAPI(notif.albumId).catch(() => {});
+    // Điều hướng đến album
+    navigation.navigate('AlbumDetail', { albumId: notif.albumId });
   };
 
   // ─── Styling helpers ──────────────────────────────────────────────────────
@@ -215,7 +217,11 @@ export default function NotificationScreen() {
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <TouchableOpacity
-                  onPress={() => onJoinJam?.(notif)}
+                  onPress={() => {
+                    onJoinJam?.(notif);
+                    // Navigate back so the Jam modal opened in MainTabs is visible
+                    navigation.goBack();
+                  }}
                   style={{ backgroundColor: '#EC4899', borderRadius: 20, paddingHorizontal: 18, paddingVertical: 7 }}
                 >
                   <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Tham gia</Text>

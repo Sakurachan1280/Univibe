@@ -39,7 +39,10 @@ const userSchema = new mongoose.Schema({
     is_banned: { type: Boolean, default: false }
   },
   
-  role: { type: String, enum: ['user', 'admin'], default: 'user' }
+  role: { type: String, enum: ['user', 'admin'], default: 'user' },
+
+  // Albums đã xem thông báo (để không hiện lại)
+  viewed_album_ids: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Playlist' }]
 }, { 
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } 
 });

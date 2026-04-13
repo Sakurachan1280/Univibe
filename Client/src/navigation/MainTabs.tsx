@@ -10,6 +10,7 @@ import ChatScreen from "../screens/ChatRoom/ChatScreen";
 import CreateModal from "../components/CreatePopUp/CreateModal";
 import ListenModal from "../components/Listenmodal/ModalList";
 import JamInfoModal from "../components/Listenmodal/JamInfo";
+import JamMiniPlayer from "../components/Music/JamMiniPlayer";
 import { useJamInvite, JamInviteNotif } from "../context/JamInviteContext";
 import { MainTabParamList } from "./types";
 import MiniPlayer from "../components/Music/MiniPlayer";
@@ -19,6 +20,8 @@ import CreatePlaylistModal from "../components/Playlist/CreatePlaylistModal";
 import { createRoomAPI } from "../API/roomAPI";
 import { Song } from "../API/musicAPI";
 import { getMeAPI } from "../API/userAPI";
+import { resolveAvatarUrl } from "../API/notificationAPI";
+import JamInviteModal from "../components/Listenmodal/InviteModel";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -28,7 +31,10 @@ export default function MainTabNavigator() {
   const [showListenModal, setShowListenModal] = useState(false);
   const [showJamInfo, setShowJamInfo] = useState(false);
   const [showCreatePlaylist, setShowCreatePlaylist] = useState(false);
-  // SafeArea để đặt JamBar đúng vị trí trên iPhone
+  /** Mời bạn bè từ nút + trên JamMiniPlayer (render ngoài Modal context) */
+  const [showMiniInvite, setShowMiniInvite] = useState(false);
+  const [showInviteFromMini, setShowInviteFromMini] = useState(false);
+  // SafeArea để đặt JamMiniPlayer đúng vị trí trên iPhone
   const insets = useSafeAreaInsets();
   // Tab bar height = 80 + safe area bottom
   const TAB_BAR_HEIGHT = 80 + insets.bottom;
@@ -218,9 +224,8 @@ export default function MainTabNavigator() {
 
     try {
       const name = `Jam`;
-      // Fetch cả 2 song song: tạo phòng (không truyền bài đang phát) + lấy profile của chính mình
       const [room, me] = await Promise.all([
-        createRoomAPI(name, undefined), // Bắt đầu Jam không có bài sẵn
+        createRoomAPI(name, undefined),
         getMeAPI(),
       ]);
       const newRoomId = room._id;
@@ -230,13 +235,13 @@ export default function MainTabNavigator() {
       setIsHost(true);
       setJamQueue([]);
       setJamCurrentSong(null);
-      // Seed avatar của chính mình ngay lập tức (không cần đợi socket round-trip)
-      const selfAvatar = me?.profile?.avatar_url ?? null;
+      // Resolve avatar URL (có thể là URL tương đối, cần prepend BASE_URL)
+      const rawAvatar = me?.profile?.avatar_url ?? null;
+      const selfAvatar = resolveAvatarUrl(rawAvatar);
       setParticipantAvatars([selfAvatar]);
 
-      enterJamMode(); // Khóa phát nhạc bên ngoài
+      enterJamMode();
 
-      // Emit join_music_room để nhận sync_current_state + vào socket room
       if (socket && currentUserId) {
         socket.emit('join_music_room', { roomId: newRoomId, userId: currentUserId });
       }
@@ -268,22 +273,23 @@ export default function MainTabNavigator() {
     setRoomId(invite.roomId);
     setJamName(invite.jamName);
     setJamQueue([]);
-    setJamCurrentSong(null); // Reset — chờ sync_current_state từ server
+    setJamCurrentSong(null);
     setIsHost(false);
-    // Seed avatar của bản thân ngay lập tức
     try {
       const me = await getMeAPI();
-      const selfAvatar = me?.profile?.avatar_url ?? null;
+      const rawAvatar = me?.profile?.avatar_url ?? null;
+      // Resolve URL tương đối → tuyệt đối
+      const selfAvatar = resolveAvatarUrl(rawAvatar);
       setParticipantAvatars([selfAvatar]);
     } catch {
       setParticipantAvatars([null]);
     }
-    enterJamMode(); // Khóa phát nhạc bên ngoài
+    enterJamMode();
     if (socket && currentUserId) {
       socket.emit('join_music_room', { roomId: invite.roomId, userId: currentUserId });
     }
     setShowListenModal(true);
-  }, [socket, currentUserId, getMeAPI]);  // eslint-disable-line
+  }, [socket, currentUserId, enterJamMode]);  // eslint-disable-line
 
   // Đăng ký callback vào context để NotificationScreen dùng
   useEffect(() => {
@@ -322,7 +328,7 @@ export default function MainTabNavigator() {
             backgroundColor: "#000",
             borderTopColor: "#222",
             height: 80 + insets.bottom,
-            paddingBottom: insets.bottom,
+            paddingBottom: insets.bottom + 6,
           },
           tabBarLabelStyle: {
             fontSize: 12,
@@ -376,23 +382,29 @@ export default function MainTabNavigator() {
         />
       </Tab.Navigator>
 
-      {/* Persistent MiniPlayer */}
+      {/* Persistent MiniPlayer — chỉ hiện khi không có Jam */}
       {!showCreate && !showListenModal && !showJamInfo && !roomId && <MiniPlayer />}
 
-      {/* Jam Active Bar — hiện khi Jam đang chạy nhưng modal đóng */}
+      {/* Jam Mini Player — hiện khi Jam đang chạy nhưng modal đóng */}
       {roomId && !showListenModal && !showJamInfo && !showCreate && (
-        <TouchableOpacity
-          style={[
-            styles.jamBar,
-            { bottom: TAB_BAR_HEIGHT + 8 },
-          ]}
-          onPress={() => setShowListenModal(true)}
-          activeOpacity={0.85}
-        >
-          <View style={styles.jamBarDot} />
-          <Text style={styles.jamBarText}>Ổ Jam đang hoạt động — nhấn để mở lại</Text>
-          <Text style={styles.jamBarChev}>›</Text>
-        </TouchableOpacity>
+        <JamMiniPlayer
+          jamCurrentSong={jamCurrentSong}
+          jamName={jamName}
+          participantAvatars={participantAvatars}
+          isPlaying={isPlaying}
+          onPlayPause={() => {
+            if (jamCurrentSong) {
+              const action = isPlaying ? 'pause' : 'play';
+              togglePlayPause();
+              if (socket && roomId) {
+                socket.emit('music_action', { roomId, action, currentTime: 0 });
+              }
+            }
+          }}
+          onOpen={() => setShowListenModal(true)}
+          onInvite={() => setShowMiniInvite(true)}
+          bottomOffset={TAB_BAR_HEIGHT + 8}
+        />
       )}
 
       <CreateModal
@@ -431,52 +443,28 @@ export default function MainTabNavigator() {
 
       <JamInfoModal
         isVisible={showJamInfo}
-        onClose={() => setShowJamInfo(false)}
+        onClose={() => {
+          setShowJamInfo(false);
+          setShowInviteFromMini(false);
+        }}
         onEndJam={handleEndJam}
         roomId={roomId}
         isHost={isHost}
+        autoOpenInvite={showInviteFromMini}
+        onInviteOpened={() => setShowInviteFromMini(false)}
       />
+
+      {/* JamInviteModal từ nút + trên mini bar (render ngoài mọi Modal context) */}
+      {isHost && (
+        <JamInviteModal
+          visible={showMiniInvite}
+          onClose={() => setShowMiniInvite(false)}
+          roomId={roomId}
+          jamName={jamName}
+        />
+      )}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  jamBar: {
-    position: 'absolute',
-    // bottom được set động theo TAB_BAR_HEIGHT + 8 (inline style)
-    bottom: 78,            // fallback, overridden inline
-    left: 16,
-    right: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1f0a14',
-    borderWidth: 1,
-    borderColor: '#EC4899',
-    borderRadius: 24,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    gap: 10,
-    shadowColor: '#EC4899',
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 8,
-  },
-  jamBarDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#EC4899',
-  },
-  jamBarText: {
-    flex: 1,
-    color: '#EC4899',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  jamBarChev: {
-    color: '#EC4899',
-    fontSize: 20,
-    fontWeight: '300',
-  },
-});
+const styles = StyleSheet.create({});

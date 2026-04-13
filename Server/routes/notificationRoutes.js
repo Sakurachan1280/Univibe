@@ -5,6 +5,7 @@ const {
   getNotifications,
   markConversationRead,
   respondFriendNotif,
+  markAlbumRead,
 } = require('../controllers/notificationController');
 
 router.use(protect);
@@ -17,5 +18,8 @@ router.put('/read-messages/:conversationId', markConversationRead);
 
 // Phản hồi lời mời kết bạn (accept/reject)
 router.put('/read-friend/:friendshipId', respondFriendNotif);
+
+// Đánh dấu đã xem thông báo album (xoá khỏi list)
+router.put('/read-album/:albumId', markAlbumRead);
 
 module.exports = router;

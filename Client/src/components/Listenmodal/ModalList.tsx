@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AddSongModal from './AddSongModel';
+import JamInviteModal from './InviteModel';
 import { useMusic } from '../../context/MusicContext';
 import { Song } from '../../API/musicAPI';
 import { usePlaybackProgress } from '../../context/PlaybackProgressContext';
@@ -60,6 +61,8 @@ export default function ListenModal({
 }: ListenModalProps) {
     const [showAddSong, setShowAddSong] = useState(false);
     const [showSleepPicker, setShowSleepPicker] = useState(false);
+    /** Mời bạn bè ngay bên trong modal (tránh stack 2 Modal trên iOS) */
+    const [showInvite, setShowInvite] = useState(false);
 
     const {
         currentSong,
@@ -200,13 +203,16 @@ export default function ListenModal({
 
                                 {/* Participants avatars */}
                                 <View className="flex-row items-center mt-3">
-                                    <TouchableOpacity
-                                        className="w-10 h-10 rounded-full bg-neutral-800 items-center justify-center border border-neutral-700 z-10"
-                                        style={{ marginRight: 8 }}
-                                        onPress={onPressAdd}
-                                    >
-                                        <Ionicons name="add" size={24} color="white" />
-                                    </TouchableOpacity>
+                                    {/* Nút + mời bạn bè — mở InviteModal ngay bên trong */}
+                                    {isHost && (
+                                        <TouchableOpacity
+                                            className="w-10 h-10 rounded-full bg-neutral-800 items-center justify-center border border-neutral-700 z-10"
+                                            style={{ marginRight: 8 }}
+                                            onPress={() => setShowInvite(true)}
+                                        >
+                                            <Ionicons name="add" size={24} color="white" />
+                                        </TouchableOpacity>
+                                    )}
 
                                     <View className="flex-row items-center">
                                         {participantAvatars.slice(0, 3).map((uri, idx) => (
@@ -501,6 +507,16 @@ export default function ListenModal({
                 jamQueue={jamQueue}
                 onSongAdded={onAddToJamQueue}
             />
+
+            {/* Invite Friends Modal — chỉ host mới thấy, mở ngay trong context Modal này */}
+            {isHost && (
+                <JamInviteModal
+                    visible={showInvite}
+                    onClose={() => setShowInvite(false)}
+                    roomId={roomId}
+                    jamName={jamName}
+                />
+            )}
         </Modal>
     );
 }

@@ -99,6 +99,9 @@ const getNotifications = async (req, res) => {
     }
 
     // ─── 3. Albums mới (system_mix) trong 7 ngày ─────────────────────────────
+    const currentUser = await User.findById(userId).select('viewed_album_ids').lean();
+    const viewedAlbumIds = (currentUser?.viewed_album_ids || []).map(id => id.toString());
+
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const newAlbums = await Playlist.find({
       type: 'system_mix',
@@ -109,6 +112,9 @@ const getNotifications = async (req, res) => {
       .limit(5);
 
     for (const album of newAlbums) {
+      // Bỏ qua album user đã xem
+      if (viewedAlbumIds.includes(album._id.toString())) continue;
+
       notifications.push({
         id: `album_${album._id}`,
         type: 'new_album',
@@ -187,4 +193,23 @@ const respondFriendNotif = async (req, res) => {
   }
 };
 
-module.exports = { getNotifications, markConversationRead, respondFriendNotif };
+/**
+ * PUT /api/v1/notifications/read-album/:albumId
+ * Đánh dấu user đã xem thông báo album → xoá khỏi danh sách thông báo
+ */
+const markAlbumRead = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { albumId } = req.params;
+
+    await User.findByIdAndUpdate(userId, {
+      $addToSet: { viewed_album_ids: albumId },
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+module.exports = { getNotifications, markConversationRead, respondFriendNotif, markAlbumRead };

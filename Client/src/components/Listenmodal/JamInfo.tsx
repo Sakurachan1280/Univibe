@@ -33,6 +33,10 @@ interface JamInfoModalProps {
   roomId?: string;
   /** true nếu user hiện tại là người tạo phòng */
   isHost?: boolean;
+  /** Nếu true, tự động mở InviteModal ngay khi modal hiện (dùng từ nút + miến bar) */
+  autoOpenInvite?: boolean;
+  /** Gọi sau khi đã mở InviteModal để reset flag */
+  onInviteOpened?: () => void;
 }
 
 export default function JamInfoModal({
@@ -41,6 +45,8 @@ export default function JamInfoModal({
   onEndJam,
   roomId,
   isHost = true,
+  autoOpenInvite = false,
+  onInviteOpened,
 }: JamInfoModalProps) {
   const { socket, currentUserId } = useSocket();
   const insets = useSafeAreaInsets();
@@ -62,6 +68,15 @@ export default function JamInfoModal({
     setHostInfo(null);
     setParticipants([]);
   }, [roomId]);
+
+  // Tự động mở InviteModal nếu được trigger từ nút + mini bar
+  useEffect(() => {
+    if (isVisible && autoOpenInvite && isHost) {
+      setShowInviteModal(true);
+      onInviteOpened?.();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVisible, autoOpenInvite]);
 
   // ── Fetch host + toàn bộ participants mỗi khi modal mở ──────────────────
   useEffect(() => {

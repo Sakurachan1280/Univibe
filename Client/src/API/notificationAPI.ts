@@ -71,3 +71,8 @@ export const respondFriendNotifAPI = async (
   const res = await axiosClient.put(`/notifications/read-friend/${friendshipId}`, { action });
   return res.data;
 };
+
+/** Đánh dấu đã xem thông báo album → server sẽ không trả lại nữa */
+export const markAlbumReadAPI = async (albumId: string): Promise<void> => {
+  await axiosClient.put(`/notifications/read-album/${albumId}`);
+};

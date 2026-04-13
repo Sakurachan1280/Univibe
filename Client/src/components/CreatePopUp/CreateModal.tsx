@@ -47,7 +47,7 @@ export default function CreateModal({ visible, onClose, onJamPress, onPlaylistPr
   return (
     <View
       className="absolute left-0 right-0 z-[2000]"
-      style={{ bottom: 90 }}
+      style={{ bottom: 115 }}
       pointerEvents={visible ? "auto" : "none"} // ngăn chặn chặn tab
     >
       {/* overlay click outside */}

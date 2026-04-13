@@ -35,6 +35,8 @@ const SocketContext = createContext<SocketContextType>({
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const socketRef = useRef<Socket | null>(null);
+  // socketState is the reactive version of socketRef — needed so consumers re-render when socket connects
+  const [socketState, setSocketState] = useState<Socket | null>(null);
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
@@ -63,6 +65,8 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
 
       socketRef.current = socket;
+      // Expose reactive socket so consumers re-render when it becomes available
+      setSocketState(socket);
 
       socket.on('connect', () => {
         console.log('[Socket] Connected:', socket.id);
@@ -103,6 +107,11 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
       });
 
+      // Khi nhận lời mời Jam → tăng badge thông báo
+      socket.on('jam_invite_received', () => {
+        setUnreadNotificationCount(prev => prev + 1);
+      });
+
     } catch (err) {
       console.error('[Socket] Connection error:', err);
     }
@@ -124,6 +133,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       socketRef.current.disconnect();
       socketRef.current = null;
     }
+    setSocketState(null);
     setCurrentUserId(null);
     setOnlineUserIds(new Set());
   };
@@ -143,7 +153,8 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   return (
     <SocketContext.Provider
       value={{
-        socket: socketRef.current,
+        // Use reactive socketState so consumers (MainTabs etc.) re-render when socket connects
+        socket: socketState,
         onlineUserIds,
         currentUserId,
         connectSocket,
