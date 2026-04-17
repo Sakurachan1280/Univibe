@@ -415,31 +415,38 @@ export default function HomeScreen() {
                 {aiRecs.map((song) => (
                   <TouchableOpacity
                     key={song._id}
-                    className="w-44 bg-neutral-900 rounded-lg p-3"
+                    activeOpacity={0.75}
                     onPress={() => {
                        playSong(song);
                        setQueue(aiRecs);
                     }}
+                    style={{ width: 160, borderRadius: 14, overflow: "hidden", backgroundColor: "#1c1c1e" }}
                   >
                     {song.cover_image ? (
                      <Image 
                         source={song.cover_image} 
-                        style={{ width: '100%', height: 144, borderRadius: 8 }}
-                        className="mb-2"
+                        style={{ width: 160, height: 160, borderRadius: 12 }}
                         contentFit="cover"
                         cachePolicy="memory-disk"
                      />
                     ) : (
-                      <View className="w-full h-36 bg-neutral-700 rounded-md mb-2 items-center justify-center">
-                         <Ionicons name="musical-note" size={40} color="gray" />
-                      </View>
+                      <LinearGradient
+                        colors={["#EC4899", "#9333EA"]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={{ width: 160, height: 160, borderRadius: 12, alignItems: "center", justifyContent: "center" }}
+                      >
+                         <Ionicons name="musical-note" size={52} color="rgba(255,255,255,0.9)" />
+                      </LinearGradient>
                     )}
-                    <Text className="text-white font-semibold" numberOfLines={1}>
-                      {song.title}
-                    </Text>
-                    <Text className="text-gray-400 text-xs" numberOfLines={1}>
-                      {song.artist_ids?.[0]?.name || "Artist"}
-                    </Text>
+                    <View style={{ padding: 10 }}>
+                      <Text className="text-white font-bold" numberOfLines={1} style={{ fontSize: 14, marginBottom: 3 }}>
+                        {song.title}
+                      </Text>
+                      <Text className="text-gray-400" numberOfLines={1} style={{ fontSize: 12 }}>
+                        {song.artist_ids?.[0]?.name || "Artist"}
+                      </Text>
+                    </View>
                   </TouchableOpacity>
                 ))}
               </View>
