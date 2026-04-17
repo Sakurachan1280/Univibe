@@ -10,6 +10,7 @@ const chatRoutes = require('./chatRoutes');
 const storyRoutes = require('./storyRoutes');
 const roomRoutes = require('./roomRoutes');
 const notificationRoutes = require('./notificationRoutes');
+const aiRoutes = require('./aiRoutes');
 
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
@@ -21,5 +22,6 @@ router.use('/chat', chatRoutes);
 router.use('/stories', storyRoutes);
 router.use('/rooms', roomRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/ai', aiRoutes);
 
 module.exports = router;

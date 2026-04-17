@@ -7,17 +7,24 @@ const protect = async (req, res, next) => {
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
       token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret123');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'oiuytrewjhgfdsiuytremnbvcxuytrebvcxfdspoiuytrewlkjhgfdsaiuytrew');
 
-      req.user = await User.findById(decoded.id).select('-password');
+      const user = await User.findById(decoded.id).select('-password');
+      
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'User deleted or not found. Please log in again.' });
+      }
+
+      req.user = user;
       next();
     } catch (error) {
-      res.status(401).json({ message: 'Not authorized, token failed' });
+      console.error('[AUTH ERROR]', error.message);
+      res.status(401).json({ success: false, message: 'Not authorized, token failed' });
     }
   }
 
   if (!token) {
-    res.status(401).json({ message: 'Not authorized, no token' });
+    res.status(401).json({ success: false, message: 'Not authorized, no token' });
   }
 };
 
@@ -27,10 +34,9 @@ const optionalProtect = async (req, res, next) => {
   if (authHeader && authHeader.startsWith('Bearer ')) {
     try {
       const token = authHeader.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret123');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'oiuytrewjhgfdsiuytremnbvcxuytrebvcxfdspoiuytrewlkjhgfdsaiuytrew');
       req.user = await User.findById(decoded.id).select('-password');
     } catch {
-      // Token lỗi → bỏ qua, coi như chưa đăng nhập
       req.user = null;
     }
   } else {
@@ -39,4 +45,4 @@ const optionalProtect = async (req, res, next) => {
   next();
 };
 
-module.exports = { protect, optionalProtect };
+module.exports = { protect, optionalProtect };

@@ -13,7 +13,7 @@ const socketHandler = require('./socket/socketHandler');
 const session = require('express-session');
 const passport = require('./config/passport');
 
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 connectDB();
 
@@ -49,6 +49,16 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 app.use('/api/v1', routes);
+
+app.use((err, req, res, next) => {
+  console.error('--- EXCEPTION DETECTED ---');
+  console.error('URL:', req.originalUrl);
+  console.error('Method:', req.method);
+  console.error('Body:', req.body);
+  console.error('Error:', err.message);
+  console.error(err.stack);
+  next(err);
+});
 
 app.use(errorMiddleware);
 

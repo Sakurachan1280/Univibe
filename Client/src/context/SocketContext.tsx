@@ -47,6 +47,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (!token) return; // Khách chưa đăng nhập
 
       const me = await getMeAPI();
+      console.log('[Socket] GetMe result:', me ? 'Success' : 'Empty');
       if (!me?._id || !mountedRef.current) return;
 
       setCurrentUserId(me._id);
@@ -113,7 +114,11 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
 
     } catch (err) {
-      console.error('[Socket] Connection error:', err);
+      if (err.response) {
+        console.error('[Socket] API Error (500/401):', err.response.status, err.response.data);
+      } else {
+        console.error('[Socket] Connection error:', err.message);
+      }
     }
   };
 

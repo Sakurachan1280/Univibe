@@ -22,13 +22,13 @@ import * as SecureStore from "expo-secure-store";
  * - iOS Simulator: http://localhost:5000
  */
 
-// ✅ ĐANG SỬ DỤNG: NGROK URL (Truy cập từ mọi nơi)
-// export const BASE_URL = "https://jena-unmistrustful-yael.ngrok-free.dev";
-//export const BASE_URL = "https://vesta-nonretroactive-cathryn.ngrok-free.dev";
+// 🟢 QUAY LẠI DÙNG LOCALTUNNEL:
+// 1. Chạy: npx localtunnel --port 5000
+// 2. Dán mã link chữ (ví dụ: https://abcd.loca.lt) vào đây:
+// export const BASE_URL = "https://red-sides-call.loca.lt"; 
 
-// 🔄 TÙY CHỌN KHÁC (Uncomment để sử dụng):
-export const BASE_URL = "http://192.168.15.27:5000"; // Local IP
-// export const BASE_URL = "http://10.0.2.2:5000"; // Android Emulator
+
+export const BASE_URL = "http://192.168.0.102:5000";
 
 /**
  * Hàm helper để lấy BASE_URL hiện tại
@@ -70,8 +70,9 @@ axiosClient.interceptors.request.use(async (config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  // Bỏ qua trang cảnh báo của ngrok
+  // Bỏ qua trang cảnh báo của ngrok và localtunnel
   config.headers['ngrok-skip-browser-warning'] = 'true';
+  config.headers['Bypass-Tunnel-Reminder'] = 'true';
 
   // Tăng timeout lên 5 phút cho các request upload file (ảnh, video, audio)
   const contentType = config.headers['Content-Type'];

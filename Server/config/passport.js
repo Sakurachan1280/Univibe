@@ -3,7 +3,8 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('../models/User');
 const dotenv = require('dotenv');
 
-dotenv.config();
+const path = require('path');
+dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
   .split(',')

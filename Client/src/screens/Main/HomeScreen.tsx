@@ -16,16 +16,21 @@ import { getAllArtists, Artist } from "../../API/artistAPI";
 import { getAdminAlbums, Playlist } from "../../API/playlistAPI";
 import { getNotificationsAPI } from "../../API/notificationAPI";
 import { Image } from "expo-image";
+import { getAIRecommendations, getAIPlaylists, AIMix } from "../../API/aiAPI";
+import { Song } from "../../API/musicAPI";
 
 
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showSleepTimer, setShowSleepTimer] = useState(false);
-  const { startSleepTimer, cancelSleepTimer, sleepTimer } = useMusic();
+  const { startSleepTimer, cancelSleepTimer, sleepTimer, playSong, setQueue } = useMusic();
   const { unreadNotificationCount, setUnreadNotificationCount } = useSocket();
   const [quickPlayItems, setQuickPlayItems] = useState<QuickPlayItem[]>(QUICK_PLAY);
   const [adminAlbums, setAdminAlbums] = useState<Playlist[]>([]);
+  const [aiRecs, setAiRecs] = useState<Song[]>([]);
+  const [aiMixes, setAiMixes] = useState<AIMix[]>([]);
+  const [loadingAI, setLoadingAI] = useState(true);
 
   // Seed badge thông báo 1 lần khi mở app, socket tự cập nhật realtime sau đó
   useEffect(() => {
@@ -85,6 +90,26 @@ export default function HomeScreen() {
       }
     };
     loadRandomAlbum();
+  }, []);
+
+  // Fetch AI Recommendations & Playlists
+  useEffect(() => {
+    const loadAIData = async () => {
+      setLoadingAI(true);
+      try {
+        const [recs, mixes] = await Promise.all([
+          getAIRecommendations(),
+          getAIPlaylists()
+        ]);
+        setAiRecs(recs);
+        setAiMixes(mixes);
+      } catch (err) {
+        console.error("[Home] AI Loading error:", err);
+      } finally {
+        setLoadingAI(false);
+      }
+    };
+    loadAIData();
   }, []);
 
   const panResponder = useRef<PanResponderInstance>(
@@ -379,48 +404,84 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Các section placeholder (AI features) */}
-        {[
-          {
-            title: "AI gợi ý nhạc cho bạn",
-            desc: "UniVibe AI chọn nhạc theo gu của bạn",
-          },
-          {
-            title: "AI tạo playlist cho bạn",
-            desc: "UniVibe AI chọn nhạc theo gu của bạn",
-          },
-        ].map((section, idx) => (
-          <View key={idx} className="mt-6">
+        {/* AI GỢI Ý NHẠC CHO BẠN */}
+        {aiRecs.length > 0 && (
+          <View className="mt-6">
             <Text className="text-white text-2xl font-bold px-4 mb-3">
-              {section.title}
+              AI gợi ý nhạc cho bạn
             </Text>
-
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View className="flex-row gap-4 px-4">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <View
-                    key={i}
+                {aiRecs.map((song) => (
+                  <TouchableOpacity
+                    key={song._id}
                     className="w-44 bg-neutral-900 rounded-lg p-3"
+                    onPress={() => {
+                       playSong(song);
+                       setQueue(aiRecs);
+                    }}
                   >
-                    <View className="w-full h-36 bg-neutral-700 rounded-md mb-2" />
-                    <Text
-                      className="text-white font-semibold"
-                      numberOfLines={1}
-                    >
-                      Daily Mix {i}
+                    {song.cover_image ? (
+                     <Image source={song.cover_image} className="w-full h-36 rounded-md mb-2" />
+                    ) : (
+                      <View className="w-full h-36 bg-neutral-700 rounded-md mb-2 items-center justify-center">
+                         <Ionicons name="musical-note" size={40} color="gray" />
+                      </View>
+                    )}
+                    <Text className="text-white font-semibold" numberOfLines={1}>
+                      {song.title}
                     </Text>
-                    <Text
-                      className="text-gray-400 text-xs"
-                      numberOfLines={2}
-                    >
-                      {section.desc}
+                    <Text className="text-gray-400 text-xs" numberOfLines={1}>
+                      {song.artist_ids?.[0]?.name || "Artist"}
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </View>
             </ScrollView>
           </View>
-        ))}
+        )}
+
+        {/* AI TẠO PLAYLIST CHO BẠN – Daily Mixes */}
+        {aiMixes.length > 0 && (
+          <View className="mt-6">
+            <Text className="text-white text-2xl font-bold px-4 mb-3">
+              AI tạo playlist cho bạn
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View className="flex-row gap-4 px-4">
+                {aiMixes.map((mix, idx) => (
+                  <TouchableOpacity
+                    key={idx}
+                    className="w-44 bg-neutral-900 rounded-lg p-3"
+                    onPress={() => {
+                        // Vì AI Mix trả về danh sách bài hát, chúng ta có thể chuyển tới màn hình PlaylistDetail 
+                        // Hoặc phát luôn Mix đó. Ở đây tôi sẽ phát bài đầu tiên và set queue.
+                        if (mix.tracks.length > 0) {
+                            playSong(mix.tracks[0]);
+                            setQueue(mix.tracks);
+                        }
+                    }}
+                  >
+                    <View className="w-full h-36 rounded-md mb-2 overflow-hidden">
+                       <LinearGradient 
+                          colors={["#4c1d95", "#831843"]} 
+                          className="w-full h-full items-center justify-center"
+                       >
+                          <Ionicons name="sparkles" size={40} color="white" />
+                       </LinearGradient>
+                    </View>
+                    <Text className="text-white font-semibold" numberOfLines={1}>
+                      {mix.name}
+                    </Text>
+                    <Text className="text-gray-400 text-xs" numberOfLines={2}>
+                      {mix.desc}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        )}
 
       </ScrollView>
 

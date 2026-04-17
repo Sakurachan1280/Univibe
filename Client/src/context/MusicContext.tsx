@@ -27,6 +27,7 @@ interface MusicContextType {
     toggleRepeat: () => void;
     setMiniPlayerVisible: (visible: boolean) => void;
     setCurrentIndex: (index: number) => void;
+    setQueue: (songs: Song[]) => void;
     appendToQueue: (song: Song) => void;
     loadLastPlayed: () => Promise<void>;
     stopMusic: () => Promise<void>;
@@ -178,9 +179,15 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 onPlaybackStatusUpdate
             );
 
+            // [FIX] Kiểm tra lại một lần nữa trước khi gán: nếu trong lúc đang tải bài này
+            // mà có bài khác đã được gán vào soundRef, thì phải hủy bài này ngay.
+            if (soundRef.current) {
+                await soundRef.current.unloadAsync();
+            }
+
             soundRef.current = sound;
             setLoading(false);
-            setMiniPlayerVisible(true); // Always show mini player when a song is loaded
+            setMiniPlayerVisible(true);
 
             // NOTE: We no longer log "play" immediately here.
             // The history entry is only created after 30 seconds of actual playback
@@ -492,6 +499,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         enterJamMode,
         exitJamMode,
         registerOnQueueExhausted,
+        setQueue,
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }), [
         isPlaying, currentSong, queue, currentIndex,

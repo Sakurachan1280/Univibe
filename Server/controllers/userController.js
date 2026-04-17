@@ -43,8 +43,17 @@ const updateProfile = async (req, res) => {
 };
 
 const getMe = async (req, res) => {
-  console.log('>> [GET ME] Request received for user:', req.user.id);
-  res.json(req.user);
+  try {
+    // Kiểm tra an toàn để tránh crash Cột 66 nếu req.user là null
+    if (!req.user) {
+        return res.status(401).json({ success: false, message: 'User not found in DB' });
+    }
+    console.log('>> [GET ME] Request received for user ID:', req.user._id);
+    res.json(req.user);
+  } catch (err) {
+    console.error('[GET ME ERROR]', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
 };
 
 /** Lấy thông tin public của user theo :id (dùng trong JamInfo để hiển thị host) */

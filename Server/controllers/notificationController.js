@@ -13,6 +13,7 @@ const User = require('../models/User');
  */
 const getNotifications = async (req, res) => {
   try {
+    if (!req.user) return res.status(401).json({ message: 'User not found' });
     const userId = req.user.id;
     const notifications = [];
 
