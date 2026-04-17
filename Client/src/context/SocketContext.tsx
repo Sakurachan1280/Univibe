@@ -113,7 +113,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setUnreadNotificationCount(prev => prev + 1);
       });
 
-    } catch (err) {
+    } catch (err: any) {
       if (err.response) {
         console.error('[Socket] API Error (500/401):', err.response.status, err.response.data);
       } else {
@@ -126,8 +126,8 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       const data = await getNotificationsAPI();
       setUnreadNotificationCount(data.unreadCount ?? 0);
-    } catch (err) {
-      console.error('[Socket] Update notification count error:', err);
+    } catch (err: any) {
+      console.error('[Socket] Update notification count error:', err.message || err);
     }
   };
 

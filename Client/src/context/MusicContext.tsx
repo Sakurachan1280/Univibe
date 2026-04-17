@@ -180,9 +180,11 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             );
 
             // [FIX] Kiểm tra lại một lần nữa trước khi gán: nếu trong lúc đang tải bài này
-            // mà có bài khác đã được gán vào soundRef, thì phải hủy bài này ngay.
+            // mà có bài khác đã được gán vào soundRef (race condition), thì phải hủy bài này (biến sound) ngay.
             if (soundRef.current) {
-                await soundRef.current.unloadAsync();
+                await sound.unloadAsync();
+                setLoading(false);
+                return;
             }
 
             soundRef.current = sound;
