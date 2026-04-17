@@ -33,6 +33,7 @@ import ViewProfileScreen from '../screens/Profile/ViewProfile';
 import AppDeviceScreen from '../screens/Setting/AppDeviceScreen';
 import AboutScreen from '../screens/Setting/AboutScreen';
 import HelpScreen from '../screens/Setting/HelpScreen';
+import AIPlaylistDetailScreen from '../screens/ItemsMainMusic/AIPlaylistDetailScreen';
 
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -77,6 +78,7 @@ export default function AppNavigator() {
         <Stack.Screen name="AppDeviceScreen" component={AppDeviceScreen} />
         <Stack.Screen name="AboutScreen" component={AboutScreen} />
         <Stack.Screen name="HelpScreen" component={HelpScreen} />
+        <Stack.Screen name="AIPlaylistDetail" component={AIPlaylistDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

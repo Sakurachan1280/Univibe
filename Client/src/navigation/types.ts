@@ -45,6 +45,7 @@ export type RootStackParamList = {
   AlbumDetail: { albumId: string };
   RecentPlayed: undefined;
   GenrePlaylist: { genre: string; title: string };
+  AIPlaylistDetail: { title: string; songs: any[]; description?: string };
 };
 export type MainTabParamList = {
   Home: undefined;
