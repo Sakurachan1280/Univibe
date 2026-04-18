@@ -43,6 +43,7 @@ interface ContentProps {
     handlePrevious: () => void;
     onPress: () => void;
     onDismiss: () => void;
+    stopMusic: () => void;
     bottomOffset?: number;
 }
 
@@ -54,6 +55,7 @@ const MiniPlayerContent = memo(({
     handlePrevious,
     onPress,
     onDismiss,
+    stopMusic,
     bottomOffset,
 }: ContentProps) => {
     const artistNames = currentSong.artist_ids?.map(a => a.name).join(', ') || 'Unknown Artist';
@@ -88,9 +90,11 @@ const MiniPlayerContent = memo(({
             const absX = Math.abs(gs.dx);
             if (absX > DISMISS_THRESHOLD_X) {
                 // Vuốt trái/phải
+                stopMusic();
                 dismiss(gs.dx > 0 ? width : -width, 0);
             } else if (gs.dy > DISMISS_THRESHOLD_Y) {
                 // Vuốt xuống
+                stopMusic();
                 dismiss(0, 150);
             } else {
                 // Snap về vị trí ban đầu
@@ -165,6 +169,7 @@ const MiniPlayerContent = memo(({
                                 <TouchableOpacity
                                     onPress={(e) => {
                                         e.stopPropagation();
+                                        stopMusic(); // Dừng nhạc ngay khi user chủ động đóng
                                         dismiss(0, 150);
                                     }}
                                     style={styles.closeButton}
@@ -223,6 +228,7 @@ const MiniPlayer = () => {
                 setDismissed(true);
                 setMiniPlayerVisible(false);
             }}
+            stopMusic={stopMusic}
             bottomOffset={miniPlayerBottom}
         />
     );

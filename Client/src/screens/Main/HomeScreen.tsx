@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { View, Text, ScrollView, TouchableOpacity, Modal, TouchableWithoutFeedback } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Modal, TouchableWithoutFeedback, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -31,6 +31,7 @@ export default function HomeScreen() {
   const [aiRecs, setAiRecs] = useState<Song[]>([]);
   const [aiMixes, setAiMixes] = useState<AIMix[]>([]);
   const [loadingAI, setLoadingAI] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Seed badge thông báo 1 lần khi mở app, socket tự cập nhật realtime sau đó
   useEffect(() => {
@@ -93,23 +94,32 @@ export default function HomeScreen() {
   }, []);
 
   // Fetch AI Recommendations & Playlists
+  const loadAIData = async (isRefresh = false) => {
+    if (!isRefresh) setLoadingAI(true);
+    try {
+      // Gọi cả 2 API song song để tối ưu thời gian
+      const [recs, mixes] = await Promise.all([
+        getAIRecommendations(),
+        getAIPlaylists()
+      ]);
+
+      if (recs && recs.length > 0) setAiRecs(recs);
+      if (mixes && mixes.length > 0) setAiMixes(mixes);
+    } catch (err) {
+      console.error("[Home] AI Loading error:", err);
+    } finally {
+      setLoadingAI(false);
+      setRefreshing(false);
+    }
+  };
+
   useEffect(() => {
-    const loadAIData = async () => {
-      setLoadingAI(true);
-      try {
-        const [recs, mixes] = await Promise.all([
-          getAIRecommendations(),
-          getAIPlaylists()
-        ]);
-        setAiRecs(recs);
-        setAiMixes(mixes);
-      } catch (err) {
-        console.error("[Home] AI Loading error:", err);
-      } finally {
-        setLoadingAI(false);
-      }
-    };
     loadAIData();
+  }, []);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadAIData(true);
   }, []);
 
   const panResponder = useRef<PanResponderInstance>(
@@ -153,7 +163,7 @@ export default function HomeScreen() {
       <View className="flex-row items-center justify-between px-4 py-3">
         <View className="flex-row items-center">
           <UserAvatar size={40} onPress={() => setShowProfileMenu(true)} />
-          <Text className="text-white text-2xl font-bold ml-4">Welcome back</Text>
+          <Text className="text-white text-2xl font-bold ml-4">Chào mừng bạn trở lại</Text>
         </View>
 
         <View className="flex-row gap-4 items-center">
@@ -203,6 +213,14 @@ export default function HomeScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#EC4899"
+            colors={["#EC4899"]}
+          />
+        }
       >
         {/* QUICK PLAY */}
         <View className="px-4 mt-2">
@@ -405,21 +423,38 @@ export default function HomeScreen() {
         )}
 
         {/* AI GỢI Ý NHẠC CHO BẠN */}
-        {aiRecs.length > 0 && (
+        {(loadingAI || aiRecs.length > 0) && (
           <View className="mt-6">
-            <Text className="text-white text-2xl font-bold px-4 mb-3">
+            <Text className="text-white text-2xl font-bold px-4 mb-1">
               AI gợi ý nhạc cho bạn
             </Text>
+            <Text className="text-gray-400 text-sm px-4 mb-4">Những bài hát này có thể bạn sẽ thích</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View className="flex-row gap-4 px-4">
-                {aiRecs.map((song) => (
+                {loadingAI ? (
+                  // Skeleton Loaders
+                  [1, 2, 3].map((_, i) => (
+                    <View key={i} style={{ width: 160, borderRadius: 14, overflow: "hidden", backgroundColor: "#1c1c1e" }}>
+                        <View style={{ width: 160, height: 160, backgroundColor: "#2a2a2a" }} />
+                        <View style={{ padding: 10 }}>
+                            <View style={{ width: 100, height: 14, backgroundColor: "#333", borderRadius: 4, marginBottom: 6 }} />
+                            <View style={{ width: 60, height: 12, backgroundColor: "#222", borderRadius: 4 }} />
+                        </View>
+                    </View>
+                  ))
+                ) : (
+                  aiRecs.map((song) => (
+
                   <TouchableOpacity
                     key={song._id}
                     activeOpacity={0.75}
-                    onPress={() => {
-                       playSong(song);
-                       setQueue(aiRecs);
-                    }}
+                    onPress={() => 
+                      navigation.navigate("AIPlaylistDetail", { 
+                        title: song.title, 
+                        songs: [song], 
+                        description: `Đĩa đơn • Gợi ý bởi AI UniVibe` 
+                      })
+                    }
                     style={{ width: 160, borderRadius: 14, overflow: "hidden", backgroundColor: "#1c1c1e" }}
                   >
                     {song.cover_image ? (
@@ -448,14 +483,15 @@ export default function HomeScreen() {
                       </Text>
                     </View>
                   </TouchableOpacity>
-                ))}
+                ))
+              )}
               </View>
             </ScrollView>
           </View>
         )}
 
         {/* AI TẠO PLAYLIST CHO BẠN – Daily Mixes */}
-        {aiMixes.length > 0 && (
+        {(loadingAI || aiMixes.length > 0) && (
           <View className="mt-10">
             <View className="px-4 mb-4">
               <Text className="text-white text-2xl font-bold">AI tạo playlist cho bạn</Text>
@@ -464,7 +500,22 @@ export default function HomeScreen() {
             
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View className="flex-row gap-5 px-4">
-                {aiMixes.map((mix, idx) => (
+                {loadingAI ? (
+                  // Skeleton Loaders
+                  [1, 2, 3].map((_, i) => (
+                    <View key={i} className="w-44">
+                        <View className="w-44 h-44 rounded-2xl bg-neutral-900 border border-white/5 items-center justify-center">
+                            <Ionicons name="sparkles" size={40} color="#333" />
+                        </View>
+                        <View className="mt-3">
+                            <View style={{ width: 120, height: 16, backgroundColor: "#222", borderRadius: 4, marginBottom: 6 }} />
+                            <View style={{ width: 150, height: 12, backgroundColor: "#111", borderRadius: 4 }} />
+                        </View>
+                    </View>
+                  ))
+                ) : (
+                  aiMixes.map((mix, idx) => (
+
                   <TouchableOpacity
                     key={idx}
                     activeOpacity={0.8}
@@ -513,7 +564,8 @@ export default function HomeScreen() {
                       </Text>
                     </View>
                   </TouchableOpacity>
-                ))}
+                ))
+              )}
               </View>
             </ScrollView>
           </View>

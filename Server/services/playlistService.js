@@ -88,21 +88,26 @@ const addSongToPlaylist = async (userId, playlistId, songId) => {
 
   if (!isOwner && !isAdminAndSystem) throw new Error('You do not have permission to modify this playlist');
 
-  const song = await Song.findById(songId);
-  if (!song) throw new Error('Song not found');
+  const songIds = Array.isArray(songId) ? songId : [songId];
+  
+  for (const id of songIds) {
+    const song = await Song.findById(id);
+    if (!song) continue; // Skip missing songs
 
-  // Nếu album gắn với một ca sĩ cụ thể, kiểm tra bài hát có thuộc ca sĩ đó không
-  if (playlist.artist_id) {
-    const belongsToArtist = song.artist_ids.some(
-      artistId => artistId.toString() === playlist.artist_id.toString()
-    );
-    if (!belongsToArtist) throw new Error('Bài hát này không thuộc ca sĩ của album');
+    // Nếu album gắn với một ca sĩ cụ thể, kiểm tra bài hát có thuộc ca sĩ đó không
+    if (playlist.artist_id) {
+      const belongsToArtist = song.artist_ids.some(
+        artistId => artistId.toString() === playlist.artist_id.toString()
+      );
+      if (!belongsToArtist) continue;
+    }
+
+    const isExists = playlist.tracks.some(track => track.song_id.toString() === id);
+    if (!isExists) {
+      playlist.tracks.push({ song_id: id });
+    }
   }
 
-  const isExists = playlist.tracks.some(track => track.song_id.toString() === songId);
-  if (isExists) throw new Error('Song already exists in this playlist');
-
-  playlist.tracks.push({ song_id: songId });
   await playlist.save();
   return playlist;
 };

@@ -16,7 +16,7 @@ import { getMyPlaylists, addSongToPlaylist, Playlist } from "../../API/playlistA
 
 interface AddToPlaylistModalProps {
     visible: boolean;
-    songId: string | null;
+    songId: string | string[] | null;
     songTitle?: string;
     onClose: () => void;
 }
@@ -54,7 +54,8 @@ export default function AddToPlaylistModal({
         try {
             setAdding(playlist._id);
             await addSongToPlaylist(playlist._id, songId);
-            Alert.alert("✅ Thành công", `Đã thêm vào "${playlist.name}"`);
+            const count = Array.isArray(songId) ? songId.length : 1;
+            Alert.alert("✅ Thành công", `Đã thêm ${count} bài hát vào "${playlist.name}"`);
             onClose();
         } catch (err: any) {
             const msg = err?.response?.data?.message ?? "Không thể thêm bài hát vào playlist.";
@@ -111,7 +112,11 @@ export default function AddToPlaylistModal({
                         <Text style={{ color: "white", fontSize: 17, fontWeight: "800" }}>
                             Thêm vào Playlist
                         </Text>
-                        {songTitle ? (
+                        {Array.isArray(songId) ? (
+                            <Text style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginTop: 2 }}>
+                                Đang chọn {songId.length} bài hát
+                            </Text>
+                        ) : songTitle ? (
                             <Text
                                 style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginTop: 2 }}
                                 numberOfLines={1}

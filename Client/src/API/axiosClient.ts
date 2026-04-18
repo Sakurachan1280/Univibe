@@ -121,8 +121,8 @@ axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error?.response?.status === 401) {
-      // Trả về null thay vì throw, các màn hình tự handle khi data = null
-      return Promise.resolve({ data: null });
+      // Trả về object mặc định thay vì null để tránh gây crash (TypeError) cho các màn hình
+      return Promise.resolve({ data: { success: false, data: [] } });
     }
     return Promise.reject(error);
   }

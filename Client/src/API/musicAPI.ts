@@ -15,6 +15,7 @@ export interface Song {
     artist_ids: Artist[];
     lyrics?: any;
     created_at?: string;
+    isListened?: boolean;
 }
 
 export interface LogActionPayload {
@@ -46,6 +47,12 @@ const musicAPI = {
     // Ghi nhận hành động nghe nhạc
     logAction: async (payload: LogActionPayload): Promise<void> => {
         await axiosClient.post("/music/log", payload);
+    },
+
+    // Lấy bài hát của nghệ sĩ
+    getSongsByArtist: async (artistId: string): Promise<Song[]> => {
+        const response = await axiosClient.get(`/music/artists/${artistId}/songs`);
+        return response.data;
     },
 };
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
     View,
     Text,
@@ -6,17 +6,20 @@ import {
     StatusBar,
     Animated,
     Dimensions,
+    ScrollView,
 } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Alert } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRoute, RouteProp } from "@react-navigation/native";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
-import { Song } from "../../API/musicAPI";
+import musicAPI, { Song as MusicSong } from "../../API/musicAPI";
 import { useMusic } from "../../context/MusicContext";
 import AddToPlaylistModal from "../../components/Playlist/AddToPlaylistModal";
 import { RootStackParamList } from "../../navigation/types";
+import { Song } from "../../API/musicAPI";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -35,8 +38,56 @@ export default function AIPlaylistDetailScreen() {
     const route = useRoute<AIPlaylistDetailRouteProp>();
     const { title, songs, description } = route.params;
 
-    const { playSong, currentSong, isPlaying } = useMusic();
-    const [addToPlaylistSong, setAddToPlaylistSong] = useState<Song | null>(null);
+    const { playSong, currentSong, isPlaying, stopMusic } = useMusic();
+
+
+    const [addToPlaylistSong, setAddToPlaylistSong] = useState<Song | string[] | null>(null);
+    const [selectionMode, setSelectionMode] = useState(false);
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [artistSongs, setArtistSongs] = useState<Song[]>([]);
+
+    useEffect(() => {
+        if (songs.length === 1 && songs[0].artist_ids?.[0]?._id) {
+            fetchArtistSongs(songs[0].artist_ids[0]._id);
+        }
+    }, [songs]);
+
+    const fetchArtistSongs = async (artistId: string) => {
+        try {
+            const data = await musicAPI.getSongsByArtist(artistId);
+            // Filter out current song
+            setArtistSongs(data.filter(s => s._id !== songs[0]._id).slice(0, 10));
+        } catch (error) {
+            console.error("Fetch artist songs error:", error);
+        }
+    };
+
+    const toggleSelection = (id: string) => {
+        setSelectedIds(prev =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
+    const handlePlusPress = () => {
+        if (songs.length === 1) {
+            setAddToPlaylistSong(songs[0]);
+        } else {
+            if (selectionMode) {
+                if (selectedIds.length > 0) {
+                    setAddToPlaylistSong(selectedIds);
+                } else {
+                    Alert.alert("Thông báo", "Vui lòng chọn ít nhất 1 bài hát.");
+                }
+            } else {
+                setSelectionMode(true);
+            }
+        }
+    };
+
+    const handleCancelSelection = () => {
+        setSelectionMode(false);
+        setSelectedIds([]);
+    };
 
     const scrollY = useRef(new Animated.Value(0)).current;
     const headerBgOpacity = scrollY.interpolate({
@@ -71,9 +122,13 @@ export default function AIPlaylistDetailScreen() {
         <View style={{ flex: 1, backgroundColor: "#050505" }}>
             <AddToPlaylistModal
                 visible={addToPlaylistSong !== null}
-                songId={addToPlaylistSong?._id ?? null}
-                songTitle={addToPlaylistSong?.title}
-                onClose={() => setAddToPlaylistSong(null)}
+                songId={Array.isArray(addToPlaylistSong) ? addToPlaylistSong : addToPlaylistSong?._id ?? null}
+                songTitle={Array.isArray(addToPlaylistSong) ? undefined : addToPlaylistSong?.title}
+                onClose={() => {
+                    setAddToPlaylistSong(null);
+                    setSelectionMode(false);
+                    setSelectedIds([]);
+                }}
             />
             <StatusBar barStyle="light-content" />
 
@@ -137,7 +192,9 @@ export default function AIPlaylistDetailScreen() {
                                     start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
                                     style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
                                 >
-                                    {songs.filter(s => s.cover_image).length >= 4 ? (
+                                    {songs.length === 1 && songs[0].cover_image ? (
+                                        <Image source={songs[0].cover_image} style={{ width: "100%", height: "100%" }} contentFit="cover" cachePolicy="memory-disk" />
+                                    ) : songs.filter(s => s.cover_image).length >= 4 ? (
                                         <View style={{ flex: 1, width: "100%", flexDirection: "row", flexWrap: "wrap" }}>
                                             {songs.filter(s => s.cover_image).slice(0, 4).map((s, i) => (
                                                 <Image key={i} source={s.cover_image} style={{ width: "50%", height: "50%" }} contentFit="cover" cachePolicy="memory-disk" />
@@ -151,21 +208,21 @@ export default function AIPlaylistDetailScreen() {
                         </View>
 
                         {/* Title & meta */}
-                        <View style={{ paddingHorizontal: 24, alignItems: "center" }}>
-                            <Text style={{ color: "white", fontSize: 28, fontWeight: "800", textAlign: "center", marginBottom: 6, letterSpacing: 0.2 }}>
+                        <View style={{ paddingHorizontal: 24 }}>
+                            <Text style={{ color: "white", fontSize: 28, fontWeight: "800", marginBottom: 6, letterSpacing: 0.2 }}>
                                 {title}
                             </Text>
-                            {description && (
-                                <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 14, textAlign: "center", marginBottom: 8 }} numberOfLines={2}>
-                                    {description}
-                                </Text>
-                            )}
-                            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                                <Ionicons name="sparkles" size={13} color="#A855F7" />
-                                <Text style={{ color: "rgba(255,255,255,0.55)", fontSize: 13 }}>
-                                    AI Generated • {songs.length} bài hát{totalMin > 0 ? ` • ${totalMin} phút` : ""}
-                                </Text>
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                               {songs.length === 1 && songs[0].artist_ids?.[0]?.cover_image && (
+                                   <Image source={songs[0].artist_ids[0].cover_image} style={{ width: 20, height: 20, borderRadius: 10 }} />
+                               )}
+                               <Text style={{ color: "white", fontSize: 15, fontWeight: "700" }}>
+                                   {songs.length === 1 ? (songs[0].artist_ids?.[0]?.name || "Nghệ sĩ") : "Lựa chọn bởi AI"}
+                               </Text>
                             </View>
+                            <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 13, marginBottom: 12 }}>
+                                {description}
+                            </Text>
                         </View>
                     </SafeAreaView>
                 </LinearGradient>
@@ -173,6 +230,32 @@ export default function AIPlaylistDetailScreen() {
                 {/* Action row */}
                 <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingVertical: 16, gap: 12 }}>
                     <View style={{ flex: 1 }} />
+                    {/* Add to Playlist Button (+) */}
+                    {selectionMode && (
+                        <TouchableOpacity
+                            onPress={handleCancelSelection}
+                            style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.06)" }}
+                        >
+                            <Text style={{ color: "white", fontSize: 13, fontWeight: "600" }}>Hủy bỏ</Text>
+                        </TouchableOpacity>
+                    )}
+                    <TouchableOpacity
+                        onPress={handlePlusPress}
+                        style={{ 
+                            width: selectionMode ? undefined : 50, 
+                            height: 50, 
+                            paddingHorizontal: selectionMode ? 20 : 0,
+                            borderRadius: 25, 
+                            backgroundColor: selectionMode ? "#EC4899" : "rgba(255,255,255,0.08)", 
+                            flexDirection: "row",
+                            alignItems: "center", 
+                            justifyContent: "center",
+                            gap: 8
+                        }}
+                    >
+                        <Ionicons name={selectionMode ? "checkmark-circle" : "add-circle-outline"} size={26} color="white" />
+                        {selectionMode && <Text style={{ color: "white", fontWeight: "700" }}>Thêm ({selectedIds.length})</Text>}
+                    </TouchableOpacity>
                     {/* Shuffle */}
                     <TouchableOpacity
                         onPress={handleShuffle}
@@ -240,9 +323,17 @@ export default function AIPlaylistDetailScreen() {
 
                                 {/* Info */}
                                 <View style={{ flex: 1 }}>
-                                    <Text style={{ color: isActive ? config.colors[0] : "white", fontWeight: "600", fontSize: 15, marginBottom: 3 }} numberOfLines={1}>
-                                        {song.title}
-                                    </Text>
+                                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                                        <Text style={{ color: isActive ? config.colors[0] : "white", fontWeight: "600", fontSize: 15, flexShrink: 1 }} numberOfLines={1}>
+                                            {song.title}
+                                        </Text>
+                                        {song.isListened && (
+                                            <View style={{ backgroundColor: "rgba(34, 197, 94, 0.15)", paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4, flexDirection: "row", alignItems: "center", gap: 2 }}>
+                                                <Ionicons name="checkmark" size={10} color="#22c55e" />
+                                                <Text style={{ color: "#22c55e", fontSize: 9, fontWeight: "700", textTransform: "uppercase" }}>Đã nghe</Text>
+                                            </View>
+                                        )}
+                                    </View>
                                     <Text style={{ color: "rgba(255,255,255,0.45)", fontSize: 13 }} numberOfLines={1}>
                                         {artistName}
                                     </Text>
@@ -255,18 +346,74 @@ export default function AIPlaylistDetailScreen() {
                                     </Text>
                                 ) : null}
 
-                                {/* 3-dot */}
-                                <TouchableOpacity
-                                    onPress={() => setAddToPlaylistSong(song)}
-                                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                                    style={{ padding: 4 }}
-                                >
-                                    <Ionicons name="ellipsis-vertical" size={18} color="rgba(255,255,255,0.5)" />
-                                </TouchableOpacity>
+                                {/* 3-dot or Checkbox */}
+                                {selectionMode ? (
+                                    <TouchableOpacity
+                                        onPress={() => toggleSelection(song._id)}
+                                        style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}
+                                    >
+                                        <Ionicons 
+                                            name={selectedIds.includes(song._id) ? "checkbox" : "square-outline"} 
+                                            size={24} 
+                                            color={selectedIds.includes(song._id) ? "#EC4899" : "rgba(255,255,255,0.3)"} 
+                                        />
+                                    </TouchableOpacity>
+                                ) : (
+                                    <TouchableOpacity
+                                        onPress={() => setAddToPlaylistSong(song)}
+                                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                        style={{ padding: 4 }}
+                                    >
+                                        <Ionicons name="ellipsis-vertical" size={18} color="rgba(255,255,255,0.5)" />
+                                    </TouchableOpacity>
+                                )}
                             </TouchableOpacity>
                         );
                     })}
                 </View>
+
+                {/* More from Artist */}
+                {songs.length === 1 && artistSongs.length > 0 && (
+                    <View style={{ marginTop: 32, paddingBottom: 40 }}>
+                        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, marginBottom: 16 }}>
+                            <Text style={{ color: "white", fontSize: 20, fontWeight: "800" }}>
+                                Thêm nữa từ {songs[0].artist_ids?.[0]?.name || "Nghệ sĩ"}
+                            </Text>
+                            <TouchableOpacity>
+                                <Text style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: "600" }}>Hiện tất cả</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 16 }}>
+                            {artistSongs.map((s) => (
+                                <TouchableOpacity 
+                                    key={s._id} 
+                                    style={{ width: 156 }}
+                                    onPress={() => {
+                                        setSelectionMode(false);
+                                        setSelectedIds([]);
+                                        navigation.navigate("AIPlaylistDetail", { 
+                                            title: s.title, 
+                                            songs: [s], 
+                                            description: `Đĩa đơn • Gợi ý bởi AI UniVibe` 
+                                        });
+                                    }}
+                                >
+                                    <View style={{ width: 156, height: 156, borderRadius: 12, overflow: "hidden", marginBottom: 10 }}>
+                                        {s.cover_image ? (
+                                            <Image source={s.cover_image} style={{ width: "100%", height: "100%" }} contentFit="cover" />
+                                        ) : (
+                                            <LinearGradient colors={[config.colors[0], config.colors[1]]} style={{ flex: 1 }} />
+                                        )}
+                                    </View>
+                                    <View>
+                                        <Text style={{ color: "white", fontSize: 14, fontWeight: "700" }} numberOfLines={1}>{s.title}</Text>
+                                        <Text style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, marginTop: 2 }}>{s.artist_ids?.[0]?.name || "Artist"}</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+                )}
             </Animated.ScrollView>
         </View>
     );

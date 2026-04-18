@@ -324,7 +324,8 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         if (currentIndex < queue.length - 1) {
             setCurrentIndex(currentIndex + 1);
-        } else if (repeatMode === 'all') {
+        } else {
+            // Khi hết playlist thì phát lại bài đầu tiên
             setCurrentIndex(0);
         }
     };
@@ -368,8 +369,8 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             if (idx < q.length - 1) {
                 setCurrentIndex(idx + 1);
             } else {
-                setIsPlaying(false);
-                // Thông báo cho Jam rằng queue đã hết (bài cuối kết thúc)
+                // Tự động quay lại bài đầu tiên khi hết danh sách
+                setCurrentIndex(0);
                 onQueueExhaustedRef.current?.();
             }
         }

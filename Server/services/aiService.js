@@ -9,7 +9,7 @@ class AIService {
   constructor() {
     this.token = process.env.GITHUB_TOKEN;
     this.endpoint = "https://models.inference.ai.azure.com/chat/completions";
-    this.model = "gpt-4o";
+    this.model = "gpt-4o-mini";
   }
 
   /**
@@ -25,15 +25,16 @@ class AIService {
         Songs they loved (completed): ${context.completedSongs.join(', ')}.
         Songs they disliked (skipped): ${context.skippedSongs.join(', ')}.
         
-        Available songs in DB (JSON):
-        ${JSON.stringify(allSongs.map(s => ({ id: s._id, title: s.title, genres: s.genres, artist: s.artist })))}
+        Available songs (JSON):
+        ${JSON.stringify(allSongs.map(s => ({ id: s._id, t: s.title, g: s.genres.slice(0, 2) })))}
 
         Task: Select 6 song IDs that:
         1. Match the current time of day vibe (${context.timeContext}).
         2. Are similar to the "loved" songs but avoid "skipped" songs.
         3. Align with their favorite genres.
 
-        Response: Return a JSON array of 6 IDs ONLY.
+        Response: Return a JSON array of 6 IDs ONLY. 
+        Variety hint: ${context.seed}. Please be creative and ensure different results from previous sessions if possible.
       `;
 
       const response = await axios.post(this.endpoint, {
@@ -48,11 +49,30 @@ class AIService {
       });
 
       const content = response.data.choices[0].message.content;
-      // Trích xuất mảng JSON từ text (đề phòng AI trả về Markdown)
       const match = content.match(/\[.*\]/s);
-      return match ? JSON.parse(match[0]) : [];
+      let ids = match ? JSON.parse(match[0]) : [];
+
+      // VALIDATE: Đảm bảo các ID trả về tồn tại trong list DB gửi đi
+      const validDbIds = new Set(allSongs.map(s => s._id.toString()));
+      let finalIds = ids.filter(id => validDbIds.has(id.toString()));
+
+      // Nếu thiếu bài, lấy bù từ list hot songs
+      if (finalIds.length < 6 && allSongs.length > 0) {
+        const extra = allSongs
+          .map(s => s._id.toString())
+          .filter(id => !finalIds.includes(id))
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 6 - finalIds.length);
+        finalIds = [...finalIds, ...extra];
+      }
+
+      return finalIds;
     } catch (error) {
       console.error("[AI Service] Error:", error.response?.data || error.message);
+      // Fallback: Lấy 6 bài ngẫu nhiên từ list DB để UI không bao giờ trống
+      if (allSongs && allSongs.length > 0) {
+        return allSongs.sort(() => 0.5 - Math.random()).slice(0, 6).map(s => s._id.toString());
+      }
       return [];
     }
   }
@@ -60,7 +80,7 @@ class AIService {
   /**
    * Tạo 6 Daily Mix Playlists dựa trên AI
    */
-  async generateDailyMixes(userPrefs, allSongs) {
+  async generateDailyMixes(userPrefs, allSongs, seed) {
     try {
         if (!this.token) throw new Error("GITHUB_TOKEN is missing");
 
@@ -68,18 +88,20 @@ class AIService {
         let timeOfDataStr = hour < 12 ? "Buổi Sáng" : hour < 18 ? "Buổi Chiều" : "Buổi Tối";
 
         const prompt = `
-          Group the songs into 6 highly creative "Daily Mix" playlists.
-          The context is: ${timeOfDataStr}.
-          User's interests: ${userPrefs.join(', ')}.
-          Songs (JSON):
-          ${JSON.stringify(allSongs.map(s => ({ id: s._id, title: s.title, genres: s.genres })))}
-
+          Group the songs into 6 creative "Daily Mix" (Danh sách phát hàng ngày) playlists.
+          Context: ${timeOfDataStr}.
+          Interests: ${userPrefs.join(', ')}.
+          Songs (JSON list):
+          ${JSON.stringify(allSongs.map(s => ({ id: s._id, title: s.title, genres: s.genres.slice(0, 2) })))}
+ 
           Task: Return 6 playlists with:
-          - 'name': Highly creative Vietnamese title (e.g. "Giai điệu bình minh", "Năng lượng tích cực", "Sâu lắng đêm khuya").
-          - 'desc': Soulful description.
-          - 'songIds': 3-5 matching IDs.
+          - 'name': Creative title in Vietnamese.
+          - 'desc': Description in Vietnamese explaining why these songs were chosen. MUST include the EXACT phrase "Những bài hát này có thể bạn sẽ thích" at the end.
+          - 'songIds': 6 matching IDs from the "id" field above (MUST BE ObjectIds, NOT titles).
 
-          Response format: Clean JSON array of 6 objects.
+          Variety hint: ${seed}. Be creative and vary the mix names and song selections.
+
+          Response format: JSON array of 6 objects.
         `;
 
         const response = await axios.post(this.endpoint, {
@@ -94,9 +116,40 @@ class AIService {
 
         const content = response.data.choices[0].message.content;
         const match = content.match(/\[.*\]/s);
-        return match ? JSON.parse(match[0]) : [];
+        const mixes = match ? JSON.parse(match[0]) : [];
+
+        // VALIDATE & FILL: Đảm bảo playlist không bao giờ trống
+        const validDbIds = new Set(allSongs.map(s => s._id.toString()));
+        
+        return mixes.map(mix => {
+            // Lọc ID vớ vẩn (AI ảo giác)
+            let filteredIds = (mix.songIds || []).filter(id => validDbIds.has(id.toString()));
+            
+            // Nếu trống hoặc thiếu, lấy bù ngẫu nhiên
+            if (filteredIds.length < 4 && allSongs.length > 0) {
+                const extra = allSongs
+                    .map(s => s._id.toString())
+                    .filter(id => !filteredIds.includes(id))
+                    .sort(() => 0.5 - Math.random())
+                    .slice(0, 6 - filteredIds.length);
+                filteredIds = [...filteredIds, ...extra];
+            }
+            
+            return {
+                ...mix,
+                songIds: filteredIds.slice(0, 10) // Giới hạn số bài mỗi playlist
+            };
+        });
     } catch (error) {
         console.error("[AI Service Mix] Error:", error.message);
+        // Fallback: Tạo playlist giả từ các bài hát có sẵn
+        if (allSongs && allSongs.length > 0) {
+            return [{
+                name: "Gợi ý cho bạn",
+                desc: "Tuyển tập những bài hát hay nhất. Những bài hát này có thể bạn sẽ thích",
+                songIds: allSongs.sort(() => 0.5 - Math.random()).slice(0, 6).map(s => s._id.toString())
+            }];
+        }
         return [];
     }
   }
