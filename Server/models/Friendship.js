@@ -9,7 +9,7 @@ const friendshipSchema = new mongoose.Schema({
     default: 'pending' 
   }
 }, { 
-  timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } 
+  timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
 
 friendshipSchema.index({ requester_id: 1, recipient_id: 1 }, { unique: true });

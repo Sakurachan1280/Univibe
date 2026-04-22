@@ -17,14 +17,14 @@ let lastSongsFetchTime = 0;
 const SONGS_CACHE_TTL = 5 * 60 * 1000; // 5 phút
 
 const getCandidateSongs = async () => {
-    if (cachedSongsCandidate && (Date.now() - lastSongsFetchTime < SONGS_CACHE_TTL)) {
-        return cachedSongsCandidate;
-    }
-    // Lấy TẤT CẢ bài hát trong hệ thống để AI có cái nhìn tổng quan nhất
-    const songs = await Song.find().sort({ 'stats.play_count': -1 });
-    cachedSongsCandidate = songs;
-    lastSongsFetchTime = Date.now();
-    return songs;
+  if (cachedSongsCandidate && (Date.now() - lastSongsFetchTime < SONGS_CACHE_TTL)) {
+    return cachedSongsCandidate;
+  }
+  // Lấy TẤT CẢ bài hát trong hệ thống để AI có cái nhìn tổng quan nhất
+  const songs = await Song.find().sort({ 'stats.play_count': -1 });
+  cachedSongsCandidate = songs;
+  lastSongsFetchTime = Date.now();
+  return songs;
 };
 
 /**
@@ -62,7 +62,7 @@ const getAIRecommendations = async (req, res) => {
       else if (hour >= 16 && hour < 21) timeContext = "Late Afternoon/Evening (Chill & Relax)";
       else timeContext = "Late Night (Deep & Soothing)";
 
-      // 3. Lấy 50 bài hát hot
+      // 3. Lấy bài hát hot
       const allSongs = await getCandidateSongs();
 
       // 4. Gọi AI
@@ -118,9 +118,9 @@ const getAIPlaylists = async (req, res) => {
       const allSongs = await getCandidateSongs();
 
       aiMixes = await aiService.generateDailyMixes(
-          user.profile?.genres_interest || [],
-          allSongs,
-          Math.random() // Thêm seed cho playlist
+        user.profile?.genres_interest || [],
+        allSongs,
+        Math.random() // Thêm seed cho playlist
       );
 
       // Lưu cache cấu trúc playlist
@@ -133,17 +133,17 @@ const getAIPlaylists = async (req, res) => {
 
     const allIdsInMixes = aiMixes.reduce((acc, mix) => [...acc, ...mix.songIds], []).filter(isValidId);
     const songDataMap = await Song.find({ _id: { $in: allIdsInMixes } })
-        .populate('artist_ids', 'name');
+      .populate('artist_ids', 'name');
 
     const finalMixes = aiMixes.map(mix => ({
-        ...mix,
-        tracks: mix.songIds.map(id => {
-            const s = songDataMap.find(item => item._id.toString() === id);
-            if (!s) return null;
-            const songObj = s.toObject();
-            songObj.isListened = listenedIdSet.has(id.toString());
-            return songObj;
-        }).filter(Boolean)
+      ...mix,
+      tracks: mix.songIds.map(id => {
+        const s = songDataMap.find(item => item._id.toString() === id);
+        if (!s) return null;
+        const songObj = s.toObject();
+        songObj.isListened = listenedIdSet.has(id.toString());
+        return songObj;
+      }).filter(Boolean)
     }));
 
     res.json({ success: true, data: finalMixes });

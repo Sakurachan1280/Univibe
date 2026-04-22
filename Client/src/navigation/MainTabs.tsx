@@ -297,27 +297,26 @@ export default function MainTabNavigator() {
   }, [handleAcceptInvite, setOnJoinJam]);
 
   // ── Kết thúc Jam ─────────────────────────────────────────────────────────
-    const handleEndJam = () => {
-        if (socket && roomId && currentUserId) {
-            if (isHost) {
-                // Host: emit end_jam_room → server sẽ thông báo cho tất cả
-                socket.emit('end_jam_room', { roomId, userId: currentUserId });
-                // Cleanup local (host cũng sẽ nhận jam_room_ended, nhưng clean ngay cho mượt)
-            } else {
-                socket.emit('leave_music_room', { roomId, userId: currentUserId });
-            }
-        }
-        stopMusic(); // Dừng nhạc ngay khi thoát phòng
-        exitJamMode();
-        registerOnQueueExhausted(null);
-        setRoomId(undefined);
-        setParticipantAvatars([]);
-        setJamQueue([]);
-        setJamCurrentSong(null);
-        setIsHost(true);
-        setShowJamInfo(false);
-        setShowListenModal(false);
-    };
+  const handleEndJam = () => {
+    if (socket && roomId && currentUserId) {
+      if (isHost) {
+        // Host: emit end_jam_room → server sẽ thông báo cho tất cả
+        socket.emit('end_jam_room', { roomId, userId: currentUserId });
+        // Cleanup local (host cũng sẽ nhận jam_room_ended, nhưng clean ngay cho mượt)
+      } else {
+        socket.emit('leave_music_room', { roomId, userId: currentUserId });
+      }
+    }
+    exitJamMode();
+    registerOnQueueExhausted(null);
+    setRoomId(undefined);
+    setParticipantAvatars([]);
+    setJamQueue([]);
+    setJamCurrentSong(null);
+    setIsHost(true);
+    setShowJamInfo(false);
+    setShowListenModal(false);
+  };
 
   return (
     <View style={{ flex: 1 }}>
