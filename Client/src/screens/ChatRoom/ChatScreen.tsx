@@ -10,8 +10,10 @@ import {
   TextInput,
   ActivityIndicator,
   Animated,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as SecureStore from "expo-secure-store";
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -59,7 +61,7 @@ export default function ChatScreen() {
   useEffect(() => {
     getMeAPI().then(me => {
       if (me?._id) setCurrentUserId(me._id);
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   // Load friends và conversations 1 lần khi mở màn hình
@@ -127,7 +129,20 @@ export default function ChatScreen() {
     }, 400);
   };
 
-  const activateSearch = () => {
+  const activateSearch = async () => {
+    const token = await SecureStore.getItemAsync("accessToken");
+    if (!token) {
+      Alert.alert(
+        "Thông báo",
+        "Vui lòng đăng nhập để dùng chức năng này.",
+        [
+          { text: "Tôi biết rồi", style: "cancel" },
+          { text: "Quay về trang home", onPress: () => navigation.navigate("Home" as any) }
+        ]
+      );
+      return;
+    }
+
     setIsSearchActive(true);
     Animated.timing(searchBarAnim, {
       toValue: 1,
@@ -220,9 +235,8 @@ export default function ChatScreen() {
             />
           </View>
           <View
-            className={`absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full border-2 border-black ${
-              isOnline ? 'bg-green-500' : 'bg-red-500'
-            }`}
+            className={`absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full border-2 border-black ${isOnline ? 'bg-green-500' : 'bg-red-500'
+              }`}
           />
         </View>
         <Text
@@ -260,9 +274,8 @@ export default function ChatScreen() {
             />
             {other && (
               <View
-                className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-black ${
-                  onlineUserIds.has(other._id) ? 'bg-green-500' : 'bg-red-500'
-                }`}
+                className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-black ${onlineUserIds.has(other._id) ? 'bg-green-500' : 'bg-red-500'
+                  }`}
               />
             )}
           </View>

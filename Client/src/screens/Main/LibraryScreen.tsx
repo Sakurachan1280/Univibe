@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Modal, TouchableWithoutFeedback, Animated } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as SecureStore from "expo-secure-store";
 import { Ionicons } from "@expo/vector-icons";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { PanResponderInstance } from "react-native";
@@ -203,6 +204,22 @@ export default function LibraryScreen() {
         }
     };
 
+    const checkGuestAndExecute = async (callback: () => void) => {
+        const token = await SecureStore.getItemAsync("accessToken");
+        if (!token) {
+            Alert.alert(
+                "Thông báo",
+                "Vui lòng đăng nhập để dùng chức năng này.",
+                [
+                    { text: "Tôi biết r", style: "cancel" },
+                    { text: "Quay về trang home", onPress: () => navigation.navigate("Home" as any) }
+                ]
+            );
+        } else {
+            callback();
+        }
+    };
+
     const openMenu = (playlist: Playlist) => {
         setMenuPlaylist(playlist);
         setMenuVisible(true);
@@ -306,7 +323,7 @@ export default function LibraryScreen() {
                 {/* CREATE NEW PLAYLIST BUTTON */}
                 {showPlaylists && (
                     <View className="px-4 mt-6">
-                        <TouchableOpacity activeOpacity={0.8} className="rounded-2xl overflow-hidden" onPress={() => setShowCreateModal(true)}>
+                        <TouchableOpacity activeOpacity={0.8} className="rounded-2xl overflow-hidden" onPress={() => checkGuestAndExecute(() => setShowCreateModal(true))}>
                             <LinearGradient
                                 colors={["#EC4899", "#06B6D4"] as const}
                                 start={{ x: 0, y: 0 }}
@@ -430,7 +447,7 @@ export default function LibraryScreen() {
                             <Text className="text-gray-400 text-center mb-6">
                                 Tạo playlist đầu tiên để bắt đầu{"\n"}sưu tập nhạc của bạn
                             </Text>
-                            <TouchableOpacity activeOpacity={0.8} className="rounded-full overflow-hidden" onPress={() => setShowCreateModal(true)}>
+                            <TouchableOpacity activeOpacity={0.8} className="rounded-full overflow-hidden" onPress={() => checkGuestAndExecute(() => setShowCreateModal(true))}>
                                 <LinearGradient
                                     colors={["#EC4899", "#06B6D4"] as const}
                                     start={{ x: 0, y: 0 }}

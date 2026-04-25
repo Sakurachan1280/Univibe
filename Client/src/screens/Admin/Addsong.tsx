@@ -193,157 +193,157 @@ export default function CreateSongScreen() {
 
     return (
         <Animated.View style={{ flex: 1, backgroundColor: theme.animBg }}>
-        <SafeAreaView style={{ flex: 1 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: theme.bgCardBorder }}>
-                <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                    <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
-                </TouchableOpacity>
-                <Text style={{ color: theme.textPrimary, fontSize: 18, fontWeight: 'bold', marginLeft: 16 }}>Add New Song</Text>
-            </View>
+            <SafeAreaView style={{ flex: 1 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: theme.bgCardBorder }}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
+                        <Ionicons name="arrow-back" size={24} color={theme.textPrimary} />
+                    </TouchableOpacity>
+                    <Text style={{ color: theme.textPrimary, fontSize: 18, fontWeight: 'bold', marginLeft: 16 }}>Add New Song</Text>
+                </View>
 
-            <ScrollView className="flex-1 px-5 pt-6">
-                {/* Cover Image Picker */}
-                <View className="items-center mb-8">
-                    <TouchableOpacity onPress={pickCoverImage} className="relative">
-                        <View className={`w-32 h-32 rounded-xl items-center justify-center overflow-hidden border-2 border-dashed ${coverImage ? 'border-primary' : ''}`} style={!coverImage ? { borderColor: theme.textSecondary } : {}}>
-                            {coverImage ? (
-                                <Image source={{ uri: coverImage }} className="w-full h-full" resizeMode="cover" />
-                            ) : (
-                                <View style={{ alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: theme.bgInput }}>
-                                    <Ionicons name="image" size={40} color={theme.textSecondary} />
-                                    <Text style={{ color: theme.textSecondary, fontSize: 12, marginTop: 8 }}>Cover Image</Text>
+                <ScrollView className="flex-1 px-5 pt-6">
+                    {/* Cover Image Picker */}
+                    <View className="items-center mb-8">
+                        <TouchableOpacity onPress={pickCoverImage} className="relative">
+                            <View className={`w-32 h-32 rounded-xl items-center justify-center overflow-hidden border-2 border-dashed ${coverImage ? 'border-primary' : ''}`} style={!coverImage ? { borderColor: theme.textSecondary } : {}}>
+                                {coverImage ? (
+                                    <Image source={{ uri: coverImage }} className="w-full h-full" resizeMode="cover" />
+                                ) : (
+                                    <View style={{ alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: theme.bgInput }}>
+                                        <Ionicons name="image" size={40} color={theme.textSecondary} />
+                                        <Text style={{ color: theme.textSecondary, fontSize: 12, marginTop: 8 }}>Cover Image</Text>
+                                    </View>
+                                )}
+                            </View>
+                            {!coverImage && (
+                                <View className="absolute bottom-0 right-0 bg-white rounded-full p-2">
+                                    <Ionicons name="add" size={16} color="black" />
                                 </View>
                             )}
-                        </View>
-                        {!coverImage && (
-                            <View className="absolute bottom-0 right-0 bg-white rounded-full p-2">
-                                <Ionicons name="add" size={16} color="black" />
-                            </View>
-                        )}
-                    </TouchableOpacity>
-                </View>
-
-                {/* Title Input */}
-                <View className="mb-6">
-                    <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8, fontWeight: '500' }}>Song Title *</Text>
-                    <TextInput
-                        value={title}
-                        onChangeText={setTitle}
-                        placeholder="ví dụ: Chúng Ta Của Hiện Tại"
-                        placeholderTextColor={theme.textSecondary}
-                        style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput, fontSize: 16 }}
-                    />
-                </View>
-
-                {/* Duration Input */}
-                <View className="mb-6">
-                    <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8, fontWeight: '500' }}>Duration (seconds) *</Text>
-                    <TextInput
-                        value={duration}
-                        onChangeText={setDuration}
-                        placeholderTextColor={theme.textSecondary}
-                        keyboardType="numeric"
-                        style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput, fontSize: 16 }}
-                    />
-                </View>
-
-                {/* Genres Input */}
-                <View className="mb-6">
-                    <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8, fontWeight: '500' }}>Genres (comma separated)</Text>
-                    <TextInput
-                        value={genres}
-                        onChangeText={setGenres}
-                        placeholder="ví dụ: Pop, Ballad, V-Pop"
-                        placeholderTextColor={theme.textSecondary}
-                        style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput, fontSize: 16 }}
-                    />
-                </View>
-
-                {/* Audio File Picker */}
-                <View className="mb-6">
-                    <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8, fontWeight: '500' }}>Audio File *</Text>
-                    <TouchableOpacity
-                        onPress={pickAudioFile}
-                        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput }}
-                    >
-                        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                            <Ionicons name="musical-notes" size={24} color={audioFile ? "#EC4899" : theme.textSecondary} />
-                            <Text style={{ marginLeft: 12, fontSize: 16, color: audioFile ? theme.textPrimary : theme.textSecondary }} numberOfLines={1}>
-                                {audioFile ? audioFile.name : 'Select audio file'}
-                            </Text>
-                        </View>
-                        <Ionicons name="cloud-upload-outline" size={24} color={theme.textSecondary} />
-                    </TouchableOpacity>
-                </View>
-
-                {/* Artists Selection */}
-                <View className="mb-8">
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                        <Text style={{ color: theme.textSecondary, fontSize: 14, fontWeight: '500' }}>Select Artists *</Text>
-                        {artists.length > 7 && (
-                            <Text style={{ color: theme.textSecondary, fontSize: 12 }}>({artists.length} ca sĩ - scroll để xem thêm)</Text>
-                        )}
+                        </TouchableOpacity>
                     </View>
-                    {isLoadingArtists ? (
-                        <ActivityIndicator color="#EC4899" />
-                    ) : (
-                        <View style={{ backgroundColor: theme.bgInput, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, padding: 8 }}>
-                            {artists.length === 0 ? (
-                                <Text style={{ color: theme.textSecondary, textAlign: 'center', padding: 16 }}>No artists available. Please create an artist first.</Text>
-                            ) : (
-                                <ScrollView
-                                    style={{ maxHeight: 280 }}
-                                    showsVerticalScrollIndicator={true}
-                                    nestedScrollEnabled={true}
-                                >
-                                    {artists.map((artist) => (
-                                        <TouchableOpacity
-                                            key={artist._id}
-                                            onPress={() => toggleArtist(artist._id)}
-                                            className={`flex-row items-center p-3 rounded-lg mb-1 ${selectedArtists.includes(artist._id) ? 'bg-pink-600/30' : 'bg-transparent'
-                                                }`}
-                                        >
-                                            {artist.avatar ? (
-                                                <Image
-                                                    source={{
-                                                        uri: artist.avatar.startsWith('http')
-                                                            ? artist.avatar
-                                                            : `${BASE_URL}${artist.avatar}`
-                                                    }}
-                                                    className="w-10 h-10 rounded-full"
-                                                />
-                                            ) : (
-                                                <View className="w-10 h-10 rounded-full bg-gray-700 items-center justify-center">
-                                                    <Ionicons name="person" size={20} color="gray" />
-                                                </View>
-                                            )}
-                                            <Text style={{ color: theme.textPrimary, marginLeft: 12, flex: 1 }}>{artist.name}</Text>
-                                            {selectedArtists.includes(artist._id) && (
-                                                <Ionicons name="checkmark-circle" size={24} color="#EC4899" />
-                                            )}
-                                        </TouchableOpacity>
-                                    ))}
-                                </ScrollView>
+
+                    {/* Title Input */}
+                    <View className="mb-6">
+                        <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8, fontWeight: '500' }}>Song Title *</Text>
+                        <TextInput
+                            value={title}
+                            onChangeText={setTitle}
+                            placeholder="ví dụ: Chúng Ta Của Hiện Tại"
+                            placeholderTextColor={theme.textSecondary}
+                            style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput, fontSize: 16 }}
+                        />
+                    </View>
+
+                    {/* Duration Input */}
+                    <View className="mb-6">
+                        <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8, fontWeight: '500' }}>Duration (seconds) *</Text>
+                        <TextInput
+                            value={duration}
+                            onChangeText={setDuration}
+                            placeholderTextColor={theme.textSecondary}
+                            keyboardType="numeric"
+                            style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput, fontSize: 16 }}
+                        />
+                    </View>
+
+                    {/* Genres Input */}
+                    <View className="mb-6">
+                        <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8, fontWeight: '500' }}>Genres (comma separated)</Text>
+                        <TextInput
+                            value={genres}
+                            onChangeText={setGenres}
+                            placeholder="ví dụ: Pop, Ballad, V-Pop"
+                            placeholderTextColor={theme.textSecondary}
+                            style={{ color: theme.textPrimary, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput, fontSize: 16 }}
+                        />
+                    </View>
+
+                    {/* Audio File Picker */}
+                    <View className="mb-6">
+                        <Text style={{ color: theme.textSecondary, fontSize: 14, marginBottom: 8, fontWeight: '500' }}>Audio File *</Text>
+                        <TouchableOpacity
+                            onPress={pickAudioFile}
+                            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, backgroundColor: theme.bgInput }}
+                        >
+                            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                                <Ionicons name="musical-notes" size={24} color={audioFile ? "#EC4899" : theme.textSecondary} />
+                                <Text style={{ marginLeft: 12, fontSize: 16, color: audioFile ? theme.textPrimary : theme.textSecondary }} numberOfLines={1}>
+                                    {audioFile ? audioFile.name : 'Select audio file'}
+                                </Text>
+                            </View>
+                            <Ionicons name="cloud-upload-outline" size={24} color={theme.textSecondary} />
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* Artists Selection */}
+                    <View className="mb-8">
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                            <Text style={{ color: theme.textSecondary, fontSize: 14, fontWeight: '500' }}>Select Artists *</Text>
+                            {artists.length > 7 && (
+                                <Text style={{ color: theme.textSecondary, fontSize: 12 }}>({artists.length} ca sĩ - scroll để xem thêm)</Text>
                             )}
                         </View>
-                    )}
-                </View>
+                        {isLoadingArtists ? (
+                            <ActivityIndicator color="#EC4899" />
+                        ) : (
+                            <View style={{ backgroundColor: theme.bgInput, borderRadius: 12, borderWidth: 1, borderColor: theme.bgCardBorder, padding: 8 }}>
+                                {artists.length === 0 ? (
+                                    <Text style={{ color: theme.textSecondary, textAlign: 'center', padding: 16 }}>No artists available. Please create an artist first.</Text>
+                                ) : (
+                                    <ScrollView
+                                        style={{ maxHeight: 280 }}
+                                        showsVerticalScrollIndicator={true}
+                                        nestedScrollEnabled={true}
+                                    >
+                                        {artists.map((artist) => (
+                                            <TouchableOpacity
+                                                key={artist._id}
+                                                onPress={() => toggleArtist(artist._id)}
+                                                className={`flex-row items-center p-3 rounded-lg mb-1 ${selectedArtists.includes(artist._id) ? 'bg-pink-600/30' : 'bg-transparent'
+                                                    }`}
+                                            >
+                                                {artist.avatar ? (
+                                                    <Image
+                                                        source={{
+                                                            uri: artist.avatar.startsWith('http')
+                                                                ? artist.avatar
+                                                                : `${BASE_URL}${artist.avatar}`
+                                                        }}
+                                                        className="w-10 h-10 rounded-full"
+                                                    />
+                                                ) : (
+                                                    <View className="w-10 h-10 rounded-full bg-gray-700 items-center justify-center">
+                                                        <Ionicons name="person" size={20} color="gray" />
+                                                    </View>
+                                                )}
+                                                <Text style={{ color: theme.textPrimary, marginLeft: 12, flex: 1 }}>{artist.name}</Text>
+                                                {selectedArtists.includes(artist._id) && (
+                                                    <Ionicons name="checkmark-circle" size={24} color="#EC4899" />
+                                                )}
+                                            </TouchableOpacity>
+                                        ))}
+                                    </ScrollView>
+                                )}
+                            </View>
+                        )}
+                    </View>
 
-                {/* Submit Button */}
-                <TouchableOpacity
-                    onPress={handleCreateSong}
-                    disabled={isLoading}
-                    className={`py-4 rounded-xl items-center justify-center mb-10 ${isLoading ? 'bg-gray-700' : 'bg-pink-600'}`}
-                >
-                    {isLoading ? (
-                        <ActivityIndicator color="white" />
-                    ) : (
-                        <Text className="text-white font-bold text-lg">Create Song</Text>
-                    )}
-                </TouchableOpacity>
+                    {/* Submit Button */}
+                    <TouchableOpacity
+                        onPress={handleCreateSong}
+                        disabled={isLoading}
+                        className={`py-4 rounded-xl items-center justify-center mb-10 ${isLoading ? 'bg-gray-700' : 'bg-pink-600'}`}
+                    >
+                        {isLoading ? (
+                            <ActivityIndicator color="white" />
+                        ) : (
+                            <Text className="text-white font-bold text-lg">Create Song</Text>
+                        )}
+                    </TouchableOpacity>
 
-            </ScrollView>
-        </SafeAreaView>
+                </ScrollView>
+            </SafeAreaView>
         </Animated.View>
     );
 }

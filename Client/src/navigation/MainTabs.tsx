@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
-import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
+import { View, TouchableOpacity, Text, StyleSheet, Alert } from "react-native";
+import * as SecureStore from "expo-secure-store";
+import { useNavigation } from "@react-navigation/native";
 import HomeScreen from "../screens/Main/HomeScreen";
 import HomeStack from "./HomeStack";
 import SearchScreen from "../screens/Main/SearchScreen";
@@ -27,6 +29,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export default function MainTabNavigator() {
+  const navigation = useNavigation<any>();
   const [showCreate, setShowCreate] = useState(false);
   const [showListenModal, setShowListenModal] = useState(false);
   const [showJamInfo, setShowJamInfo] = useState(false);
@@ -368,7 +371,26 @@ export default function MainTabNavigator() {
         <Tab.Screen name="Home" component={HomeStack} listeners={{ tabPress: () => setShowCreate(false) }} />
         <Tab.Screen name="Search" component={SearchScreen} listeners={{ tabPress: () => setShowCreate(false) }} />
         <Tab.Screen name="Library" component={LibraryScreen} listeners={{ tabPress: () => setShowCreate(false) }} />
-        <Tab.Screen name="Chat" component={ChatScreen} listeners={{ tabPress: () => setShowCreate(false) }} />
+        <Tab.Screen name="Chat" component={ChatScreen} listeners={{ 
+          tabPress: (e) => {
+            e.preventDefault();
+            SecureStore.getItemAsync("accessToken").then((token) => {
+              if (!token) {
+                Alert.alert(
+                  "Thông báo",
+                  "Vui lòng đăng nhập để dùng chức năng này.",
+                  [
+                    { text: "Tôi biết r", style: "cancel" },
+                    { text: "Quay về trang home", onPress: () => navigation.navigate("Home") }
+                  ]
+                );
+              } else {
+                setShowCreate(false);
+                navigation.navigate("Chat");
+              }
+            });
+          }
+        }} />
 
         <Tab.Screen
           name="Create"
@@ -376,7 +398,20 @@ export default function MainTabNavigator() {
           listeners={{
             tabPress: (e) => {
               e.preventDefault();
-              setShowCreate(prev => !prev);
+              SecureStore.getItemAsync("accessToken").then((token) => {
+                if (!token) {
+                  Alert.alert(
+                    "Thông báo",
+                    "Vui lòng đăng nhập để dùng chức năng này.",
+                    [
+                      { text: "Tôi biết r", style: "cancel" },
+                      { text: "Quay về trang home", onPress: () => navigation.navigate("Home") }
+                    ]
+                  );
+                } else {
+                  setShowCreate(prev => !prev);
+                }
+              });
             },
           }}
         />
