@@ -195,10 +195,10 @@ export default function AdminAccount() {
               style={{ backgroundColor: 'rgba(239,68,68,0.1)', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)' }}
               activeOpacity={0.8}
               onPress={async () => {
-              await stopMusic();
-              await SecureStore.deleteItemAsync('accessToken');
-              navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Welcone' }] }));
-            }}
+                await stopMusic();
+                await SecureStore.deleteItemAsync('accessToken');
+                navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Welcone' }] }));
+              }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>

@@ -60,10 +60,10 @@ const GENRE_CONFIG: Record<string, { colors: [string, string, string, string]; i
         icon: "headset",
         label: "R&B",
     },
-    electronic: {
-        colors: ["#10B981", "#059669", "#001a0d", "#050505"],
-        icon: "flash",
-        label: "Electronic",
+    mashup: {
+        colors: ["#EC4899", "#BE185D", "#1a0010", "#050505"],
+        icon: "musical-notes",
+        label: "Mashup",
     },
 };
 

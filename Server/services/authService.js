@@ -119,13 +119,13 @@ const resetPassword = async (email, otp, newPassword) => {
   return { message: 'Password updated successfully' };
 };
 
-const googleMobileLogin = async (code, redirectUri) => {
+const googleMobileLogin = async (code, redirectUri, codeVerifier) => {
   // 1) Exchange authorization code → lấy id_token từ Google
   googleOAuth2Client.redirectUri = redirectUri;
-  const { tokens } = await googleOAuth2Client.getToken({
-    code,
-    redirect_uri: redirectUri,
-  });
+  const tokenRequest = { code, redirect_uri: redirectUri };
+  // PKCE: nếu client gửi code_verifier thì thêm vào request
+  if (codeVerifier) tokenRequest.codeVerifier = codeVerifier;
+  const { tokens } = await googleOAuth2Client.getToken(tokenRequest);
 
   const idToken = tokens.id_token;
   if (!idToken) throw new Error('Không nhận được id_token từ Google');

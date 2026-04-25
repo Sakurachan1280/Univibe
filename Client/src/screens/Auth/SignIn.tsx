@@ -3,7 +3,6 @@ import { View, Text, Image, TouchableOpacity, Alert, ActivityIndicator } from "r
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
 import { Ionicons } from "@expo/vector-icons";
-
 import { CommonActions } from "@react-navigation/native";
 import { googleLoginAPI } from "../../API/authAPI";
 import { useGoogleAuth } from "../../hooks/useGoogleAuth";
@@ -15,11 +14,11 @@ export default function SignIn() {
   const { connectSocket } = useSocket();
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  // Xử lý sau khi Google OAuth thành công → nhận code + redirectUri
-  const handleGoogleSuccess = async (code: string, redirectUri: string) => {
+  // Xử lý sau khi Google OAuth thành công → nhận code + redirectUri + codeVerifier (PKCE)
+  const handleGoogleSuccess = async (code: string, redirectUri: string, codeVerifier?: string) => {
     setGoogleLoading(true);
     try {
-      const result = await googleLoginAPI({ code, redirectUri });
+      const result = await googleLoginAPI({ code, redirectUri, codeVerifier });
 
       // Lưu token vào SecureStore
       await SecureStore.setItemAsync("accessToken", result.token);
@@ -48,7 +47,6 @@ export default function SignIn() {
   };
 
   const { promptAsync, requestReady } = useGoogleAuth(handleGoogleSuccess);
-
   return (
     <SafeAreaView className="flex-1 bg-black px-6">
 
@@ -101,8 +99,8 @@ export default function SignIn() {
             </View>
           </View>
           <View className="w-6" />
-        </TouchableOpacity>
 
+        </TouchableOpacity>
         <Text className="text-white text-xl text-center mt-3 font-bold">
           Bạn chưa có tài khoản?
         </Text>

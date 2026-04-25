@@ -55,10 +55,10 @@ const googleAuthCallback = (req, res) => {
 
 const googleMobileAuth = async (req, res) => {
   try {
-    const { code, redirectUri } = req.body;
+    const { code, redirectUri, codeVerifier } = req.body;
     if (!code) return res.status(400).json({ message: 'code is required' });
     if (!redirectUri) return res.status(400).json({ message: 'redirectUri is required' });
-    const result = await authService.googleMobileLogin(code, redirectUri);
+    const result = await authService.googleMobileLogin(code, redirectUri, codeVerifier);
     res.json(result);
   } catch (err) {
     console.error('Google Mobile Auth Error:', err.message);

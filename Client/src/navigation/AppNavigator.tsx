@@ -12,12 +12,10 @@ import { RootStackParamList } from "./types";
 import MainTabNavigator from './MainTabs';
 import ChatDetailScreen from '../screens/ChatRoom/ChatDetailScreen';
 import ChatScreen from '../screens/ChatRoom/ChatScreen';
-import MusicPlayerScreen from '../screens/ListeningRoom/MusicPlayerScreen';
-import CreateRoomScreen from '../screens/ListeningRoom/CreateListenRoom';
-import ListeningRoomScreen from '../screens/ListeningRoom/ListeningRoom';
+import MusicPlayerScreen from '../components/Music/MusicPlayerScreen';
 import Welcone from '../screens/Auth/Welcone';
-import artist from '../screens/Admin/artist';
-import ArtistDetailScreen from '../screens/ListeningRoom/ArtistDetailScreen';
+import artist from '../screens/Admin/Addartist';
+import ArtistDetailScreen from '../screens/Profile/ArtistDetailScreen';
 import AccountScreen from '../screens/Setting/AccountScreen';
 import AdminNavigator from './AdminNavigator';
 import RegisterScreen from '../screens/Auth/Register';
@@ -28,9 +26,8 @@ import SettingsScreen from '../screens/Profile/Setting';
 import PlaylistsScreen from '../screens/Main/PlaylistsScreen';
 import GenrePlaylistScreen from '../screens/ItemsMainMusic/GenrePlaylistScreen';
 import AlbumDetailScreen from '../screens/ItemsMainMusic/AlbumDetailScreen';
-import UserProfileScreen from '../screens/ChatRoom/UserProfileScreen';
+import UserProfileScreen from '../screens/Profile/UserProfileScreen';
 import ViewProfileScreen from '../screens/Profile/ViewProfile';
-import AppDeviceScreen from '../screens/Setting/AppDeviceScreen';
 import AboutScreen from '../screens/Setting/AboutScreen';
 import HelpScreen from '../screens/Setting/HelpScreen';
 import AIPlaylistDetailScreen from '../screens/ItemsMainMusic/AIPlaylistDetailScreen';
@@ -60,8 +57,6 @@ export default function AppNavigator() {
           component={MusicPlayerScreen}
           options={{ presentation: 'transparentModal', animation: 'none' }}
         />
-        <Stack.Screen name="CreateRoom" component={CreateRoomScreen} />
-        <Stack.Screen name="ListeningRoom" component={ListeningRoomScreen} />
         <Stack.Screen name="artist" component={artist} />
         <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
@@ -75,7 +70,6 @@ export default function AppNavigator() {
         <Stack.Screen name="UserProfile" component={UserProfileScreen} />
         <Stack.Screen name="ViewProfile" component={ViewProfileScreen} />
         <Stack.Screen name="AccountScreen" component={AccountScreen} />
-        <Stack.Screen name="AppDeviceScreen" component={AppDeviceScreen} />
         <Stack.Screen name="AboutScreen" component={AboutScreen} />
         <Stack.Screen name="HelpScreen" component={HelpScreen} />
         <Stack.Screen name="AIPlaylistDetail" component={AIPlaylistDetailScreen} />

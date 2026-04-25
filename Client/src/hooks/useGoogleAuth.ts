@@ -5,12 +5,9 @@ import { useEffect } from "react";
 // Đóng cửa sổ browser sau khi xác thực OAuth thành công
 WebBrowser.maybeCompleteAuthSession();
 
-const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID ?? "";
+const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID ?? "146828788136-k7r446b057t137p6s84t9qj23543445u.apps.googleusercontent.com";
 
-// Expo proxy redirect URI cho Expo Go (Google chấp nhận https://)
-const EXPO_PROXY_REDIRECT = "https://auth.expo.io/@minh11_01/univibe";
-
-// Hardcode Google discovery endpoints (không dùng useAutoDiscovery để tránh hook ngoài component)
+// Hardcode Google discovery endpoints
 const discovery = {
     authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
     tokenEndpoint: "https://oauth2.googleapis.com/token",
@@ -19,19 +16,14 @@ const discovery = {
 
 /**
  * Hook xử lý Google OAuth flow trên Expo mobile.
- * - Dùng Authorization Code + PKCE (Google yêu cầu từ 2022+, không còn implicit flow)
- * - Expo Go → redirect qua proxy https://auth.expo.io
- * - Dev build / Production → dùng custom scheme univibe://
+ * - Dùng Authorization Code + PKCE
+ * - Development build / Production → dùng custom scheme univibe://
+ * - NOTE: auth.expo.io proxy đã bị tắt từ Expo SDK 49+, không dùng được nữa
  */
-export function useGoogleAuth(onSuccess: (code: string, redirectUri: string) => void) {
-    // Detect Expo Go bằng __DEV__ + check xem URI có scheme exp:// không
-    const testRedirectUri = AuthSession.makeRedirectUri({ scheme: "univibe" });
-    const isExpoGo = testRedirectUri.startsWith("exp://");
+export function useGoogleAuth(onSuccess: (code: string, redirectUri: string, codeVerifier?: string) => void) {
+    // Dùng custom scheme univibe:// — hoạt động trên dev build và production build
+    const redirectUri = AuthSession.makeRedirectUri({ scheme: "univibe" });
 
-    // Chọn redirect URI phù hợp
-    const redirectUri = isExpoGo ? EXPO_PROXY_REDIRECT : testRedirectUri;
-
-    console.log("[Google OAuth] isExpoGo:", isExpoGo);
     console.log("[Google OAuth] redirectUri:", redirectUri);
     console.log("[Google OAuth] clientId:", GOOGLE_CLIENT_ID);
 
@@ -41,7 +33,7 @@ export function useGoogleAuth(onSuccess: (code: string, redirectUri: string) => 
             redirectUri,
             responseType: AuthSession.ResponseType.Code,
             scopes: ["openid", "profile", "email"],
-            usePKCE: false, // Expo proxy (auth.expo.io) không hỗ trợ PKCE
+            usePKCE: true,
         },
         discovery
     );
@@ -51,7 +43,8 @@ export function useGoogleAuth(onSuccess: (code: string, redirectUri: string) => 
             const { code } = response.params;
             console.log("[Google OAuth] Nhận được code:", code ? "✅" : "❌");
             if (code) {
-                onSuccess(code, redirectUri);
+                // Truyền cả codeVerifier (PKCE) sang server
+                onSuccess(code, redirectUri, request?.codeVerifier ?? undefined);
             }
         } else if (response?.type === "error") {
             console.error("[Google OAuth] Lỗi:", JSON.stringify(response.error));
@@ -65,3 +58,4 @@ export function useGoogleAuth(onSuccess: (code: string, redirectUri: string) => 
         requestReady: !!request,
     };
 }
+

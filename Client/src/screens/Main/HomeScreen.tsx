@@ -37,7 +37,7 @@ export default function HomeScreen() {
   useEffect(() => {
     getNotificationsAPI()
       .then(data => setUnreadNotificationCount(data.unreadCount ?? 0))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // Fetch artists và chọn ngẫu nhiên 1 artist
@@ -276,7 +276,7 @@ export default function HomeScreen() {
 
         {/* ─── ĐỀ XUẤT CHO BẠN — Genre Playlists ─── */}
         <View className="mt-6">
-          <Text className="text-white text-2xl font-bold px-4 mb-1">Đề xuất theo thể loại</Text>
+          <Text className="text-white text-2xl font-bold px-4 mb-1">Nhạc theo thể loại</Text>
           <Text className="text-gray-400 text-sm px-4 mb-4">Playlist nhạc tự động theo thể loại</Text>
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -304,18 +304,18 @@ export default function HomeScreen() {
                   icon: "mic",
                 },
                 {
-                  genre: "edm",
-                  title: "EDM / Electronic",
-                  desc: "Nhạc điện tử sôi động",
-                  colors: ["#06B6D4", "#0891B2"] as [string, string],
-                  icon: "pulse",
+                  genre: "r&b",
+                  title: "R&B",
+                  desc: "Nhạc R&B mượt mà, sâu lắng",
+                  colors: ["#8B5CF6", "#6D28D9"] as [string, string],
+                  icon: "headset",
                 },
                 {
-                  genre: "indie",
-                  title: "Indie & Chill",
-                  desc: "Nhạc indie nhẹ nhàng",
-                  colors: ["#10B981", "#059669"] as [string, string],
-                  icon: "leaf",
+                  genre: "mashup",
+                  title: "Mashup",
+                  desc: "Mix & remix bùng nổ",
+                  colors: ["#EC4899", "#BE185D"] as [string, string],
+                  icon: "musical-notes",
                 },
               ].map((item) => (
                 <TouchableOpacity
@@ -368,7 +368,7 @@ export default function HomeScreen() {
         {/* Album nổi bật — dữ liệu thật từ admin */}
         {adminAlbums.length > 0 && (
           <View className="mt-6">
-            <Text className="text-white text-2xl font-bold px-4 mb-1">Album </Text>
+            <Text className="text-white text-2xl font-bold px-4 mb-1">Khám phá các Album mới </Text>
             <Text className="text-gray-400 text-sm px-4 mb-4">Danh sách ALbum có trong Univibe</Text>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -435,56 +435,56 @@ export default function HomeScreen() {
                   // Skeleton Loaders
                   [1, 2, 3].map((_, i) => (
                     <View key={i} style={{ width: 160, borderRadius: 14, overflow: "hidden", backgroundColor: "#1c1c1e" }}>
-                        <View style={{ width: 160, height: 160, backgroundColor: "#2a2a2a" }} />
-                        <View style={{ padding: 10 }}>
-                            <View style={{ width: 100, height: 14, backgroundColor: "#333", borderRadius: 4, marginBottom: 6 }} />
-                            <View style={{ width: 60, height: 12, backgroundColor: "#222", borderRadius: 4 }} />
-                        </View>
+                      <View style={{ width: 160, height: 160, backgroundColor: "#2a2a2a" }} />
+                      <View style={{ padding: 10 }}>
+                        <View style={{ width: 100, height: 14, backgroundColor: "#333", borderRadius: 4, marginBottom: 6 }} />
+                        <View style={{ width: 60, height: 12, backgroundColor: "#222", borderRadius: 4 }} />
+                      </View>
                     </View>
                   ))
                 ) : (
                   aiRecs.map((song) => (
 
-                  <TouchableOpacity
-                    key={song._id}
-                    activeOpacity={0.75}
-                    onPress={() => 
-                      navigation.navigate("AIPlaylistDetail", { 
-                        title: song.title, 
-                        songs: [song], 
-                        description: `Đĩa đơn • Gợi ý bởi AI UniVibe` 
-                      })
-                    }
-                    style={{ width: 160, borderRadius: 14, overflow: "hidden", backgroundColor: "#1c1c1e" }}
-                  >
-                    {song.cover_image ? (
-                     <Image 
-                        source={song.cover_image} 
-                        style={{ width: 160, height: 160, borderRadius: 12 }}
-                        contentFit="cover"
-                        cachePolicy="memory-disk"
-                     />
-                    ) : (
-                      <LinearGradient
-                        colors={["#EC4899", "#9333EA"]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        style={{ width: 160, height: 160, borderRadius: 12, alignItems: "center", justifyContent: "center" }}
-                      >
-                         <Ionicons name="musical-note" size={52} color="rgba(255,255,255,0.9)" />
-                      </LinearGradient>
-                    )}
-                    <View style={{ padding: 10 }}>
-                      <Text className="text-white font-bold" numberOfLines={1} style={{ fontSize: 14, marginBottom: 3 }}>
-                        {song.title}
-                      </Text>
-                      <Text className="text-gray-400" numberOfLines={1} style={{ fontSize: 12 }}>
-                        {song.artist_ids?.[0]?.name || "Artist"}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                ))
-              )}
+                    <TouchableOpacity
+                      key={song._id}
+                      activeOpacity={0.75}
+                      onPress={() =>
+                        navigation.navigate("AIPlaylistDetail", {
+                          title: song.title,
+                          songs: [song],
+                          description: `Đĩa đơn • Gợi ý bởi AI UniVibe`
+                        })
+                      }
+                      style={{ width: 160, borderRadius: 14, overflow: "hidden", backgroundColor: "#1c1c1e" }}
+                    >
+                      {song.cover_image ? (
+                        <Image
+                          source={song.cover_image}
+                          style={{ width: 160, height: 160, borderRadius: 12 }}
+                          contentFit="cover"
+                          cachePolicy="memory-disk"
+                        />
+                      ) : (
+                        <LinearGradient
+                          colors={["#EC4899", "#9333EA"]}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                          style={{ width: 160, height: 160, borderRadius: 12, alignItems: "center", justifyContent: "center" }}
+                        >
+                          <Ionicons name="musical-note" size={52} color="rgba(255,255,255,0.9)" />
+                        </LinearGradient>
+                      )}
+                      <View style={{ padding: 10 }}>
+                        <Text className="text-white font-bold" numberOfLines={1} style={{ fontSize: 14, marginBottom: 3 }}>
+                          {song.title}
+                        </Text>
+                        <Text className="text-gray-400" numberOfLines={1} style={{ fontSize: 12 }}>
+                          {song.artist_ids?.[0]?.name || "Artist"}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))
+                )}
               </View>
             </ScrollView>
           </View>
@@ -497,75 +497,75 @@ export default function HomeScreen() {
               <Text className="text-white text-2xl font-bold">AI tạo playlist cho bạn</Text>
               <Text className="text-gray-400 text-sm mt-0.5">Mix nhạc không giới hạn</Text>
             </View>
-            
+
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View className="flex-row gap-5 px-4">
                 {loadingAI ? (
                   // Skeleton Loaders
                   [1, 2, 3].map((_, i) => (
                     <View key={i} className="w-44">
-                        <View className="w-44 h-44 rounded-2xl bg-neutral-900 border border-white/5 items-center justify-center">
-                            <Ionicons name="sparkles" size={40} color="#333" />
-                        </View>
-                        <View className="mt-3">
-                            <View style={{ width: 120, height: 16, backgroundColor: "#222", borderRadius: 4, marginBottom: 6 }} />
-                            <View style={{ width: 150, height: 12, backgroundColor: "#111", borderRadius: 4 }} />
-                        </View>
+                      <View className="w-44 h-44 rounded-2xl bg-neutral-900 border border-white/5 items-center justify-center">
+                        <Ionicons name="sparkles" size={40} color="#333" />
+                      </View>
+                      <View className="mt-3">
+                        <View style={{ width: 120, height: 16, backgroundColor: "#222", borderRadius: 4, marginBottom: 6 }} />
+                        <View style={{ width: 150, height: 12, backgroundColor: "#111", borderRadius: 4 }} />
+                      </View>
                     </View>
                   ))
                 ) : (
                   aiMixes.map((mix, idx) => (
 
-                  <TouchableOpacity
-                    key={idx}
-                    activeOpacity={0.8}
-                    className="w-44"
-                    onPress={() => {
-                        navigation.navigate("AIPlaylistDetail", { 
-                            title: mix.name, 
-                            songs: mix.tracks,
-                            description: mix.desc 
+                    <TouchableOpacity
+                      key={idx}
+                      activeOpacity={0.8}
+                      className="w-44"
+                      onPress={() => {
+                        navigation.navigate("AIPlaylistDetail", {
+                          title: mix.name,
+                          songs: mix.tracks,
+                          description: mix.desc
                         });
-                    }}
-                  >
-                    <View className="w-44 h-44 rounded-2xl overflow-hidden bg-neutral-900 shadow-xl border border-white/5">
-                       {/* Collage Mosaic for the Mix */}
-                       <View className="flex-row flex-wrap w-full h-full">
+                      }}
+                    >
+                      <View className="w-44 h-44 rounded-2xl overflow-hidden bg-neutral-900 shadow-xl border border-white/5">
+                        {/* Collage Mosaic for the Mix */}
+                        <View className="flex-row flex-wrap w-full h-full">
                           {mix.tracks.slice(0, 4).map((song, sIdx) => (
-                            <Image 
+                            <Image
                               key={sIdx}
-                              source={song.cover_image} 
+                              source={song.cover_image}
                               className="w-[22] h-[22]" // roughly half
                               style={{ width: '50%', height: '50%' }}
                               contentFit="cover"
                             />
                           ))}
                           {mix.tracks.length === 0 && (
-                             <LinearGradient 
-                               colors={["#4c1d95", "#831843"]} 
-                               className="w-full h-full items-center justify-center"
-                             >
-                                <Ionicons name="sparkles" size={44} color="white" />
-                             </LinearGradient>
+                            <LinearGradient
+                              colors={["#4c1d95", "#831843"]}
+                              className="w-full h-full items-center justify-center"
+                            >
+                              <Ionicons name="sparkles" size={44} color="white" />
+                            </LinearGradient>
                           )}
                           {/* Overlay with subtle gradient to make title pop */}
                           <LinearGradient
                             colors={["transparent", "rgba(0,0,0,0.6)"]}
                             className="absolute inset-x-0 bottom-0 h-1/2"
                           />
-                       </View>
-                    </View>
-                    <View className="mt-3">
-                      <Text className="text-white font-bold text-[15px]" numberOfLines={1}>
-                        {mix.name}
-                      </Text>
-                      <Text className="text-gray-400 text-[11px] font-medium leading-[14px] mt-1" numberOfLines={2}>
-                        {mix.desc || "Dành riêng cho bạn bởi AI UniVibe"}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                ))
-              )}
+                        </View>
+                      </View>
+                      <View className="mt-3">
+                        <Text className="text-white font-bold text-[15px]" numberOfLines={1}>
+                          {mix.name}
+                        </Text>
+                        <Text className="text-gray-400 text-[11px] font-medium leading-[14px] mt-1" numberOfLines={2}>
+                          {mix.desc || "Dành riêng cho bạn bởi AI UniVibe"}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))
+                )}
               </View>
             </ScrollView>
           </View>

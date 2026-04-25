@@ -28,6 +28,7 @@ export interface LoginResponse {
 export interface GoogleLoginPayload {
   code: string;
   redirectUri: string;
+  codeVerifier?: string;
 }
 
 export const registerAPI = async (

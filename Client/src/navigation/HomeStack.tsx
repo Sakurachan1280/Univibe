@@ -10,9 +10,8 @@ import RecentScreen from '../screens/Profile/Recent';
 import ViewProfile from '../screens/Profile/ViewProfile';
 import AccountScreen from '../screens/Setting/AccountScreen';
 import App from '../../App';
-import AppDeviceScreen from '../screens/Setting/AppDeviceScreen';
 import AboutScreen from '../screens/Setting/AboutScreen';
-import ArtistDetailScreen from '../screens/ListeningRoom/ArtistDetailScreen';
+import ArtistDetailScreen from '../screens/Profile/ArtistDetailScreen';
 import AlbumDetailScreen from '../screens/ItemsMainMusic/AlbumDetailScreen';
 import RecentPlayedScreen from '../screens/ItemsMainMusic/RecentPlayedScreen';
 
@@ -36,7 +35,6 @@ export default function HomeStack() {
             <Stack.Screen name="RecentScreen" component={RecentScreen} />
             <Stack.Screen name="ViewProfile" component={ViewProfile} />
             <Stack.Screen name="AccountScreen" component={AccountScreen} />
-            <Stack.Screen name="AppDeviceScreen" component={AppDeviceScreen} />
             <Stack.Screen name="AboutScreen" component={AboutScreen} />
             <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} />
             <Stack.Screen name="AlbumDetail" component={AlbumDetailScreen} />
