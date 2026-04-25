@@ -1,52 +1,13 @@
-import React, { useState } from "react";
-import { View, Text, Image, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
+import React from "react";
+import { View, Text, Image, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppNavigation } from "../../navigation/useAppNavigation";
 import { Ionicons } from "@expo/vector-icons";
-import { CommonActions } from "@react-navigation/native";
-import { googleLoginAPI } from "../../API/authAPI";
-import { useGoogleAuth } from "../../hooks/useGoogleAuth";
-import * as SecureStore from "expo-secure-store";
-import { useSocket } from "../../context/SocketContext";
+
+
 
 export default function SignIn() {
   const navigation = useAppNavigation();
-  const { connectSocket } = useSocket();
-  const [googleLoading, setGoogleLoading] = useState(false);
-
-  // Xử lý sau khi Google OAuth thành công → nhận code + redirectUri + codeVerifier (PKCE)
-  const handleGoogleSuccess = async (code: string, redirectUri: string, codeVerifier?: string) => {
-    setGoogleLoading(true);
-    try {
-      const result = await googleLoginAPI({ code, redirectUri, codeVerifier });
-
-      // Lưu token vào SecureStore
-      await SecureStore.setItemAsync("accessToken", result.token);
-
-      // Kết nối socket ngay lập tức
-      await connectSocket();
-
-      // Navigate theo role
-      if (result.role === "admin") {
-        navigation.dispatch(
-          CommonActions.reset({ index: 0, routes: [{ name: "AdminNavigator" }] })
-        );
-      } else {
-        navigation.dispatch(
-          CommonActions.reset({ index: 0, routes: [{ name: "MainTabs" }] })
-        );
-      }
-    } catch (error: any) {
-      Alert.alert(
-        "Đăng nhập Google thất bại",
-        error.response?.data?.message || "Đã xảy ra lỗi, vui lòng thử lại"
-      );
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
-
-  const { promptAsync, requestReady } = useGoogleAuth(handleGoogleSuccess);
   return (
     <SafeAreaView className="flex-1 bg-black px-6">
 
@@ -70,37 +31,22 @@ export default function SignIn() {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity activeOpacity={0.5} onPress={() => navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: "MainTabs" }], }))}>
+        <TouchableOpacity activeOpacity={0.5} onPress={() => navigation.navigate("LogInSDT")} >
           <View className="flex-row items-center border border-white rounded-full py-4 px-5">
-            <Ionicons name="person-outline" size={24} color="white" />
-            <View className="flex-1 items-center"><Text className="text-white text-xl font-bold">Tiếp tục bằng Tài khoản khách</Text></View>
+            <Ionicons name="call-outline" size={24} color="white" />
+            <View className="flex-1 items-center"><Text className="text-white text-xl font-bold">Tiếp tục bằng Số điện thoại</Text></View>
           </View>
           <View className="w-6" />
         </TouchableOpacity>
 
-        {/* NÚT GOOGLE */}
-        <TouchableOpacity
-          activeOpacity={0.5}
-          disabled={!requestReady || googleLoading}
-          onPress={() => promptAsync()}
-        >
-          <View className={`flex-row items-center border rounded-full py-4 px-5 ${(!requestReady || googleLoading) ? "border-white/40" : "border-white"
-            }`}>
-            {googleLoading ? (
-              <ActivityIndicator size="small" color="white" />
-            ) : (
-              <Ionicons name="logo-google" size={24} color="white" />
-            )}
-            <View className="flex-1 items-center">
-              <Text className={`text-xl font-bold ${(!requestReady || googleLoading) ? "text-white/50" : "text-white"
-                }`}>
-                {googleLoading ? "Đang xử lý..." : "Tiếp tục bằng Google"}
-              </Text>
-            </View>
+        <TouchableOpacity activeOpacity={0.5} onPress={() => { }}>
+          <View className="flex-row items-center border border-white rounded-full py-4 px-5">
+            <Ionicons name="logo-google" size={24} color="white" />
+            <View className="flex-1 items-center"><Text className="text-white text-xl font-bold">Tiếp tục bằng Google</Text></View>
           </View>
           <View className="w-6" />
-
         </TouchableOpacity>
+
         <Text className="text-white text-xl text-center mt-3 font-bold">
           Bạn chưa có tài khoản?
         </Text>
