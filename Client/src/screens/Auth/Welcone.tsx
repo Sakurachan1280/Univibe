@@ -35,7 +35,7 @@ export default function Login() {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity activeOpacity={0.5} onPress={()=> navigation.navigate("SignIn")}>
+        <TouchableOpacity activeOpacity={0.5} onPress={() => navigation.navigate("SignIn")}>
           <View className="border border-white rounded-full py-4 items-center">
             <Text className="text-white text-xl font-bold">Đăng nhập</Text>
           </View>
