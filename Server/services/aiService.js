@@ -52,11 +52,11 @@ class AIService {
       const match = content.match(/\[.*\]/s);
       let ids = match ? JSON.parse(match[0]) : [];
 
-      // VALIDATE: Đảm bảo các ID trả về tồn tại trong list DB gửi đi
+      // 5. Deduplicate and FILL: Ensure the list is unique and has enough items
       const validDbIds = new Set(allSongs.map(s => s._id.toString()));
-      let finalIds = ids.filter(id => validDbIds.has(id.toString()));
+      let finalIds = [...new Set(ids.map(id => id.toString()))]
+        .filter(id => validDbIds.has(id));
 
-      // Nếu thiếu bài, lấy bù từ list hot songs
       if (finalIds.length < 6 && allSongs.length > 0) {
         const extra = allSongs
           .map(s => s._id.toString())
@@ -122,8 +122,9 @@ class AIService {
         const validDbIds = new Set(allSongs.map(s => s._id.toString()));
         
         return mixes.map(mix => {
-            // Lọc ID vớ vẩn (AI ảo giác)
-            let filteredIds = (mix.songIds || []).filter(id => validDbIds.has(id.toString()));
+            // Lọc ID vớ vẩn (AI ảo giác) và đảm bảo duy nhất
+            let filteredIds = [...new Set((mix.songIds || []).map(id => id.toString()))]
+                .filter(id => validDbIds.has(id));
             
             // Nếu trống hoặc thiếu, lấy bù ngẫu nhiên
             if (filteredIds.length < 4 && allSongs.length > 0) {
