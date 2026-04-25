@@ -68,8 +68,10 @@ export default function HomeScreen() {
       try {
         const albums = await getAdminAlbums();
         if (albums && albums.length > 0) {
-          setAdminAlbums(albums);
-          const randomAlbum = albums[Math.floor(Math.random() * albums.length)];
+          // Deduplicate albums by _id
+          const uniqueAlbums = albums.filter((v, i, a) => a.findIndex(t => t._id === v._id) === i);
+          setAdminAlbums(uniqueAlbums);
+          const randomAlbum = uniqueAlbums[Math.floor(Math.random() * uniqueAlbums.length)];
           setQuickPlayItems(prev =>
             prev.map(item =>
               item.type === 'album'
@@ -103,7 +105,10 @@ export default function HomeScreen() {
         getAIPlaylists()
       ]);
 
-      if (recs && recs.length > 0) setAiRecs(recs);
+      if (recs && recs.length > 0) {
+        const uniqueRecs = recs.filter((v, i, a) => a.findIndex(t => t._id === v._id) === i);
+        setAiRecs(uniqueRecs);
+      }
       if (mixes && mixes.length > 0) setAiMixes(mixes);
     } catch (err) {
       console.error("[Home] AI Loading error:", err);
