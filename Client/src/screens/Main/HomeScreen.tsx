@@ -281,7 +281,7 @@ export default function HomeScreen() {
 
         {/* ─── ĐỀ XUẤT CHO BẠN — Genre Playlists ─── */}
         <View className="mt-6">
-          <Text className="text-white text-2xl font-bold px-4 mb-1">Đề xuất cho bạn</Text>
+          <Text className="text-white text-2xl font-bold px-4 mb-1">Đề xuất theo thể loại</Text>
           <Text className="text-gray-400 text-sm px-4 mb-4">Playlist nhạc tự động theo thể loại</Text>
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -296,7 +296,7 @@ export default function HomeScreen() {
                 },
                 {
                   genre: "ballad",
-                  title: "Ballad Buồn",
+                  title: "Ballad",
                   desc: "Nhạc tâm trạng, sâu lắng",
                   colors: ["#3B82F6", "#1D4ED8"] as [string, string],
                   icon: "heart",
@@ -373,8 +373,8 @@ export default function HomeScreen() {
         {/* Album nổi bật — dữ liệu thật từ admin */}
         {adminAlbums.length > 0 && (
           <View className="mt-6">
-            <Text className="text-white text-2xl font-bold px-4 mb-1">Album nổi bật</Text>
-            <Text className="text-gray-400 text-sm px-4 mb-4">Tuyển tập âm nhạc do UniVibe chọn lọc</Text>
+            <Text className="text-white text-2xl font-bold px-4 mb-1">Album </Text>
+            <Text className="text-gray-400 text-sm px-4 mb-4">Danh sách ALbum có trong Univibe</Text>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View className="flex-row gap-4 px-4">

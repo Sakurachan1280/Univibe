@@ -1,6 +1,7 @@
 const roomService = require('../services/roomService');
 const Song = require('../models/Song');
 const User = require('../models/User');
+const Friendship = require('../models/Friendship');
 
 const create = async (req, res) => {
   try {
@@ -37,6 +38,19 @@ const inviteFriend = async (req, res) => {
 
     const friend = await User.findById(friendId);
     if (!friend) return res.status(404).json({ message: "User not found" });
+
+    // Kiểm tra xem có thực sự là bạn bè không
+    const isFriend = await Friendship.findOne({
+      $or: [
+        { requester_id: req.user._id, recipient_id: friendId },
+        { requester_id: friendId, recipient_id: req.user._id }
+      ],
+      status: 'accepted'
+    });
+
+    if (!isFriend) {
+      return res.status(403).json({ message: "Chỉ có thể mời bạn bè tham gia Jam!" });
+    }
 
     req.io.to(friendId).emit('notification', {
       type: 'room_invite',
