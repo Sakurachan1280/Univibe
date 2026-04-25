@@ -9,7 +9,6 @@ import NewsScreen from '../screens/Profile/News';
 import RecentScreen from '../screens/Profile/Recent';
 import ViewProfile from '../screens/Profile/ViewProfile';
 import AccountScreen from '../screens/Setting/AccountScreen';
-import App from '../../App';
 import AboutScreen from '../screens/Setting/AboutScreen';
 import ArtistDetailScreen from '../screens/Profile/ArtistDetailScreen';
 import AlbumDetailScreen from '../screens/ItemsMainMusic/AlbumDetailScreen';

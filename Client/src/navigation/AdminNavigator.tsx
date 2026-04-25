@@ -8,12 +8,12 @@ import { AdminThemeProvider, useAdminTheme } from "../context/AdminThemeContext"
 import MusicListScreen from "../screens/Admin/AdminSong";
 import LibraryScreen from "../screens/Admin/AdminLibrary";
 import AccountScreen from "../screens/Admin/AdminSetting";
-import CreateSongScreen from "../screens/Admin/AddSong";
-import CreateArtistScreen from "../screens/Admin/AddArtist";
+import CreateSongScreen from "../screens/Admin/Addsong";
+import CreateArtistScreen from "../screens/Admin/Addartist";
 import ArtistManagementScreen from "../screens/Admin/ArtistManagement";
 import SongManagementScreen from "../screens/Admin/SongManagement";
 import AdminAlbumManagementScreen from "../screens/Admin/AdminAlbumManagement";
-import CreateAlbumScreen from "../screens/Admin/AddAlbum";
+import CreateAlbumScreen from "../screens/Admin/Addalbum";
 import AboutScreen from "../screens/Admin/AboutScreen";
 import HelpScreen from "../screens/Setting/HelpScreen";
 import SystemLogsScreen from "../screens/Admin/SystemLogsScreen";
