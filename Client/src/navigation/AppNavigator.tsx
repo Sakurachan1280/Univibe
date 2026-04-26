@@ -10,7 +10,7 @@ import ChatDetailScreen from '../screens/ChatRoom/ChatDetailScreen';
 import ChatScreen from '../screens/ChatRoom/ChatScreen';
 import MusicPlayerScreen from '../components/Music/MusicPlayerScreen';
 import Welcone from '../screens/Auth/Welcone';
-import artist from '../screens/Admin/AddArtist';
+import artist from '../screens/Admin/Addartist';
 import ArtistDetailScreen from '../screens/Profile/ArtistDetailScreen';
 import AccountScreen from '../screens/Setting/AccountScreen';
 import AdminNavigator from './AdminNavigator';

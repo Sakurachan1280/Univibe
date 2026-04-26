@@ -9,7 +9,7 @@ import MusicListScreen from "../screens/Admin/AdminSong";
 import LibraryScreen from "../screens/Admin/AdminLibrary";
 import AccountScreen from "../screens/Admin/AdminSetting";
 import CreateSongScreen from "../screens/Admin/AddSong";
-import CreateArtistScreen from "../screens/Admin/AddArtist";
+import CreateArtistScreen from "../screens/Admin/Addartist";
 import ArtistManagementScreen from "../screens/Admin/ArtistManagement";
 import SongManagementScreen from "../screens/Admin/SongManagement";
 import AdminAlbumManagementScreen from "../screens/Admin/AdminAlbumManagement";

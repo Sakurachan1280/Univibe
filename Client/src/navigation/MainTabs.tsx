@@ -371,7 +371,7 @@ export default function MainTabNavigator() {
         <Tab.Screen name="Home" component={HomeStack} listeners={{ tabPress: () => setShowCreate(false) }} />
         <Tab.Screen name="Search" component={SearchScreen} listeners={{ tabPress: () => setShowCreate(false) }} />
         <Tab.Screen name="Library" component={LibraryScreen} listeners={{ tabPress: () => setShowCreate(false) }} />
-        <Tab.Screen name="Chat" component={ChatScreen} listeners={{ 
+        <Tab.Screen name="Chat" component={ChatScreen} listeners={({ navigation }) => ({ 
           tabPress: (e) => {
             e.preventDefault();
             SecureStore.getItemAsync("accessToken").then((token) => {
@@ -380,7 +380,7 @@ export default function MainTabNavigator() {
                   "Thông báo",
                   "Vui lòng đăng nhập để dùng chức năng này.",
                   [
-                    { text: "Tôi biết r", style: "cancel" },
+                    { text: "Tôi biết rồi", style: "cancel" },
                     { text: "Quay về trang home", onPress: () => navigation.navigate("Home") }
                   ]
                 );
@@ -390,12 +390,12 @@ export default function MainTabNavigator() {
               }
             });
           }
-        }} />
+        })} />
 
         <Tab.Screen
           name="Create"
           component={HomeScreen}
-          listeners={{
+          listeners={({ navigation }) => ({
             tabPress: (e) => {
               e.preventDefault();
               SecureStore.getItemAsync("accessToken").then((token) => {
@@ -404,7 +404,7 @@ export default function MainTabNavigator() {
                     "Thông báo",
                     "Vui lòng đăng nhập để dùng chức năng này.",
                     [
-                      { text: "Tôi biết r", style: "cancel" },
+                      { text: "Tôi biết rồi", style: "cancel" },
                       { text: "Quay về trang home", onPress: () => navigation.navigate("Home") }
                     ]
                   );
@@ -413,7 +413,7 @@ export default function MainTabNavigator() {
                 }
               });
             },
-          }}
+          })}
         />
       </Tab.Navigator>
 
