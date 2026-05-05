@@ -27,7 +27,7 @@ import * as SecureStore from "expo-secure-store";
 //export const BASE_URL = "https://vesta-nonretroactive-cathryn.ngrok-free.dev";
 
 // 🔄 TÙY CHỌN KHÁC (Uncomment để sử dụng):
-export const BASE_URL = "http://192.168.1.25:5000"; // Local IP updated
+export const BASE_URL = "http://192.168.1.5:5000"; // Local IP updated
 // export const BASE_URL = "http://10.0.2.2:5000"; // Android Emulator
 
 /**

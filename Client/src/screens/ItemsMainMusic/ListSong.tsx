@@ -105,9 +105,7 @@ export default function ListSongScreen() {
                                 color={isLiked ? "#EC4899" : "#b3b3b3"}
                             />
                         </TouchableOpacity>
-                        <TouchableOpacity>
-                            <Ionicons name="arrow-down-circle-outline" size={28} color="#b3b3b3" />
-                        </TouchableOpacity>
+
                         <TouchableOpacity>
                             <Ionicons name="ellipsis-horizontal" size={28} color="#b3b3b3" />
                         </TouchableOpacity>

@@ -431,9 +431,11 @@ export default function UserProfileScreen({ route, navigation }: Props) {
                     Playlist công khai
                   </Text>
                   {profileData.playlists.map((pl: any) => (
-                    <View
+                    <TouchableOpacity
                       key={pl._id}
-                      className="flex-row items-center p-3 bg-white/5 rounded-xl mb-2 border border-white/10"
+                      className="flex-row items-center p-3 bg-white/5 rounded-xl mb-2 border border-white/10 active:bg-white/10"
+                      activeOpacity={0.7}
+                      onPress={() => navigation.push('Playlists', { title: pl.name, playlistId: pl._id })}
                     >
                       <View className="w-12 h-12 rounded-lg bg-gray-700 mr-3 items-center justify-center">
                         {pl.cover_image ? (
@@ -454,7 +456,7 @@ export default function UserProfileScreen({ route, navigation }: Props) {
                           {pl.tracks?.length || 0} bài hát
                         </Text>
                       </View>
-                    </View>
+                    </TouchableOpacity>
                   ))}
                 </View>
               )}

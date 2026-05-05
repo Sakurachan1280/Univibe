@@ -303,7 +303,7 @@ export default function HomeScreen() {
                 },
                 {
                   genre: "rap",
-                  title: "Rap Việt",
+                  title: "Rap",
                   desc: "Rap & Hip-hop đỉnh cao",
                   colors: ["#F59E0B", "#D97706"] as [string, string],
                   icon: "mic",

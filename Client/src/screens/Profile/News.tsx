@@ -69,10 +69,8 @@ export default function NewsScreen() {
           <Ionicons name="add" size={24} color="#fff" />
         </TouchableOpacity>
         
-        <TouchableOpacity className="w-11 h-11 rounded-full bg-neutral-800 items-center justify-center active:bg-neutral-700">
-          <Ionicons name="download-outline" size={22} color="#fff" />
-        </TouchableOpacity>
-        
+
+
         <TouchableOpacity className="w-11 h-11 rounded-full bg-neutral-800 items-center justify-center active:bg-neutral-700">
           <Ionicons name="ellipsis-horizontal" size={24} color="#fff" />
         </TouchableOpacity>

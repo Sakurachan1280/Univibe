@@ -136,11 +136,6 @@ export default function CustomProfileMenu({
 
           {/* Menu Items */}
           <View className="flex-1 px-5 pt-2">
-            <MenuItem
-              icon="add-circle-outline"
-              text="Thêm tài khoản"
-            />
-
             <TouchableOpacity className="flex-row items-center justify-between py-4">
               <View className="flex-row items-center flex-1">
                 <Ionicons

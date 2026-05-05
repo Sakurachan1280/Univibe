@@ -241,20 +241,11 @@ export default function LikeSongScreen() {
 
                 {/* ── ACTION ROW ── */}
                 <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingVertical: 16, gap: 12 }}>
-                    {/* Download */}
-                    <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: "rgba(255,255,255,0.07)", alignItems: "center", justifyContent: "center" }}>
-                        <Ionicons name="arrow-down-circle-outline" size={22} color="rgba(255,255,255,0.7)" />
-                    </TouchableOpacity>
+
 
                     <View style={{ flex: 1 }} />
 
-                    {/* Shuffle */}
-                    <TouchableOpacity
-                        onPress={handleShuffle}
-                        style={{ width: 50, height: 50, borderRadius: 25, backgroundColor: "rgba(255,255,255,0.08)", alignItems: "center", justifyContent: "center" }}
-                    >
-                        <Ionicons name="shuffle" size={22} color="white" />
-                    </TouchableOpacity>
+
 
                     {/* Play */}
                     <TouchableOpacity

@@ -35,6 +35,7 @@ import {
 import { useSocket } from '../../context/SocketContext';
 import { getRandomSongs, searchSongs, Song } from '../../API/songAPI';
 import * as ImagePicker from 'expo-image-picker';
+import { useMusic } from '../../context/MusicContext';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -43,6 +44,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ChatDetail'>;
 export default function ChatDetailScreen({ route, navigation }: Props) {
   const { userId, conversationId: initialConvId } = route.params;
   const { socket, currentUserId, onlineUserIds, refreshNotificationCount } = useSocket();
+  const { currentSong, isPlaying } = useMusic();
 
   const [lastActive, setLastActive] = useState<string | undefined>(undefined);
 
@@ -761,6 +763,48 @@ export default function ChatDetailScreen({ route, navigation }: Props) {
             </TouchableOpacity>
           </View>
 
+          {/* Now Playing Priority Card */}
+          {currentSong && (
+            <View style={styles.nowPlayingSection}>
+              <View style={styles.nowPlayingLabelRow}>
+                <View style={styles.nowPlayingPulse} />
+                <Text style={styles.nowPlayingLabel}>
+                  {isPlaying ? 'Đang phát' : 'Tạm dừng'}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.nowPlayingCard}
+                onPress={() => handleSelectSong(currentSong as any)}
+                activeOpacity={0.82}
+              >
+                <Image
+                  source={getCoverSource(currentSong.cover_image || (currentSong as any).coverUrl)}
+                  style={styles.nowPlayingCover}
+                  resizeMode="cover"
+                />
+                <View style={styles.nowPlayingInfo}>
+                  <Text style={styles.nowPlayingTitle} numberOfLines={1}>
+                    {currentSong.title}
+                  </Text>
+                  <Text style={styles.nowPlayingArtist} numberOfLines={1}>
+                    {(currentSong.artist_ids || []).map((a: any) => a.name).join(', ') ||
+                      (currentSong as any).artist ||
+                      'Unknown'}
+                  </Text>
+                </View>
+                <View style={styles.nowPlayingSendBtn}>
+                  <Ionicons name="paper-plane" size={16} color="#fff" style={{ marginLeft: 2 }} />
+                </View>
+              </TouchableOpacity>
+
+              <View style={styles.nowPlayingDivider}>
+                <View style={styles.nowPlayingDividerLine} />
+                <Text style={styles.nowPlayingDividerText}>Hoặc chọn bài khác</Text>
+                <View style={styles.nowPlayingDividerLine} />
+              </View>
+            </View>
+          )}
+
           {/* Search */}
           <View style={styles.searchBox}>
             <Ionicons name="search" size={18} color="#9CA3AF" style={{ marginRight: 8 }} />
@@ -993,6 +1037,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 10, marginBottom: 12,
   },
   searchInput: { flex: 1, color: '#fff', fontSize: 14, padding: 0 },
+
+  // Now Playing priority card
+  nowPlayingSection: { marginBottom: 4 },
+  nowPlayingLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+  nowPlayingPulse: {
+    width: 8, height: 8, borderRadius: 4,
+    backgroundColor: '#EC4899',
+    shadowColor: '#EC4899', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.9, shadowRadius: 6,
+  },
+  nowPlayingLabel: { color: '#EC4899', fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
+  nowPlayingCard: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#1c1020',
+    borderRadius: 16,
+    borderWidth: 1, borderColor: 'rgba(236,72,153,0.35)',
+    paddingVertical: 10, paddingHorizontal: 12, gap: 12,
+    shadowColor: '#EC4899', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.18, shadowRadius: 8,
+    marginBottom: 14,
+  },
+  nowPlayingCover: { width: 52, height: 52, borderRadius: 10, backgroundColor: '#1e1e1e' },
+  nowPlayingInfo: { flex: 1 },
+  nowPlayingTitle: { color: '#fff', fontSize: 14, fontWeight: '700', marginBottom: 3 },
+  nowPlayingArtist: { color: 'rgba(255,255,255,0.5)', fontSize: 12 },
+  nowPlayingSendBtn: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: '#EC4899',
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#EC4899', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 6,
+  },
+  nowPlayingDivider: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
+  nowPlayingDividerLine: { flex: 1, height: 1, backgroundColor: '#2a2a2a' },
+  nowPlayingDividerText: { color: '#555', fontSize: 11 },
 
   // Song item
   songItem: {

@@ -5,12 +5,14 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   ScrollView,
   StatusBar,
   TextInput,
   ActivityIndicator,
   Animated,
   Alert,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SecureStore from "expo-secure-store";
@@ -24,10 +26,13 @@ import {
   searchUsersAPI,
   getFriendsAPI,
   getConversationsAPI,
+  getPendingFriendRequestsAPI,
+  respondFriendRequestAPI,
 } from '../../API/socialAPI';
 import { BASE_URL } from '../../API/axiosClient';
 import { getMeAPI } from '../../API/userAPI';
 import { useSocket } from '../../context/SocketContext';
+
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -54,6 +59,12 @@ export default function ChatScreen() {
   const [loadingSearch, setLoadingSearch] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
+  // Friend requests
+  type PendingRequest = { _id: string; requester: SearchUser; created_at: string };
+  const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
+  const [showRequestsModal, setShowRequestsModal] = useState(false);
+  const [respondingId, setRespondingId] = useState<string | null>(null);
+
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchBarAnim = useRef(new Animated.Value(0)).current;
 
@@ -69,6 +80,7 @@ export default function ChatScreen() {
   useEffect(() => {
     fetchFriends();
     fetchConversations();
+    fetchPendingRequests();
   }, []);
 
   // Cập nhật conversation list realtime khi có tin nhắn mới
@@ -104,6 +116,28 @@ export default function ChatScreen() {
       console.error('Fetch conversations error:', e);
     } finally {
       setLoadingConversations(false);
+    }
+  };
+
+  const fetchPendingRequests = async () => {
+    try {
+      const data = await getPendingFriendRequestsAPI();
+      setPendingRequests(data);
+    } catch (e) {
+      console.error('Fetch pending requests error:', e);
+    }
+  };
+
+  const handleRespond = async (requestId: string, action: 'accept' | 'reject') => {
+    try {
+      setRespondingId(requestId);
+      await respondFriendRequestAPI(requestId, action);
+      setPendingRequests(prev => prev.filter(r => r._id !== requestId));
+      if (action === 'accept') fetchFriends();
+    } catch (e) {
+      console.error('Respond request error:', e);
+    } finally {
+      setRespondingId(null);
     }
   };
 
@@ -227,7 +261,7 @@ export default function ChatScreen() {
         activeOpacity={0.7}
       >
         <View className="relative">
-          <View className="w-[72px] h-[72px] rounded-full border-2 border-pink-500 p-0.5">
+          <View className="w-[72px] h-[72px] rounded-full">
             <Image
               source={getAvatarUri(user.profile?.avatar_url)}
               className="w-full h-full rounded-full"
@@ -374,9 +408,21 @@ export default function ChatScreen() {
             <TouchableOpacity
               className="w-10 h-10 rounded-full bg-white/10 items-center justify-center"
               activeOpacity={0.7}
-              onPress={activateSearch}
+              onPress={() => { fetchPendingRequests(); setShowRequestsModal(true); }}
             >
-              <Ionicons name="person-add-outline" size={20} color="white" />
+              <Ionicons name="people-outline" size={20} color="white" />
+              {pendingRequests.length > 0 && (
+                <View style={{
+                  position: 'absolute', top: -2, right: -2,
+                  backgroundColor: '#EC4899', borderRadius: 8,
+                  minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center',
+                  paddingHorizontal: 3,
+                }}>
+                  <Text style={{ color: 'white', fontSize: 9, fontWeight: '800' }}>
+                    {pendingRequests.length > 9 ? '9+' : pendingRequests.length}
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
         )}
@@ -415,9 +461,6 @@ export default function ChatScreen() {
           <View className="mt-5 mb-3">
             <View className="px-5 mb-3 flex-row items-center justify-between">
               <Text className="text-white text-base font-bold">Đang hoạt động</Text>
-              <TouchableOpacity onPress={activateSearch}>
-                <Text className="text-pink-500 text-xs font-medium">Tìm bạn +</Text>
-              </TouchableOpacity>
             </View>
 
             {loadingFriends ? (
@@ -465,6 +508,110 @@ export default function ChatScreen() {
           </View>
         </ScrollView>
       )}
+
+      {/* ── Friend Requests Modal ── */}
+      <Modal
+        visible={showRequestsModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowRequestsModal(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setShowRequestsModal(false)}>
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)' }} />
+        </TouchableWithoutFeedback>
+
+        <View style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0,
+          backgroundColor: '#111',
+          borderTopLeftRadius: 24, borderTopRightRadius: 24,
+          borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+          paddingBottom: 34, maxHeight: '75%',
+        }}>
+          {/* Handle */}
+          <View style={{ alignItems: 'center', paddingTop: 12, marginBottom: 4 }}>
+            <View style={{ width: 36, height: 4, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 2 }} />
+          </View>
+
+          {/* Header */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 12 }}>
+            <Text style={{ color: 'white', fontSize: 18, fontWeight: '800' }}>Lời mời kết bạn</Text>
+            {pendingRequests.length > 0 && (
+              <View style={{ backgroundColor: 'rgba(236,72,153,0.18)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 }}>
+                <Text style={{ color: '#EC4899', fontSize: 13, fontWeight: '700' }}>{pendingRequests.length} lời mời</Text>
+              </View>
+            )}
+          </View>
+
+          {/* List */}
+          <FlatList
+            data={pendingRequests}
+            keyExtractor={item => item._id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8 }}
+            ListEmptyComponent={
+              <View style={{ alignItems: 'center', paddingVertical: 40 }}>
+                <Ionicons name="people-outline" size={48} color="#333" />
+                <Text style={{ color: '#555', fontSize: 14, marginTop: 12 }}>Không có lời mời nào</Text>
+              </View>
+            }
+            renderItem={({ item }) => (
+              <View style={{
+                flexDirection: 'row', alignItems: 'center',
+                backgroundColor: 'rgba(255,255,255,0.04)',
+                borderRadius: 16, padding: 12, marginBottom: 10,
+                borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)',
+              }}>
+                {/* Avatar */}
+                <TouchableOpacity
+                  onPress={() => { setShowRequestsModal(false); navigation.navigate('UserProfile', { userId: item.requester._id }); }}
+                  activeOpacity={0.8}
+                >
+                  <Image
+                    source={getAvatarUri(item.requester.profile?.avatar_url)}
+                    style={{ width: 50, height: 50, borderRadius: 25 }}
+                    resizeMode="cover"
+                  />
+                </TouchableOpacity>
+
+                {/* Info */}
+                <View style={{ flex: 1, marginHorizontal: 12 }}>
+                  <Text style={{ color: 'white', fontSize: 15, fontWeight: '700' }} numberOfLines={1}>
+                    {item.requester.profile?.display_name || item.requester.username}
+                  </Text>
+                  <Text style={{ color: '#9CA3AF', fontSize: 12, marginTop: 2 }}>@{item.requester.username}</Text>
+                </View>
+
+                {/* Actions */}
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <TouchableOpacity
+                    onPress={() => handleRespond(item._id, 'accept')}
+                    disabled={respondingId === item._id}
+                    style={{
+                      backgroundColor: '#EC4899', borderRadius: 10,
+                      paddingHorizontal: 14, paddingVertical: 8,
+                    }}
+                  >
+                    {respondingId === item._id
+                      ? <ActivityIndicator size="small" color="white" />
+                      : <Text style={{ color: 'white', fontSize: 13, fontWeight: '700' }}>Chấp nhận</Text>
+                    }
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleRespond(item._id, 'reject')}
+                    disabled={respondingId === item._id}
+                    style={{
+                      backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10,
+                      paddingHorizontal: 14, paddingVertical: 8,
+                    }}
+                  >
+                    <Text style={{ color: '#9CA3AF', fontSize: 13, fontWeight: '600' }}>Từ chối</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          />
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

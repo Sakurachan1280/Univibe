@@ -117,3 +117,13 @@ export const startChatAPI = async (receiverId: string): Promise<{ conversationId
   // Server trả về conversation object, lấy _id làm conversationId
   return { conversationId: res.data?._id || res.data?.conversationId };
 };
+
+/** Lấy danh sách lời mời kết bạn đang chờ (pending_received) */
+export const getPendingFriendRequestsAPI = async (): Promise<{
+  _id: string;
+  requester: SearchUser;
+  created_at: string;
+}[]> => {
+  const res = await axiosClient.get('/social/requests/pending');
+  return res.data || [];
+};
