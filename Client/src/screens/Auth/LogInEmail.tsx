@@ -87,10 +87,6 @@ export default function LogInEmail() {
         <Text className="text-white text-base font-semibold">Đăng nhập</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity className="mt-4 py-3 rounded-full border border-white items-center" activeOpacity={0.5} onPress={() => navigation.navigate("LogInNoEmail")}>
-        <Text className="text-white text-base font-semibold">Đăng nhập không cần mật khẩu</Text>
-      </TouchableOpacity>
-
     </SafeAreaView>
   );
 }

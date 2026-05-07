@@ -235,9 +235,6 @@ export default function AddSongModal({ visible, onClose, roomId, jamQueue = [], 
           )}
         </View>
         <Text style={{ color: 'white', fontSize: 13, fontWeight: '700' }} numberOfLines={1}>{item.name}</Text>
-        <Text style={{ color: '#888', fontSize: 11, marginTop: 2 }} numberOfLines={1}>
-          {item.tracks?.length ?? 0} bài hát
-        </Text>
       </TouchableOpacity>
     );
   }, [CARD_WIDTH, handleSelectAlbum]);

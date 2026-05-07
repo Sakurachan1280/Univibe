@@ -289,7 +289,7 @@ export default function HomeScreen() {
               {[
                 {
                   genre: "pop",
-                  title: "Pop Hits",
+                  title: "Pop",
                   desc: "Những bài pop đang hot",
                   colors: ["#EC4899", "#9333EA"] as [string, string],
                   icon: "musical-notes",
