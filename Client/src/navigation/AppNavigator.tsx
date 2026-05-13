@@ -27,7 +27,8 @@ import ViewProfileScreen from '../screens/Profile/ViewProfile';
 import AboutScreen from '../screens/Setting/AboutScreen';
 import HelpScreen from '../screens/Setting/HelpScreen';
 import AIPlaylistDetailScreen from '../screens/ItemsMainMusic/AIPlaylistDetailScreen';
-
+import ForgotPasswordScreen from '../screens/Auth/ForgotPassword';
+import NewPasswordScreen from '../screens/Auth/NewPassword';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -65,6 +66,8 @@ export default function AppNavigator() {
         <Stack.Screen name="AboutScreen" component={AboutScreen} />
         <Stack.Screen name="HelpScreen" component={HelpScreen} />
         <Stack.Screen name="AIPlaylistDetail" component={AIPlaylistDetailScreen} />
+        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+        <Stack.Screen name="NewPassword" component={NewPasswordScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

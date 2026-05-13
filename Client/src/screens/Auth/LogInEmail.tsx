@@ -83,7 +83,18 @@ export default function LogInEmail() {
         className="bg-white/10 text-white rounded-lg px-4 py-3 mt-2 border border-white/20"
       />
 
-      <TouchableOpacity className="mt-8 py-3 rounded-full border border-white items-center" activeOpacity={0.5} onPress={handleLogin}>
+      {/* Quên mật khẩu */}
+      <TouchableOpacity
+        className="mt-3 self-end"
+        activeOpacity={0.6}
+        onPress={() => navigation.navigate("ForgotPassword")}
+      >
+        <Text style={{ color: "#4A4A4A" }} className="text-sm">
+          Quên Mật Khẩu?
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity className="mt-6 py-3 rounded-full border border-white items-center" activeOpacity={0.5} onPress={handleLogin}>
         <Text className="text-white text-base font-semibold">Đăng nhập</Text>
       </TouchableOpacity>
 

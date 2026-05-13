@@ -81,10 +81,4 @@ router.get('/queue', musicController.getQueue);
 // 5. Ghi nhận hành động (Pause, Seek, Complete, Skip)
 router.post('/log', protect, musicController.logAction);
 
-console.log('✅ Music routes loaded:');
-console.log('  - PUT /songs/:id (updateSong)');
-console.log('  - DELETE /songs/:id (deleteSong)');
-console.log('  - PUT /artists/:id (updateArtist)');
-console.log('  - DELETE /artists/:id (deleteArtist)');
-
 module.exports = router;

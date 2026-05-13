@@ -60,63 +60,48 @@ const login = async (email, password) => {
   };
 };
 
-const forgotPassword = async (email) => {
-  const user = await User.findOne({ email });
-  if (!user) throw new Error('User not found');
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-  await Verification.deleteMany({ email: email, type: 'reset_password' });
-
-  await Verification.create({
-    email: email,
-    otp_code: otp,
-    type: 'reset_password',
-    expires_at: new Date(Date.now() + 5 * 60 * 1000)
-  });
-
-  const message = `Mã xác nhận của bạn là: ${otp}`;
-  const htmlMessage = `
-    <div style="font-family: Arial; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-      <h2 style="color: #1DB954;">Đặt lại mật khẩu</h2>
-      <p>Xin chào <strong>${user.profile.display_name || user.username}</strong>,</p>
-      <p>Mã OTP của bạn là:</p>
-      <h1 style="color: #333; letter-spacing: 5px;">${otp}</h1>
-      <p>Mã này sẽ hết hạn sau 5 phút.</p>
-    </div>
-  `;
-
-  try {
-    await sendEmail({
-      email: user.email,
-      subject: 'Mã xác thực Spoti App',
-      message: message,
-      html: htmlMessage
-    });
-  } catch (err) {
-    await Verification.deleteMany({ email: email, type: 'reset_password' });
-    throw new Error('Không thể gửi email. Vui lòng kiểm tra lại đường truyền.');
-  }
-
-  return { message: 'OTP sent to email successfully' };
+const forgotPassword = async (email, username) => {
+  const user = await User.findOne({ email: email.trim().toLowerCase() });
+  if (!user) throw new Error('Không tìm thấy tài khoản với email này');
+  if (user.username.toLowerCase().trim() !== username.toLowerCase().trim()) throw new Error('Tên đăng nhập không khớp với email');
+  return { message: 'Identity verified' };
 };
 
-const resetPassword = async (email, otp, newPassword) => {
-  const verifyRecord = await Verification.findOne({
-    email,
-    otp_code: otp,
-    type: 'reset_password'
-  });
+const resetPassword = async (email, newPassword) => {
+  const user = await User.findOne({ email });
+  if (!user) throw new Error('Không tìm thấy tài khoản');
 
-  if (!verifyRecord) throw new Error('Invalid or expired OTP');
+  // Kiểm tra mật khẩu mới có trùng mật khẩu cũ không
+  // (chỉ kiểm tra nếu user có password, tài khoản Google có thể không có)
+  if (user.password) {
+    let isSame = false;
+    try {
+      isSame = await bcrypt.compare(newPassword, user.password);
+    } catch (_) {
+      isSame = false;
+    }
+
+    if (isSame) {
+      // Không đổi mật khẩu, nhưng trả về token để client có thể cho vào app
+      return {
+        samePassword: true,
+        token: generateToken(user._id),
+        role: user.role,
+      };
+    }
+  }
 
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(newPassword, salt);
 
   await User.findOneAndUpdate({ email }, { password: hashedPassword });
 
-  await Verification.deleteOne({ _id: verifyRecord._id });
-
-  return { message: 'Password updated successfully' };
+  return {
+    samePassword: false,
+    message: 'Password updated successfully',
+    token: generateToken(user._id),
+    role: user.role,
+  };
 };
 
 const googleMobileLogin = async (code, redirectUri, codeVerifier) => {

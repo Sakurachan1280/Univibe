@@ -339,7 +339,7 @@ export default function MusicPlayerScreen() {
               { paddingBottom: Math.max(insets.bottom, 12) + 4 },
             ]}
           >
-            <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate("CreateRoom")} style={styles.bottomAction}>
+            <TouchableOpacity activeOpacity={0.7} style={styles.bottomAction}>
               <Ionicons name="tv-outline" size={26} color="white" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.bottomAction}>

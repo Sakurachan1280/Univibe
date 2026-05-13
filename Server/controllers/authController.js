@@ -27,7 +27,8 @@ const login = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
   try {
-    await authService.forgotPassword(req.body.email);
+    const { email, username } = req.body;
+    await authService.forgotPassword(email, username);
     res.json({ message: 'OTP sent successfully' });
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -36,9 +37,9 @@ const forgotPassword = async (req, res) => {
 
 const resetPassword = async (req, res) => {
   try {
-    const { email, otp, newPassword } = req.body;
-    await authService.resetPassword(email, otp, newPassword);
-    res.json({ message: 'Password reset successfully' });
+    const { email, newPassword } = req.body;
+    const result = await authService.resetPassword(email, newPassword);
+    res.json(result);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
